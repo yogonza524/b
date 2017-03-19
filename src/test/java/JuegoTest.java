@@ -4,6 +4,7 @@
  * and open the template in the editor.
  */
 
+import com.bingo.enumeraciones.Denominacion;
 import com.bingo.rng.RNG;
 import com.core.bingosimulador.Juego;
 import org.apache.commons.lang3.ArrayUtils;
@@ -82,7 +83,10 @@ public class JuegoTest {
         j.setModoSimulacion(true);
         j.generarBolillero();
         j.mostrarBolillero();
-        j.setCreditos(4);
+        j.setCreditos(100);
+        j.setAcumulado(10000);
+        j.setDenominacion(Denominacion.DIEZ_CENTAVOS);
+        j.setModoTournament(false);
         j.setUmbralParaLiberarBolasExtra(1);
         j.setLimitesBolaExtraGratis(2, 6);
         j.mostrarCreditos();
@@ -108,6 +112,8 @@ public class JuegoTest {
         j.mostrarBolillero();
         System.out.println("Creditos invertidos en bolas extra: " + j.getCreditosInvertidosEnBolasExtra());
         System.out.println("Cantidad de bolas extra compradas: " + j.getCantidadDeBolasExtraSeleccionadas());
+        
+        j.cobrar();
         
     }
     

@@ -175,6 +175,22 @@ public class Matematica {
         return true;
     }
     
+    public static boolean estaContenido(final int[][] contenido, final Integer[][] contenedor){
+        for (int i = 0; i < contenido.length; i++) {
+            for (int j = 0; j < contenido[0].length; j++) {
+                //Comparar los valores iguales a 1 en el contenido
+                if (contenido[i][j] == 1) {
+                    //bit encendido, comparar la posicion del mismo en el contenedor
+                    if (contenido[i][j] != contenedor[i][j]) {
+                        //Valores distintos, no seguir buscando
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+    
     /**
      * Verifica si una matriz de enteros llamada menorJerarquia se encuentra
      * contenida en otra llamada contenedorMayor, para el calculo se procede
@@ -208,6 +224,18 @@ public class Matematica {
      */
     public static int[][] figuraBinaria(int[] bolillero, int[][] carton){
         int[][] salida = new int[carton.length][carton[0].length];
+        for (int i = 0; i < carton.length; i++) {
+            for (int j = 0; j < carton[0].length; j++) {
+                if (contiene(bolillero, carton[i][j])) {
+                    salida[i][j] = 1;
+                }
+            }
+        }
+        return salida;
+    }
+    
+    public static Integer[][] figuraBinaria(int[] bolillero, Integer[][] carton){
+        Integer[][] salida = new Integer[carton.length][carton[0].length];
         for (int i = 0; i < carton.length; i++) {
             for (int j = 0; j < carton[0].length; j++) {
                 if (contiene(bolillero, carton[i][j])) {
@@ -287,6 +315,20 @@ public class Matematica {
     }
     
     public static boolean leFaltaUno(int[][] figuraBinariaSinUno, int[][] figuraBinariaCompleta){
+        int iguales = 0;
+        int totalCasillasFiguraCompleta = contarLosPositivos(figuraBinariaCompleta);
+        for (int i = 0; i < figuraBinariaSinUno.length; i++) {
+            for (int j = 0; j < figuraBinariaSinUno[0].length; j++) {
+                if (figuraBinariaSinUno[i][j] == figuraBinariaCompleta[i][j] 
+                        && figuraBinariaSinUno[i][j] == 1) {
+                    iguales++;
+                }
+            }
+        }
+        return iguales == totalCasillasFiguraCompleta - 1;
+    }
+    
+    public static boolean leFaltaUno(Integer[][] figuraBinariaSinUno, int[][] figuraBinariaCompleta){
         int iguales = 0;
         int totalCasillasFiguraCompleta = contarLosPositivos(figuraBinariaCompleta);
         for (int i = 0; i < figuraBinariaSinUno.length; i++) {

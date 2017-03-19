@@ -7,12 +7,14 @@
 package com.core.bingosimulador;
 
 import com.bingo.entidades.FiguraPago;
+import com.bingo.enumeraciones.Denominacion;
 import com.bingo.fabricas.FiguraPagoFactoria;
 import com.bingo.perfilesJugador.Perfil;
 import com.bingo.rng.RNG;
 import com.bingo.util.Matematica;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -42,6 +44,13 @@ public class Juego {
     //Estado del juego
     private boolean iniciado;
     private boolean modoSimulacion;
+    private boolean modoTournament;
+    
+    //Denominacion
+    private Denominacion denominacion;
+    
+    //Porcentajes
+    private double porcentajeDeDescuentoParaTournament;
     
     //Perfiles de jugador
     private Perfil[] perfiles;
@@ -55,6 +64,7 @@ public class Juego {
     
     //Creditos
     private int creditos;
+    private double dinero;
     
     //Acumulado
     private double acumulado;
@@ -81,15 +91,6 @@ public class Juego {
     private boolean[] premiosDelBonusSeleccionados; //Premios seleccionados
     private int totalGanadoEnBonus;
     private final int cantidadTotalDePremiosEnBonus = 16;
-    
-    //Cómputo de estadisticas
-    private BigInteger cantidadDeJuegos;
-    private BigInteger cantidadDeJuegosGanados;
-    private BigInteger cantidadDeJuegosSinNingunPremio;
-    private BigInteger cantidadDeJuegosConBolasExtraLiberadas;
-    private BigInteger cantidadDeJuegosConBonusAlcanzado;
-    private BigInteger cantidadDeJuegosCon5PartidasSinGanarAlgo;
-    private BigInteger cantidadDeJuegosConPremiosGraciasALasBolasExtra;
     private int cantidadDeBolasExtraSeleccionadas;
 
     /**
@@ -126,6 +127,12 @@ public class Juego {
         
         perfiles = Perfil.perfiles();
         perfilActual = perfiles[0]; //Tomo el perfil debil
+        
+        //Porcentajes
+        porcentajeDeDescuentoParaTournament = .01;
+        
+        //Denominacion por defecto
+        denominacion = Denominacion.CINCO_CENTAVOS;
         
         cartones = new int[CARTONES][LINEAS][COLUMNAS];
         figurasDePago = new int[cantidadDeFigurasDePago][LINEAS][COLUMNAS];
@@ -190,7 +197,12 @@ public class Juego {
             }
             
             cartones[i] = casillas;
+            
+            //Ordeno ascendentemente
+            cartones[i] = ordenarAsendentemente(cartones[i]);
         }
+        
+        
     }
     
     /**
@@ -252,6 +264,22 @@ public class Juego {
     public int[] apuestas(){
         return this.apostado;
     }
+
+    public Denominacion getDenominacion() {
+        return denominacion;
+    }
+
+    public void setDenominacion(Denominacion denominacion) {
+        this.denominacion = denominacion;
+    }
+
+    public double getPorcentajeDeDescuentoParaTournament() {
+        return porcentajeDeDescuentoParaTournament;
+    }
+
+    public void setPorcentajeDeDescuentoParaTournament(double porcentajeDeDescuentoParaTournament) {
+        this.porcentajeDeDescuentoParaTournament = porcentajeDeDescuentoParaTournament;
+    }
     
     public int[] factoresDePago(){
         return this.factoresDePago;
@@ -259,6 +287,22 @@ public class Juego {
     
     public int[] ganado(){
         return this.ganado;
+    }
+
+    public int getCantidadDeBolasExtraSeleccionadas() {
+        return cantidadDeBolasExtraSeleccionadas;
+    }
+
+    public double getDinero() {
+        return dinero;
+    }
+
+    public void setDinero(double dinero) {
+        this.dinero = dinero;
+    }
+
+    public void setCantidadDeBolasExtraSeleccionadas(int cantidadDeBolasExtraSeleccionadas) {
+        this.cantidadDeBolasExtraSeleccionadas = cantidadDeBolasExtraSeleccionadas;
     }
     
     public int[][][] cartones(){
@@ -726,6 +770,22 @@ public class Juego {
         return premiosPorSalir;
     }
 
+    public boolean isModoTournament() {
+        return modoTournament;
+    }
+
+    public void setModoTournament(boolean modoTournament) {
+        this.modoTournament = modoTournament;
+    }
+
+    public Perfil getPerfilActual() {
+        return perfilActual;
+    }
+
+    public void setPerfilActual(Perfil perfilActual) {
+        this.perfilActual = perfilActual;
+    }
+
     public void setPremiosPorSalir(int[][] premiosPorSalir) {
         this.premiosPorSalir = premiosPorSalir;
     }
@@ -788,70 +848,6 @@ public class Juego {
 
     public void setFigurasConBonus(boolean[] figurasConBonus) {
         this.figurasConBonus = figurasConBonus;
-    }
-
-    public BigInteger getCantidadDeJuegos() {
-        return cantidadDeJuegos;
-    }
-
-    public void setCantidadDeJuegos(BigInteger cantidadDeJuegos) {
-        this.cantidadDeJuegos = cantidadDeJuegos;
-    }
-
-    public BigInteger getCantidadDeJuegosGanados() {
-        return cantidadDeJuegosGanados;
-    }
-
-    public void setCantidadDeJuegosGanados(BigInteger cantidadDeJuegosGanados) {
-        this.cantidadDeJuegosGanados = cantidadDeJuegosGanados;
-    }
-
-    public BigInteger getCantidadDeJuegosSinNingunPremio() {
-        return cantidadDeJuegosSinNingunPremio;
-    }
-
-    public void setCantidadDeJuegosSinNingunPremio(BigInteger cantidadDeJuegosSinNingunPremio) {
-        this.cantidadDeJuegosSinNingunPremio = cantidadDeJuegosSinNingunPremio;
-    }
-
-    public BigInteger getCantidadDeJuegosConBolasExtraLiberadas() {
-        return cantidadDeJuegosConBolasExtraLiberadas;
-    }
-
-    public void setCantidadDeJuegosConBolasExtraLiberadas(BigInteger cantidadDeJuegosConBolasExtraLiberadas) {
-        this.cantidadDeJuegosConBolasExtraLiberadas = cantidadDeJuegosConBolasExtraLiberadas;
-    }
-
-    public BigInteger getCantidadDeJuegosConBonusAlcanzado() {
-        return cantidadDeJuegosConBonusAlcanzado;
-    }
-
-    public void setCantidadDeJuegosConBonusAlcanzado(BigInteger cantidadDeJuegosConBonusAlcanzado) {
-        this.cantidadDeJuegosConBonusAlcanzado = cantidadDeJuegosConBonusAlcanzado;
-    }
-
-    public BigInteger getCantidadDeJuegosCon5PartidasSinGanarAlgo() {
-        return cantidadDeJuegosCon5PartidasSinGanarAlgo;
-    }
-
-    public void setCantidadDeJuegosCon5PartidasSinGanarAlgo(BigInteger cantidadDeJuegosCon5PartidasSinGanarAlgo) {
-        this.cantidadDeJuegosCon5PartidasSinGanarAlgo = cantidadDeJuegosCon5PartidasSinGanarAlgo;
-    }
-
-    public BigInteger getCantidadDeJuegosConPremiosGraciasALasBolasExtra() {
-        return cantidadDeJuegosConPremiosGraciasALasBolasExtra;
-    }
-
-    public void setCantidadDeJuegosConPremiosGraciasALasBolasExtra(BigInteger cantidadDeJuegosConPremiosGraciasALasBolasExtra) {
-        this.cantidadDeJuegosConPremiosGraciasALasBolasExtra = cantidadDeJuegosConPremiosGraciasALasBolasExtra;
-    }
-
-    public int getCantidadDeBolasExtraSeleccionadas() {
-        return cantidadDeBolasExtraSeleccionadas;
-    }
-
-    public void setCantidadDeBolasExtraSeleccionadas(int cantidadDeBolasExtraSeleccionadas) {
-        this.cantidadDeBolasExtraSeleccionadas = cantidadDeBolasExtraSeleccionadas;
     }
 
     public void setPremiosDelBonusSeleccionados(boolean[] premiosDelBonusSeleccionados) {
@@ -1032,6 +1028,36 @@ public class Juego {
 
     private void descontarApuestas() {
         this.creditos -= apuestaTotal();
+        
+        //Si el juego es comunitario sumar al pozo
+        if (modoTournament) {
+            acumulado += apuestaTotal() * porcentajeDeDescuentoParaTournament;
+            dinero -= apuestaTotal() * porcentajeDeDescuentoParaTournament;
+        }
+    }
+    
+    /**
+     * El jugador decide cobrar su dinero ganado
+     * @return TRUE si se cobró correctamente
+     */
+    public double cobrar(){
+        
+        System.out.println("Creditos a cobrar: " + creditos);
+        System.out.println("Dinero antes del calculo: " + dinero);
+        
+        //Sumo el dinero (si esta en modo Tournament el dinero tiene un valor
+        //Negativo, debido al descuento de la apuesta del jugador)
+        //Con los creditos en la denominacion elegida
+        double dineroCobrado = dinero + creditos * denominacion.getValue();
+        
+        System.out.println("Dinero a cobrar: " + dineroCobrado);
+        
+        dineroCobrado = Matematica.redondear(dineroCobrado, 2);
+        dinero = 0.0;
+        
+        System.out.println("Dinero a cobrar(redondeado): " + dineroCobrado);
+        
+        return dineroCobrado;
     }
     
     /**
@@ -1140,5 +1166,31 @@ public class Juego {
             System.out.println("Apuestas luego de deshabilitar: ");
             mostrarApuestas();
         }
+    }
+
+    private int[][] ordenarAsendentemente(int[][] casillas) {
+        Integer[][] lista = new Integer[casillas.length][casillas[0].length];
+        
+        //Instancio las casillas nuevas
+        int[][] resultado = new int[casillas.length][casillas[0].length];
+        
+        //Cargo las lista de objetos
+        for (int i = 0; i < casillas.length; i++) {
+            lista[i] = ArrayUtils.toObject(casillas[i]);
+            
+            //Ordeno ascendentemente
+            Arrays.sort(lista[i], new Comparator<Integer>()
+            {
+                @Override
+                public int compare(Integer x, Integer y)
+                {
+                    return x - y;
+                }
+            });
+            
+            resultado[i] = ArrayUtils.toPrimitive(lista[i]);
+        }
+        
+        return resultado;
     }
 }
