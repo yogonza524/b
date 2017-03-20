@@ -63,7 +63,11 @@ public class PersistenciaJson {
             try (Writer writer = new FileWriter(ruta)) {
                 
                 List<TablaDePago> tabla = new ArrayList<>();
-                tabla.add(new TablaDePago(FiguraPagoFactoria.cartones()));
+                for (int i = 0; i < 10; i++) {
+                    TablaDePago t = new TablaDePago(FiguraPagoFactoria.cartones());
+                    t.setNumero(i);
+                    tabla.add(t);
+                }
                 
                 Gson gson = new GsonBuilder().create();
                 gson.toJson(tabla, writer);

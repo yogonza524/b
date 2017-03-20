@@ -20,7 +20,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.65" fx:controller="com.fx.controladores.PrincipalController">
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fx.controladores.PrincipalController">
     <stylesheets>
         <URL value="@/styles/principal.css" />
     </stylesheets>
@@ -76,10 +76,10 @@
                   <HBox prefHeight="33.0" prefWidth="178.0">
                      <children>
                         <Label prefHeight="30.0" prefWidth="76.0" text="Nombre:" />
-                        <Label fx:id="nombreFiguraLabel" maxHeight="30.0" prefHeight="30.0" prefWidth="150.0" />
+                        <TextField fx:id="nombreFiguraTxt" prefHeight="30.0" prefWidth="151.0" promptText="Nombre..." />
                      </children>
                      <VBox.margin>
-                        <Insets />
+                        <Insets top="5.0" />
                      </VBox.margin>
                   </HBox>
                   <Separator layoutX="10.0" layoutY="201.0" prefWidth="200.0" />
@@ -103,7 +103,6 @@
                   <HBox layoutX="10.0" layoutY="171.0" prefHeight="33.0" prefWidth="178.0">
                      <children>
                         <Hyperlink prefHeight="30.0" prefWidth="65.0" text="Nuevo" />
-                        <Hyperlink prefHeight="30.0" prefWidth="76.0" text="Modificar" />
                         <Hyperlink prefHeight="30.0" prefWidth="76.0" text="Eliminar" />
                      </children>
                   </HBox>

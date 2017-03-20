@@ -8,6 +8,8 @@ package com.fx.controladores;
 
 import com.bingo.entidades.FiguraPago;
 import com.bingo.entidades.TablaDePago;
+import com.bingo.enumeraciones.CodigoEvento;
+import com.bingo.fabricas.FiguraPagoFactoria;
 import com.core.bingosimulador.Juego;
 import com.google.common.eventbus.Subscribe;
 import com.guava.core.EventBusManager;
@@ -20,7 +22,10 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -29,6 +34,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
+import javafx.util.Duration;
 import javafx.util.StringConverter;
 import javafx.util.converter.FormatStringConverter;
 
@@ -52,7 +58,7 @@ public class PrincipalController implements Initializable{
     @FXML private ComboBox<FiguraPago> comboFigurasPago;
     
     //Figura de pago seleccionada
-    @FXML private Label nombreFiguraLabel;
+    @FXML private TextField nombreFiguraTxt;
     @FXML private TextField factorPagoFiguraTxt;
     @FXML private CheckBox bonusCheckFigura;
     
@@ -81,6 +87,7 @@ public class PrincipalController implements Initializable{
         initFiguraDePago();
         initComboBoxes();
         initCheckBoxes();
+        initTextFields();
     }
     
     @Subscribe
@@ -102,36 +109,10 @@ public class PrincipalController implements Initializable{
     @Subscribe
     private void cargarTablaDePagos(Evento e){
         if (e.getCodigo() == 102) {
+            
+            System.out.println("Cargar la tabla de la base de datos");
+            
             comboTablaPagos.getItems().clear();
-            
-            comboTablaPagos.setConverter(new StringConverter<TablaDePago>() {
-                @Override
-                public String toString(TablaDePago object) {
-                    return object.getNumero() + "";
-                }
-
-                @Override
-                public TablaDePago fromString(String string) {
-                    for (int i = 0; i < tabla.size(); i++) {
-                        if ((tabla.get(i).getNumero() + "").equals(string)) {
-                            return tabla.get(i);
-                        }
-                    }
-                    return null;
-                }
-            });
-            
-            comboFigurasPago.setConverter(new StringConverter<FiguraPago>() {
-                @Override
-                public String toString(FiguraPago object) {
-                    return object.getNombre();
-                }
-
-                @Override
-                public FiguraPago fromString(String string) {
-                    return comboFigurasPago.getSelectionModel().getSelectedItem();
-                }
-            });
             
             try {
                 tabla = PersistenciaJson.getInstancia().tablasDePago();
@@ -146,7 +127,9 @@ public class PrincipalController implements Initializable{
             });
             
             //Selecciono el primer tablero y lo muestro
-            comboTablaPagos.getSelectionModel().selectFirst();
+            if (comboTablaPagos.getSelectionModel().getSelectedIndex() < 0) {
+                comboTablaPagos.getSelectionModel().selectFirst();
+            }
             
             //Borro el combo de las figuras
             comboFigurasPago.getItems().clear();
@@ -193,7 +176,7 @@ public class PrincipalController implements Initializable{
     private void borrarPaneles(Pane[][] paneles){
         for (int i = 0; i < paneles.length; i++) {
             for (int j = 0; j < paneles[0].length; j++) {
-                paneles[i][j].setStyle("-fx-background-color: #CCC; -fx-border-width: 1;");
+                paneles[i][j].setStyle("-fx-border-color:white;-fx-border-width: 1; -fx-background-color: #CCC;");
             }
         }
     }
@@ -206,8 +189,6 @@ public class PrincipalController implements Initializable{
                 paneles[i][j].setStyle("-fx-border-color:white;-fx-border-width: 1;-fx-background-color: #CCC;");
             }
         }
-        
-//        paneles[0][0].setStyle("-fx-border-color:white;-fx-border-width: 2;");
     }
 
     private void initFiguraDePago() {
@@ -216,31 +197,72 @@ public class PrincipalController implements Initializable{
     }
 
     private void initComboBoxes() {
-        comboTablaPagos.setOnAction(e -> {
-            comboFigurasPago.getItems().clear();
+        
+        comboTablaPagos.setConverter(new StringConverter<TablaDePago>() {
+                @Override
+                public String toString(TablaDePago object) {
+                    return "Tablero " + object.getNumero();
+                }
+
+                @Override
+                public TablaDePago fromString(String string) {
+                    return comboTablaPagos.getSelectionModel().getSelectedItem();
+                }
+            });
             
-            comboFigurasPago.getItems().addAll(comboTablaPagos.getSelectionModel().getSelectedItem().getFiguras());
+            comboFigurasPago.setConverter(new StringConverter<FiguraPago>() {
+                @Override
+                public String toString(FiguraPago object) {
+                    return object.getNombre();
+                }
+
+                @Override
+                public FiguraPago fromString(String string) {
+                    return comboFigurasPago.getSelectionModel().getSelectedItem();
+                }
+            });
+
+            
+        comboTablaPagos.valueProperty().addListener(new ChangeListener<TablaDePago>() {
+            @Override public void changed(ObservableValue ov, TablaDePago t, TablaDePago t1) {
+                
+                comboFigurasPago.getItems().clear();
+            
+                comboFigurasPago.getItems().addAll(tabla.get(comboTablaPagos.getSelectionModel().getSelectedIndex()).getFiguras());
+                
+            }    
         });
         
-        comboFigurasPago.setOnAction(e -> {
-            FiguraPago figura = comboFigurasPago.getSelectionModel().getSelectedItem();
-            this.casillas = figura.getCasillas();
-            borrarPaneles(paneles);
-            //Pinto los casilleros
-            for (int i = 0; i < paneles.length; i++) {
-                for (int j = 0; j < paneles[0].length; j++) {
-                    if (casillas[i][j] == 1) {
-                        paneles[i][j].setStyle("-fx-border-color:white;-fx-border-width: 1; -fx-background-color: black;");
+        comboFigurasPago.valueProperty().addListener(new ChangeListener<FiguraPago>() {
+            @Override
+            public void changed(ObservableValue<? extends FiguraPago> observable, FiguraPago oldValue, FiguraPago newValue) {
+                
+                if (comboFigurasPago.getSelectionModel().getSelectedIndex() > -1) {
+                    FiguraPago figura = comboFigurasPago.getSelectionModel().getSelectedItem();
+                    casillas = figura.getCasillas();
+                    borrarPaneles(paneles);
+                    //Pinto los casilleros
+                    for (int i = 0; i < paneles.length; i++) {
+                        for (int j = 0; j < paneles[0].length; j++) {
+                            if (casillas[i][j] == 1) {
+                                paneles[i][j].setStyle("-fx-border-color:white;-fx-border-width: 1; -fx-background-color: black;");
+                            }
+                            else{
+                                paneles[i][j].setStyle("-fx-border-color:white;-fx-border-width: 1; -fx-background-color: #CCC;");
+                            }
+                        }
                     }
-                    else{
-                        paneles[i][j].setStyle("-fx-border-color:white;-fx-border-width: 1; -fx-background-color: #CCC;");
-                    }
+
+                    nombreFiguraTxt.setText(figura.getNombre());
+                    factorPagoFiguraTxt.setText(figura.getFactorGanancia() + "");
+                    bonusCheckFigura.setSelected(figura.isEsBonus());
                 }
+                else{
+                    borrarPaneles(paneles);
+                }
+                
             }
             
-            nombreFiguraLabel.setText(figura.getNombre());
-            factorPagoFiguraTxt.setText(figura.getFactorGanancia() + "");
-            bonusCheckFigura.setSelected(figura.isEsBonus());
         });
     }
     
@@ -269,7 +291,54 @@ public class PrincipalController implements Initializable{
             int indiceFigura = comboFigurasPago.getSelectionModel().getSelectedIndex();
             if (indiceTabla > -1 && indiceFigura > -1) {
                 tabla.get(indiceTabla).getFiguras().get(indiceFigura).setEsBonus(bonusCheckFigura.isSelected());
-                EventBusManager.getInstancia().getBus().post(new Evento(101,null));
+                EventBusManager.getInstancia().getBus().post(new Evento(CodigoEvento.PERSISTIR.getValue(),null));
+            }
+        });
+    }
+
+    private void initTextFields() {
+        nombreFiguraTxt.textProperty().addListener((observable, oldValue, newValue) -> {
+            int indiceTabla = comboTablaPagos.getSelectionModel().getSelectedIndex();
+            int indiceFigura = comboFigurasPago.getSelectionModel().getSelectedIndex();
+            
+            if (indiceTabla > -1 && indiceFigura > -1 && !newValue.isEmpty()) {
+                PauseTransition pause = new PauseTransition(Duration.seconds(1));
+                
+                pause.setOnFinished(event -> {
+                    tabla.get(indiceTabla).getFiguras().get(indiceFigura)
+                            .setNombre(newValue);
+
+                    EventBusManager.getInstancia().getBus()
+                            .post(new Evento(CodigoEvento.PERSISTIR.getValue(),null));
+                    
+                    FiguraPago actual = comboFigurasPago.getValue();
+                    actual.setNombre(newValue);
+                    comboFigurasPago.getItems().set(indiceFigura, actual);
+                });
+                pause.playFromStart();
+            }
+        });
+        
+        factorPagoFiguraTxt.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*")) {
+                factorPagoFiguraTxt.setText(newValue.replaceAll("[^\\d]", ""));
+                return;
+            }
+            
+            int indiceTablero = comboTablaPagos.getSelectionModel().getSelectedIndex();
+            int indiceFigura = comboFigurasPago.getSelectionModel().getSelectedIndex();
+            
+            if (indiceTablero > -1 && indiceFigura > -1) {
+                PauseTransition pause = new PauseTransition(Duration.seconds(1));
+                
+                pause.setOnFinished(event -> {
+                    tabla.get(indiceTablero).getFiguras().get(indiceFigura)
+                            .setFactorGanancia(Integer.valueOf(factorPagoFiguraTxt.getText()));
+                    EventBusManager.getInstancia().getBus()
+                            .post(new Evento(CodigoEvento.PERSISTIR.getValue(),null));
+                });
+                pause.playFromStart();
+                
             }
         });
     }

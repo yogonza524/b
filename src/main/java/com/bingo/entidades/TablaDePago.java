@@ -19,6 +19,7 @@ import java.util.Objects;
 public class TablaDePago implements Serializable{
 
     private int numero;
+    private String nombre;
     private List<FiguraPago> figuras;
 
     public TablaDePago() {
@@ -47,6 +48,9 @@ public class TablaDePago implements Serializable{
     @Override
     public int hashCode() {
         int hash = 7;
+        hash = 71 * hash + this.numero;
+        hash = 71 * hash + Objects.hashCode(this.nombre);
+        hash = 71 * hash + Objects.hashCode(this.figuras);
         return hash;
     }
 
@@ -62,11 +66,17 @@ public class TablaDePago implements Serializable{
             return false;
         }
         final TablaDePago other = (TablaDePago) obj;
-        if (!Objects.equals(this.figuras, other.figuras)) {
+        if (this.numero != other.numero) {
+            return false;
+        }
+        if (!Objects.equals(this.nombre, other.nombre)) {
             return false;
         }
         return true;
     }
+
+    
+    
     
     
 }
