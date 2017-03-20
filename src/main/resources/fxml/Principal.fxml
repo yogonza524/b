@@ -125,7 +125,8 @@
               <menus>
                 <Menu mnemonicParsing="false" text="Archivo">
                   <items>
-                    <MenuItem mnemonicParsing="false" text="Cerrar" />
+                    <MenuItem mnemonicParsing="false" text="Cargar tablas de pago" />
+                        <MenuItem mnemonicParsing="false" text="Guardar tablas de pago" />
                         <MenuItem mnemonicParsing="false" text="Cerrar" />
                   </items>
                 </Menu>

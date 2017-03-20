@@ -46,6 +46,8 @@ import javafx.util.converter.FormatStringConverter;
  */
 public class PrincipalController implements Initializable{
     
+    //Banderas
+    
     //Figura de pago, barra lateral derecha
     private Pane[][] paneles;
     private int[][] casillas;
@@ -230,6 +232,11 @@ public class PrincipalController implements Initializable{
             
                 comboFigurasPago.getItems().addAll(tabla.get(comboTablaPagos.getSelectionModel().getSelectedIndex()).getFiguras());
                 
+                nombreFiguraTxt.setText("");
+                bonusCheckFigura.setSelected(false);
+                factorPagoFiguraTxt.setText("");
+                
+                
             }    
         });
         
@@ -298,47 +305,52 @@ public class PrincipalController implements Initializable{
 
     private void initTextFields() {
         nombreFiguraTxt.textProperty().addListener((observable, oldValue, newValue) -> {
-            int indiceTabla = comboTablaPagos.getSelectionModel().getSelectedIndex();
-            int indiceFigura = comboFigurasPago.getSelectionModel().getSelectedIndex();
-            
-            if (indiceTabla > -1 && indiceFigura > -1 && !newValue.isEmpty()) {
-                PauseTransition pause = new PauseTransition(Duration.seconds(1));
-                
-                pause.setOnFinished(event -> {
-                    tabla.get(indiceTabla).getFiguras().get(indiceFigura)
-                            .setNombre(newValue);
+            if (nombreFiguraTxt.isFocused()) {
+                int indiceTabla = comboTablaPagos.getSelectionModel().getSelectedIndex();
+                int indiceFigura = comboFigurasPago.getSelectionModel().getSelectedIndex();
 
-                    EventBusManager.getInstancia().getBus()
-                            .post(new Evento(CodigoEvento.PERSISTIR.getValue(),null));
-                    
-                    FiguraPago actual = comboFigurasPago.getValue();
-                    actual.setNombre(newValue);
-                    comboFigurasPago.getItems().set(indiceFigura, actual);
-                });
-                pause.playFromStart();
+                if (indiceTabla > -1 && indiceFigura > -1 && !newValue.isEmpty()) {
+                    PauseTransition pause = new PauseTransition(Duration.seconds(1));
+
+                    pause.setOnFinished(event -> {
+                        tabla.get(indiceTabla).getFiguras().get(indiceFigura)
+                                .setNombre(newValue);
+
+                        EventBusManager.getInstancia().getBus()
+                                .post(new Evento(CodigoEvento.PERSISTIR.getValue(),null));
+
+                        FiguraPago actual = comboFigurasPago.getValue();
+                        actual.setNombre(newValue);
+                        comboFigurasPago.getItems().set(indiceFigura, actual);
+
+                    });
+                    pause.playFromStart();
+                }
             }
         });
         
         factorPagoFiguraTxt.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.matches("\\d*")) {
-                factorPagoFiguraTxt.setText(newValue.replaceAll("[^\\d]", ""));
-                return;
-            }
-            
-            int indiceTablero = comboTablaPagos.getSelectionModel().getSelectedIndex();
-            int indiceFigura = comboFigurasPago.getSelectionModel().getSelectedIndex();
-            
-            if (indiceTablero > -1 && indiceFigura > -1) {
-                PauseTransition pause = new PauseTransition(Duration.seconds(1));
-                
-                pause.setOnFinished(event -> {
-                    tabla.get(indiceTablero).getFiguras().get(indiceFigura)
-                            .setFactorGanancia(Integer.valueOf(factorPagoFiguraTxt.getText()));
-                    EventBusManager.getInstancia().getBus()
-                            .post(new Evento(CodigoEvento.PERSISTIR.getValue(),null));
-                });
-                pause.playFromStart();
-                
+            if (factorPagoFiguraTxt.isFocused()) {
+                if (!newValue.matches("\\d*")) {
+                    factorPagoFiguraTxt.setText(newValue.replaceAll("[^\\d]", ""));
+                    return;
+                }
+
+                int indiceTablero = comboTablaPagos.getSelectionModel().getSelectedIndex();
+                int indiceFigura = comboFigurasPago.getSelectionModel().getSelectedIndex();
+
+                if (indiceTablero > -1 && indiceFigura > -1) {
+                    PauseTransition pause = new PauseTransition(Duration.seconds(1));
+
+                    pause.setOnFinished(event -> {
+                        tabla.get(indiceTablero).getFiguras().get(indiceFigura)
+                                .setFactorGanancia(Integer.valueOf(factorPagoFiguraTxt.getText()));
+                        EventBusManager.getInstancia().getBus()
+                                .post(new Evento(CodigoEvento.PERSISTIR.getValue(),null));
+                    });
+                    pause.playFromStart();
+
+                }
             }
         });
     }
