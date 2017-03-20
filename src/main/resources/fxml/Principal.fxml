@@ -19,6 +19,7 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
 <AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fx.controladores.PrincipalController">
     <stylesheets>
@@ -29,6 +30,15 @@
          <right>
             <VBox prefHeight="400.0" prefWidth="231.0" BorderPane.alignment="CENTER">
                <children>
+                  <AnchorPane prefHeight="25.0" prefWidth="231.0">
+                     <children>
+                        <Label alignment="CENTER" contentDisplay="CENTER" layoutX="80.0" layoutY="5.0" text="Tablas de pago" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                           <font>
+                              <Font size="15.0" />
+                           </font>
+                        </Label>
+                     </children>
+                  </AnchorPane>
                   <AnchorPane prefHeight="26.0" prefWidth="231.0">
                      <children>
                         <ComboBox fx:id="comboTablaPagos" layoutX="12.0" prefWidth="150.0" promptText="Tablas de pago" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />

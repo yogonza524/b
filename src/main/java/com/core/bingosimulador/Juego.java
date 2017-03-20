@@ -176,6 +176,18 @@ public class Juego {
         }
     }
     
+    public void cargarFigurasDePago(List<FiguraPago> figuras) {
+        
+        int i = 0;
+        for(FiguraPago figura : figuras){
+            figurasDePago[i] = figura.getCasillas();
+            factoresDePago[i] = figura.getFactorGanancia();
+            nombresDeFiguras[i] = figura.getNombre();
+            figurasConBonus[i] = figura.isEsBonus();
+            i++;
+        }
+    }
+    
     /**
      * Intercambia las casillas de los cartones de juego
      */
