@@ -914,6 +914,11 @@ public class Juego {
         
         //Si ya no tengo credito disponible, partir y deshabilitar los cartones
         deshabilitarCartonesSiNoHayCreditoSuficiente();
+        
+        //Verificar si se debe pagar el tournament
+        if (pagarTournament()) {
+            
+        }
     }
 
     private boolean cartonesDeJuegoVacios() {
@@ -1192,5 +1197,12 @@ public class Juego {
         }
         
         return resultado;
+    }
+
+    //Condicion de verificacion del pago del tournament
+    private boolean pagarTournament() {
+        boolean result = false;
+        
+        return result;
     }
 }

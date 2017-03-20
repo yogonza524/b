@@ -469,7 +469,6 @@ public class FiguraPagoFactoria {
         //Cargar los cartones de 1 linea
         FiguraPago[] unaLinea = FiguraPagoFactoria.linea(2);
         for(FiguraPago carton : unaLinea){
-            carton.setEsBonus(true);
             cartones.agregar(carton);
         }
         

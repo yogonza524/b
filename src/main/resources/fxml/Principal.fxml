@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.65" fx:controller="com.fx.controladores.PrincipalController">
+    <stylesheets>
+        <URL value="@/styles/principal.css" />
+    </stylesheets>
+   <children>
+      <BorderPane layoutX="169.0" layoutY="88.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <right>
+            <VBox prefHeight="400.0" prefWidth="231.0" BorderPane.alignment="CENTER">
+               <children>
+                  <AnchorPane prefHeight="26.0" prefWidth="231.0">
+                     <children>
+                        <ComboBox fx:id="comboTablaPagos" layoutX="12.0" prefWidth="150.0" promptText="Tablas de pago" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                     </children>
+                  </AnchorPane>
+                  <AnchorPane prefHeight="26.0" prefWidth="231.0">
+                     <children>
+                        <ComboBox fx:id="comboFigurasPago" layoutX="18.0" layoutY="4.0" prefHeight="26.0" prefWidth="179.0" promptText="Figuras de pago" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                     </children>
+                  </AnchorPane>
+                  <GridPane style="-fx-border-color: grey;">
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <VBox.margin>
+                        <Insets top="5.0" />
+                     </VBox.margin>
+                     <children>
+                        <Pane fx:id="p1" prefHeight="200.0" prefWidth="200.0" />
+                        <Pane fx:id="p2" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" />
+                        <Pane fx:id="p3" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" />
+                        <Pane fx:id="p4" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="3" />
+                        <Pane fx:id="p5" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="4" />
+                        <Pane fx:id="p6" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" />
+                        <Pane fx:id="p7" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Pane fx:id="p8" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                        <Pane fx:id="p9" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                        <Pane fx:id="p10" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="4" GridPane.rowIndex="1" />
+                        <Pane fx:id="p11" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="2" />
+                        <Pane fx:id="p12" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <Pane fx:id="p13" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                        <Pane fx:id="p14" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+                        <Pane fx:id="p15" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="4" GridPane.rowIndex="2" />
+                     </children>
+                  </GridPane>
+                  <HBox prefHeight="33.0" prefWidth="178.0">
+                     <children>
+                        <Label prefHeight="30.0" prefWidth="76.0" text="Nombre:" />
+                        <Label fx:id="nombreFiguraLabel" maxHeight="30.0" prefHeight="30.0" prefWidth="150.0" />
+                     </children>
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </HBox>
+                  <Separator layoutX="10.0" layoutY="201.0" prefWidth="200.0" />
+                  <HBox prefHeight="30.0" prefWidth="223.0">
+                     <children>
+                        <Label prefHeight="28.0" prefWidth="76.0" text="Paga: " />
+                        <TextField fx:id="factorPagoFiguraTxt" prefHeight="26.0" prefWidth="151.0" promptText="Factor de pago..." />
+                     </children>
+                     <VBox.margin>
+                        <Insets top="5.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <Separator layoutX="10.0" layoutY="234.0" prefWidth="200.0" />
+                  <HBox layoutX="10.0" layoutY="138.0" prefHeight="33.0" prefWidth="178.0">
+                     <children>
+                        <Label prefHeight="28.0" prefWidth="76.0" text="Bonus: " />
+                        <CheckBox fx:id="bonusCheckFigura" mnemonicParsing="false" prefHeight="26.0" prefWidth="76.0" />
+                     </children>
+                  </HBox>
+                  <Separator prefWidth="200.0" />
+                  <HBox layoutX="10.0" layoutY="171.0" prefHeight="33.0" prefWidth="178.0">
+                     <children>
+                        <Hyperlink prefHeight="30.0" prefWidth="65.0" text="Nuevo" />
+                        <Hyperlink prefHeight="30.0" prefWidth="76.0" text="Modificar" />
+                        <Hyperlink prefHeight="30.0" prefWidth="76.0" text="Eliminar" />
+                     </children>
+                  </HBox>
+                  <Separator layoutX="10.0" layoutY="234.0" prefWidth="200.0" />
+               </children>
+            </VBox>
+         </right>
+         <top>
+            <MenuBar BorderPane.alignment="CENTER">
+              <menus>
+                <Menu mnemonicParsing="false" text="Archivo">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="Cerrar" />
+                        <MenuItem mnemonicParsing="false" text="Cerrar" />
+                  </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Configuracion">
+                  <items>
+                        <MenuItem mnemonicParsing="false" text="Bolas extra" />
+                    <MenuItem mnemonicParsing="false" text="Tournament" />
+                        <MenuItem mnemonicParsing="false" text="Bonus" />
+                        <MenuItem mnemonicParsing="false" text="Jugador" />
+                  </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Ayuda">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="Acerca de" />
+                  </items>
+                </Menu>
+              </menus>
+            </MenuBar>
+         </top>
+      </BorderPane>
+   </children>
+</AnchorPane>

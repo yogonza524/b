@@ -33,7 +33,6 @@ import java.util.logging.Logger;
  */
 public class FiguraPago implements Serializable{
     
-    private int id;
     private int numero;
     private int[][] casillas;
     private int factorGanancia;
@@ -128,14 +127,6 @@ public class FiguraPago implements Serializable{
      */
     public void setEsBonus(boolean esBonus) {
         this.esBonus = esBonus;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
     
     /**
