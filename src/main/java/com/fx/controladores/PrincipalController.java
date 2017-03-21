@@ -29,13 +29,23 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Accordion;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 import javafx.util.converter.FormatStringConverter;
@@ -85,6 +95,12 @@ public class PrincipalController implements Initializable{
     @FXML private Hyperlink nuevoPremioLink;
     @FXML private Hyperlink eliminarLink;
     
+    @FXML private MenuItem jugadorMenuItem;
+    
+    @FXML private Accordion jugadorAccordion;
+    @FXML private TitledPane paneJugadorDebil;
+    @FXML private ComboBox configuracionJugadoresComboBox;
+    
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         EventBusManager.getInstancia().getBus().register(this);
@@ -96,6 +112,8 @@ public class PrincipalController implements Initializable{
         initCheckBoxes();
         initTextFields();
         initButtons();
+        initMenu();
+        initAccordions();
     }
     
     @Subscribe
@@ -383,5 +401,37 @@ public class PrincipalController implements Initializable{
                 }
             }
         });
+    }
+
+    private void initMenu() {
+        
+        jugadorMenuItem.setOnAction(e -> {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Jugador.fxml"));
+            Parent root = null;
+            try {
+                root = (Parent) loader.load();
+            } catch (IOException ex) {
+                Logger.getLogger(PrincipalController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add("/styles/principal.css");
+
+            Stage main = new Stage();
+            main.initStyle(StageStyle.DECORATED);
+            main.setTitle("Perfiles de jugador");
+    //        icono(stage);
+            main.getIcons().add(new Image("/img/icon.png"));
+            main.initOwner(bonusCheckFigura.getScene().getWindow());
+            main.initModality(Modality.APPLICATION_MODAL); 
+            main.setScene(scene);
+
+            main.show();
+        });
+        
+    }
+
+    private void initAccordions() {
+        jugadorAccordion.setExpandedPane(paneJugadorDebil);
     }
 }
