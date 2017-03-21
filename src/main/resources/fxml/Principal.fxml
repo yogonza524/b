@@ -112,8 +112,8 @@
                   <Separator prefWidth="200.0" />
                   <HBox layoutX="10.0" layoutY="171.0" prefHeight="33.0" prefWidth="178.0">
                      <children>
-                        <Hyperlink prefHeight="30.0" prefWidth="65.0" text="Nuevo" />
-                        <Hyperlink prefHeight="30.0" prefWidth="76.0" text="Eliminar" />
+                        <Hyperlink fx:id="nuevoPremioLink" prefHeight="30.0" prefWidth="65.0" text="Nuevo" />
+                        <Hyperlink fx:id="eliminarLink" prefHeight="30.0" prefWidth="76.0" text="Eliminar" />
                      </children>
                   </HBox>
                   <Separator layoutX="10.0" layoutY="234.0" prefWidth="200.0" />

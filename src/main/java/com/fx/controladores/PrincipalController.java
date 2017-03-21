@@ -11,6 +11,7 @@ import com.bingo.entidades.TablaDePago;
 import com.bingo.enumeraciones.CodigoEvento;
 import com.bingo.fabricas.FiguraPagoFactoria;
 import com.core.bingosimulador.Juego;
+import com.fx.util.Dialog;
 import com.google.common.eventbus.Subscribe;
 import com.guava.core.EventBusManager;
 import com.guava.core.Evento;
@@ -31,6 +32,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
@@ -80,6 +82,9 @@ public class PrincipalController implements Initializable{
     @FXML private Pane p14;
     @FXML private Pane p15;
     
+    @FXML private Hyperlink nuevoPremioLink;
+    @FXML private Hyperlink eliminarLink;
+    
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         EventBusManager.getInstancia().getBus().register(this);
@@ -90,6 +95,7 @@ public class PrincipalController implements Initializable{
         initComboBoxes();
         initCheckBoxes();
         initTextFields();
+        initButtons();
     }
     
     @Subscribe
@@ -230,11 +236,15 @@ public class PrincipalController implements Initializable{
                 
                 comboFigurasPago.getItems().clear();
             
-                comboFigurasPago.getItems().addAll(tabla.get(comboTablaPagos.getSelectionModel().getSelectedIndex()).getFiguras());
+                if (comboTablaPagos.getSelectionModel().getSelectedIndex() > -1) {
+                    comboFigurasPago.getItems().addAll(tabla.get(comboTablaPagos.getSelectionModel().getSelectedIndex()).getFiguras());
                 
-                nombreFiguraTxt.setText("");
-                bonusCheckFigura.setSelected(false);
-                factorPagoFiguraTxt.setText("");
+                    nombreFiguraTxt.setText("");
+                    bonusCheckFigura.setSelected(false);
+                    factorPagoFiguraTxt.setText("");
+                }
+                
+                
                 
                 
             }    
@@ -350,6 +360,26 @@ public class PrincipalController implements Initializable{
                     });
                     pause.playFromStart();
 
+                }
+            }
+        });
+    }
+
+    private void initButtons() {
+        eliminarLink.setOnAction(e -> {
+            int indiceTablero = comboTablaPagos.getSelectionModel().getSelectedIndex();
+            int indiceFigura = comboFigurasPago.getSelectionModel().getSelectedIndex();
+            
+            if (indiceFigura > -1 && indiceTablero > -1) {
+                String nombreFigura = comboFigurasPago.getSelectionModel().getSelectedItem().getNombre();
+                if (Dialog.preguntaSiNo("Eliminar la figura " + nombreFigura, "Se eliminará permanentemente la figura", "¿Seguro desea continuar?")) {
+                    tabla.get(indiceTablero).getFiguras().remove(indiceFigura);
+                    comboTablaPagos.getSelectionModel().select(indiceTablero);
+                    EventBusManager.getInstancia().getBus()
+                            .post(new Evento(CodigoEvento.PERSISTIR.getValue(),null));
+//                    EventBusManager.getInstancia().getBus()
+//                            .post(new Evento(CodigoEvento.CARGAR.getValue(),null));
+                    comboFigurasPago.getItems().remove(indiceFigura);
                 }
             }
         });
