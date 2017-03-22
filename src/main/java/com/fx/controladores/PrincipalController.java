@@ -96,10 +96,12 @@ public class PrincipalController implements Initializable{
     @FXML private Hyperlink eliminarLink;
     
     @FXML private MenuItem jugadorMenuItem;
+    @FXML private MenuItem bonusMenuItem;
+    @FXML private MenuItem bolasExtraMenuItem;
+    @FXML private MenuItem tournamentMenuItem;
     
-    @FXML private Accordion jugadorAccordion;
-    @FXML private TitledPane paneJugadorDebil;
-    @FXML private ComboBox configuracionJugadoresComboBox;
+    private static boolean utilizarPremiosFijosEnBonus;
+    private static boolean utilizarPremiosVariablesEnBonus;
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -113,7 +115,7 @@ public class PrincipalController implements Initializable{
         initTextFields();
         initButtons();
         initMenu();
-        initAccordions();
+        
     }
     
     @Subscribe
@@ -193,6 +195,22 @@ public class PrincipalController implements Initializable{
                 cambiarCasilla(paneles[i][j],i,j);
             }
         }
+    }
+
+    public static boolean isUtilizarPremiosFijosEnBonus() {
+        return utilizarPremiosFijosEnBonus;
+    }
+
+    public static void setUtilizarPremiosFijosEnBonus(boolean utilizarPremiosFijosEnBonus) {
+        PrincipalController.utilizarPremiosFijosEnBonus = utilizarPremiosFijosEnBonus;
+    }
+
+    public static boolean isUtilizarPremiosVariablesEnBonus() {
+        return utilizarPremiosVariablesEnBonus;
+    }
+
+    public static void setUtilizarPremiosVariablesEnBonus(boolean utilizarPremiosVariablesEnBonus) {
+        PrincipalController.utilizarPremiosVariablesEnBonus = utilizarPremiosVariablesEnBonus;
     }
     
     private void tooglePane(final Pane p, final int i, final int j) {
@@ -329,6 +347,10 @@ public class PrincipalController implements Initializable{
                 EventBusManager.getInstancia().getBus().post(new Evento(CodigoEvento.PERSISTIR.getValue(),null));
             }
         });
+        
+        //Bonus
+        utilizarPremiosFijosEnBonus = true;
+        utilizarPremiosVariablesEnBonus = false;
     }
 
     private void initTextFields() {
@@ -406,7 +428,17 @@ public class PrincipalController implements Initializable{
     private void initMenu() {
         
         jugadorMenuItem.setOnAction(e -> {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Jugador.fxml"));
+            ventana("/fxml/Jugador.fxml", "Perfiles de Jugador");
+        });
+        
+        bonusMenuItem.setOnAction(e -> {
+            ventana("/fxml/Bonus.fxml", "Bonus");
+        });
+    }
+
+    
+    private void ventana(String fxml, String titulo){
+        FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
             Parent root = null;
             try {
                 root = (Parent) loader.load();
@@ -419,19 +451,14 @@ public class PrincipalController implements Initializable{
 
             Stage main = new Stage();
             main.initStyle(StageStyle.DECORATED);
-            main.setTitle("Perfiles de jugador");
+            main.setTitle(titulo);
     //        icono(stage);
             main.getIcons().add(new Image("/img/icon.png"));
             main.initOwner(bonusCheckFigura.getScene().getWindow());
             main.initModality(Modality.APPLICATION_MODAL); 
+            main.setResizable(false);
             main.setScene(scene);
 
             main.show();
-        });
-        
+        }
     }
-
-    private void initAccordions() {
-        jugadorAccordion.setExpandedPane(paneJugadorDebil);
-    }
-}

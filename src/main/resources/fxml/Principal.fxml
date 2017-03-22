@@ -21,7 +21,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" prefHeight="507.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.72" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fx.controladores.PrincipalController">
+<AnchorPane id="AnchorPane" prefHeight="507.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fx.controladores.PrincipalController">
     <stylesheets>
         <URL value="@/styles/principal.css" />
     </stylesheets>
@@ -132,9 +132,9 @@
                 </Menu>
                 <Menu mnemonicParsing="false" text="Configuracion">
                   <items>
-                        <MenuItem mnemonicParsing="false" text="Bolas extra" />
-                    <MenuItem mnemonicParsing="false" text="Tournament" />
-                        <MenuItem mnemonicParsing="false" text="Bonus" />
+                        <MenuItem fx:id="bolasExtraMenuItem" mnemonicParsing="false" text="Bolas extra" />
+                    <MenuItem fx:id="tournamentMenuItem" mnemonicParsing="false" text="Tournament" />
+                        <MenuItem fx:id="bonusMenuItem" mnemonicParsing="false" text="Bonus" />
                         <MenuItem fx:id="jugadorMenuItem" mnemonicParsing="false" text="Jugador" />
                   </items>
                 </Menu>
