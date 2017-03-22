@@ -1,0 +1,23 @@
+/*
+ * Empty Stylesheet file.
+ */
+
+.mainFxmlClass {
+
+}
+
+.button {
+    -fx-font-weight: bold;
+}
+
+.game-grid-cell {
+    -fx-border: solid 2px white;
+    -fx-background-insets: 0, 0 1 1 0 ;
+    border: solid 2px white;
+}
+
+.bingo{
+  -fx-background-image:url('http://i.imgur.com/7I1s24c.png');
+  -fx-background-repeat: no-repeat;
+  -fx-background-position: center center;
+}

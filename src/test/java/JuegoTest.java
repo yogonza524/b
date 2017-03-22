@@ -96,7 +96,7 @@ public class JuegoTest {
      }
      
     @Test
-    @Ignore
+//    @Ignore
     public void bolilleroTest() {
         Juego j = new Juego();
         j.setModoSimulacion(true);

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html ng-app="app">
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!--Import Google Icon Font-->
+        <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        
+        <link href="materialize.css" rel="stylesheet" />
+        
+        
+        <script src="jquery.js"></script>
+        <script src="materialize.js"></script>
+        <script src="angular.js"></script>
+        <script src="app.js"></script>
+        <!--<link href="highlight-google.css" rel="stylesheet" />-->
+        <script src="highlight.js"></script>
+        
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/styles/default.min.css">
+        <!--<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/highlight.min.js"></script>-->
+        <link rel="stylesheet" href="skin-prettify.css" />
+        <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+        
+        <script>hljs.initHighlightingOnLoad();</script>
+        
+    </head>
+    <body ng-controller="wikiController">
+        <div class="row">
+            <div class="col s12 m4 l4">
+                <div class="collection">
+                    <a href="#" ng-click="changeWindow('home')" class="collection-item">Inicio</a>
+                    <a href="#" ng-click="changeWindow('rng')" class="collection-item">NRG</a>
+                    <a href="#" ng-click="changeWindow('premios')" class="collection-item">Premios</a>
+                    <a href="#" ng-click="changeWindow('bonus')" class="collection-item">Bonus</a>
+                    <a href="#" ng-click="changeWindow('extra')" class="collection-item">Bolas extra</a>
+                    <a href="#" ng-click="changeWindow('perfiles')" class="collection-item">Perfiles</a>
+                    <!--<a href="#" ng-click="changeWindow('bolillero')" class="collection-item">Bolillero</a>-->
+                </div>
+            </div>
+            <div class="col s12 m6 l6">
+                <div ng-if="window === 'home'">
+                    <h4>Bingo Bot Simulador 1.0</h4>
+                    <p>
+                        Herramienta de simulación capaz de implementar reglas configurables
+                        para el juego Bingo Bot. Todos los derechos reservados. Prohibida su venta y/o reproducción parcial o total. Implementado bajo 
+                        Java 1.7 SE y JavaFX como interfaz grafica
+                    </p>
+                    <div class="row">
+                        <div class="col s12 m6 l6">
+                            <img src="2.jpg" alt="AGames" class="responsive-img" />
+                        </div>
+                    </div>
+                </div>
+                <div ng-if="window === 'rng'">
+                    <h4>El Generador de numeros pseudo-aleatorios</h4>
+                    <p>
+                        Un generador de números aleatorios (RNG por sus siglas en inglés) es un dispositivo informático o físico diseñado para producir secuencias de números sin un orden aparentemente
+                    </p>
+                    <p>
+                        En el presente desarrollo el RNG es un servicio que esta disponible para
+                        todos los puntos del desarrollo en la cual se necesite modelar
+                        comportamento aleatorio. 
+                    </p>
+                    <h4>Implementacion</h4>
+                    <pre class="prettyprint">
+                        <code class="language-java">
+@Scheduled(fixedRate = 1000)
+public static void generarNumeros() {
+    synchronized(PlanificadorNumerosAleatorios.class) {
+        boolean seguirGenerando = true;
+        int n = config.cantidadTotalDeNumerosAGenerar();
+        double alpha = 100 - config.confianza();
+
+        while(seguirGenerando){
+            Random random = new SecureRandom();
+            double[] numbers = new double[n];
+            for (int i = 0; i < n; i++) {
+                numbers[i] = random.nextDouble();
+            }
+
+            boolean cumplemedias = 
+                cumplePruebaDeMedias(numbers, alpha);
+            boolean cumpleVarianza = 
+                cumplePruebaDeVarianza(numbers);
+            boolean cumpleChiCuadrado = 
+                cumplePruebaChiCuadrado(numbers);
+            boolean cumpleCorridasArribaYabajo = 
+                cumplePruebaDeCorridasArribaYabajo(numbers);
+
+            if (cumplemedias && cumpleVarianza && cumpleChiCuadrado
+                    && cumpleCorridasArribaYabajo) {
+                numeros = numbers;
+                seguirGenerando = false;
+            }
+        }
+    }
+}
+                        </code>
+                    </pre>
+                    <h4>
+                        Cantidad de numeros por bloque
+                    </h4>
+                    <p>
+                        Se generan 100 numeros pseudo-aleatorios y se los mantiene
+                        en memoria durante 1 segundo
+                    </p>
+                    <h4>Confianza</h4>
+                    <p>
+                        Los numeros generados cumplen con tener una confianza de aleatoriedad
+                        del 99% (segun lo establece GLI. Ver apartado 3 de la especificacion "Juegos de azar")
+                    </p>
+                    <h4>
+                        Pruebas
+                    </h4>
+                    <p>
+                        Cada banco de numeros generados se somete a 4 pruebas para 
+                        corroborar que realmente cumplen con los criterios de
+                        aleatoriedad solicitados por GLI
+                    </p>
+                    <ul>
+                        <li>Prueba de medias</li>
+                        <li>Prueba de varianza</li>
+                        <li>Prueba de uniformidad Chi-Cuadrado</li>
+                        <li>Prueba de independencia de corridas arriba y abajo</li>
+                    </ul>
+                    <h4>Vista</h4>
+                    <p>
+                        En la solapa "RNG" el usuario puede visualizar los numeros que se estan
+                        generando en ese momento habilitando la casilla "mostrar numeros generados"
+                    </p>
+                    <div class="row">
+                        <div class="col s12 m4 l4">
+                            <img alt="RNG" src='rng.png' class="responsive-img" />
+                        </div>
+                        <div class="col s12 m8 l8">
+                            <p>
+                                Estos numeros son utilizados en todos los puntos del simulador
+                            donde se requiera un comportamiento aleatorio. Dependiendo del 
+                            contexto se utilizaran funciones de generacion de variables aleatorias
+                            </p>
+                            <p>
+                                Una variable aleatoria es una variable que implementa un comportamiento
+                                puntual en el dominio del problema y que se genera siempre 
+                                a traves de un numero aleatorio. Por ejemplo: al generar el bolillero
+                                es necesario generar numeros enteros de 1 al 75, en este caso
+                                se aplica la funcion f(ri) = (ri * 75) + 1
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div ng-if="window == 'bonus'">
+                    <h4>Bonus</h4>
+                    <p>
+                        Existen cartones del tablero que poseen un premio especial
+                        que consiste en lanzar un ciclo de seleccion de premios
+                        definidos por el usuario
+                    </p>
+                    <img alt="bonus" src='bonus.png' class="responsive-img" />
+                    <p>
+                        El simulador cuenta con un modulo capaz de configurar la
+                        cantidad de premios a entregar en el bonus y la cantidad de creditos
+                        por premio. Para ingresar al mismo debe hacer click en el boton "Bonus" 
+                        (boton parpadeante) en el menu de configuracion derecho, primero debe
+                        elegir un carton con bonus, si no existe puede crear un nuevo carton a
+                        traves del boton "Nuevo premio"
+                    </p>
+                    <img alt="Bonus configurable" src="bonus1.png" class="responsive-img" />
+                </div>
+                <div ng-if="window == 'premios'">
+                    <h4>Premios</h4>
+                    <p>
+                        Existen un conjunto discreto de premios a entregar al 
+                        jugador en el caso de que los cartones que desee apostar
+                        obtengan alguna de las figuras definidas
+                    </p>
+                    <img alt="tablero" src="tablero.png" class="responsive-img" />
+                    <p>
+                        Usted puede configurar los premios a entregar al jugador
+                        mediante el panel de configuracion derecho, solo debe
+                        seleccionar un premio de la lista y hacer click en las casillas
+                        que desea que intervengan en el conteo del premio. Una vez
+                        que seleccione la casilla premiada la misma tendra un color gris
+                    </p>
+                    <img alt="panel" src="panel.png" class="responsive-img" />
+                </div>
+                <div ng-if="window == 'extra'">
+                    <h4>Bolas extra</h4>
+                    <p>
+                        El juego cuenta con un conjunto de 10 bolas extra, las mismas
+                        ayudan al jugador a seguir formando figuras premiadas. Cada
+                        bola extra tiene un costo
+                    </p>
+                    <img alt="Extra" src="bolas extra.png" class="responsive-img" />
+                    <h4>Criterio de liberacion</h4>
+                    <p>
+                        Las bolas extra seran liberadas siempre y cuando exista un
+                        carton habilitado por el juegador en el cual haya una figura
+                        que tenga altas probabilidades de salir. Se ha establecido
+                        que si a un carton de juego le falta 1(una) bola para formar
+                        una figura ganadora y, ademas esa figura tiene un premio mayor 
+                        o igual a 8(ocho) creditos, entonces se ponen en juego las bolas extra
+                    </p>
+                    <h4>Costo por bola</h4>
+                    <p>
+                        La primer bola extra es gratis. Las siguientes bolas extra
+                        tendran un costo del 10% al 90% del valor del premio que
+                        podria ganar el jugador con esa bola extra.
+                        El costo se configura en porcentajes en el menu superior 
+                        del simulador
+                    </p>
+                    <img alt="Costo de bola" src="costo.png" class="responsive-img" />
+                </div>
+                <div ng-if="window == 'bolillero'"></div>
+                <div ng-if="window == 'perfiles'">
+                    <h4>Perfiles de jugador</h4>
+                    <p>
+                        Existen tres perfiles perfectamente diferenciados
+                    </p>
+                    <ul>
+                        <li>
+                            Jugador debil
+                        </li>
+                        <li>
+                            Jugador moderado
+                        </li>
+                        <li>
+                            Jugador fuerte
+                        </li>
+                    </ul>
+                    <p>
+                        Cada uno de los perfiles implementados tiene un comportamiento
+                        distinto a la hora de tomar una decision con respecto a cuanto apostar
+                        en cada carton y tambien respecto de si comprar o no
+                        una bola extra
+                    </p>
+                </div>
+            </div>
+        </div>
+        <script>
+            $(document).on("ready",function(){
+                $("pre").each(function (i, e) {
+                    hljs.highlightBlock(e);
+                });
+                hljs.initHighlightingOnLoad();
+            });
+            
+        </script>
+    </body>
+</html>

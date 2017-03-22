@@ -1046,10 +1046,15 @@ public class Juego {
     private void descontarApuestas() {
         this.creditos -= apuestaTotal();
         
+        System.out.println("Creditos luego de descontar: " + this.creditos);
+        
         //Si el juego es comunitario sumar al pozo
         if (modoTournament) {
             acumulado += apuestaTotal() * porcentajeDeDescuentoParaTournament;
-            dinero -= apuestaTotal() * porcentajeDeDescuentoParaTournament;
+//            dinero -= apuestaTotal() * porcentajeDeDescuentoParaTournament;
+            this.creditos -= apuestaTotal() * porcentajeDeDescuentoParaTournament;
+            
+            System.out.println("Creditos luego de descontar el tournament: " + this.creditos);
         }
     }
     

@@ -16,10 +16,20 @@ import com.google.common.eventbus.Subscribe;
 import com.guava.core.EventBusManager;
 import com.guava.core.Evento;
 import com.persistencia.PersistenciaJson;
+import eu.hansolo.medusa.Gauge;
+import eu.hansolo.medusa.GaugeDesign;
+import eu.hansolo.medusa.TickLabelOrientation;
+import eu.hansolo.medusa.skins.ModernSkin;
+import eu.hansolo.medusa.skins.QuarterSkin;
+import eu.hansolo.medusa.skins.SlimSkin;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,22 +37,33 @@ import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.control.Accordion;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -57,6 +78,23 @@ import javafx.util.converter.FormatStringConverter;
  * StackOverflow: http://stackoverflow.com/users/5079517/gonza
  */
 public class PrincipalController implements Initializable{
+    
+    //Juego
+    private static Juego bingo;
+    
+    //Cómputo de resultados
+    private BigInteger cantidadDeJuegosGanados;
+    private BigInteger pagado;
+    private BigInteger apostado;
+    
+    //Simular boton
+    @FXML private ProgressBar progress;
+    
+    //Sensores
+    private Gauge porcentajeDeRetribucionGauge;
+    private Gauge porcentajeDeJuegosGanados;
+    private Gauge porcentajeDeJuegosConBolasExtra;
+    private Gauge PorcentajeDeJuegosEnCiclosDe5sinGanar;
     
     //Banderas
     
@@ -92,6 +130,12 @@ public class PrincipalController implements Initializable{
     @FXML private Pane p14;
     @FXML private Pane p15;
     
+    @FXML private Pane porcentajeRetribucionPane;
+    @FXML private Pane porcentajeGanadosPane;
+    @FXML private Pane porcentajeJuegosBolasExtraPane;
+    @FXML private Pane PorcentajeDeJuegosEnCiclosDe5sinGanarPane;
+    @FXML private VBox panelVertical;
+    
     @FXML private Hyperlink nuevoPremioLink;
     @FXML private Hyperlink eliminarLink;
     
@@ -99,6 +143,14 @@ public class PrincipalController implements Initializable{
     @FXML private MenuItem bonusMenuItem;
     @FXML private MenuItem bolasExtraMenuItem;
     @FXML private MenuItem tournamentMenuItem;
+    
+    @FXML private TextField simulacionesTxt;
+    @FXML private Button simularBtn;
+    
+    //Graficos
+    @FXML private LineChart linearChart;
+    
+    private BarChart frecuenciaDeTablero;
     
     private static boolean utilizarPremiosFijosEnBonus;
     private static boolean utilizarPremiosVariablesEnBonus;
@@ -115,6 +167,8 @@ public class PrincipalController implements Initializable{
         initTextFields();
         initButtons();
         initMenu();
+        initConfig();
+        initComputos();
         
     }
     
@@ -379,6 +433,12 @@ public class PrincipalController implements Initializable{
             }
         });
         
+        simulacionesTxt.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*")) {
+                factorPagoFiguraTxt.setText(newValue.replaceAll("[^\\d]", ""));
+            }
+        });
+        
         factorPagoFiguraTxt.textProperty().addListener((observable, oldValue, newValue) -> {
             if (factorPagoFiguraTxt.isFocused()) {
                 if (!newValue.matches("\\d*")) {
@@ -422,6 +482,63 @@ public class PrincipalController implements Initializable{
                     comboFigurasPago.getItems().remove(indiceFigura);
                 }
             }
+            else{
+                Dialog.error("Seleccione un tablero y una figura", "Para proceder debe seleccionar alguna", "La eliminacion no puede continuar, retrocediendo....");
+            }
+        });
+        
+        nuevoPremioLink.setOnAction(e -> {
+            int indiceTablero = comboTablaPagos.getSelectionModel().getSelectedIndex();
+            int indiceFigura = comboFigurasPago.getSelectionModel().getSelectedIndex();
+            
+            if (indiceFigura > -1 && indiceTablero > -1) {
+                FiguraPago nueva = new FiguraPago.FiguraPagoBuilder()
+                        .nombre("figura-" + comboFigurasPago.getItems().size())
+                        .numero(mayorNumero(tabla.get(indiceTablero)))
+                        .crear();
+                tabla.get(indiceTablero).getFiguras().add(nueva);
+                comboFigurasPago.getItems().add(nueva);
+                comboFigurasPago.getSelectionModel().select(nueva);
+                
+                //Persistir
+                EventBusManager.getInstancia().getBus()
+                        .post(new Evento(CodigoEvento.PERSISTIR.getValue(),null));
+            }
+            else{
+                Dialog.error("Seleccione un tablero", "Para agregar una nueva figura se necesita un tablero", "Proceso cancelado, retrocediendo...");
+            }
+        });
+        
+        //Correr simulacion
+        simularBtn.setOnAction(e -> {
+            if (simulacionesTxt.getText() != null && !simulacionesTxt.getText().isEmpty()) {
+                
+                progress.setVisible(true);
+                
+                Task<Void> task = new Task<Void>() {
+                    @Override protected Void call() throws Exception {
+                        return null;
+                    }
+                };
+                task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+                    @Override
+                    public void handle(WorkerStateEvent t) {
+                        progress.setVisible(false);
+                    }
+                });
+
+                progress.progressProperty().unbind();
+                progress.progressProperty().bind(task.progressProperty());
+
+                task.messageProperty().addListener(new ChangeListener<String>() {
+                    public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                        progress.setProgress(Double.valueOf(newValue));
+                    }
+                });
+
+                Thread th = new Thread(task);
+                th.start(); 
+            }
         });
     }
 
@@ -433,6 +550,14 @@ public class PrincipalController implements Initializable{
         
         bonusMenuItem.setOnAction(e -> {
             ventana("/fxml/Bonus.fxml", "Bonus");
+        });
+        
+        bolasExtraMenuItem.setOnAction(e -> {
+            ventana("/fxml/BolasExtra.fxml", "Bolas Extra");
+        });
+        
+        tournamentMenuItem.setOnAction(e -> {
+            ventana("/fxml/Tournament.fxml", "Tournament");
         });
     }
 
@@ -461,4 +586,113 @@ public class PrincipalController implements Initializable{
 
             main.show();
         }
+
+    public static Juego getBingo() {
+        return bingo;
     }
+
+    public static void setBingo(Juego bingo) {
+        PrincipalController.bingo = bingo;
+    }   
+
+    private int mayorNumero(TablaDePago tabla) {
+        int mayor = tabla.getFiguras().size() > 0 ? tabla.getFiguras().size() : -1;
+        for(FiguraPago figura : tabla.getFiguras()){
+            if (figura.getNumero() > mayor) {
+                mayor = figura.getNumero();
+            }
+        }
+        return mayor;
+    }
+    
+    private void crearTermometro(Gauge temperatura, Pane panel, String titulo, String unidades){
+        if (panel != null && panel.getChildren().contains(temperatura)) {
+            panel.getChildren().remove(temperatura);
+        }
+          
+//        temperatura.setSkin(new eu.hansolo.medusa.skins.ModernSkin(temperatura)); 
+//        temperatura.setSkin(new SlimSkin(temperatura));
+        temperatura.setSkin(new QuarterSkin(temperatura));
+        temperatura.setTitle(titulo);  
+        temperatura.setUnit(unidades);  
+        temperatura.setDecimals(0); 
+        temperatura.setPrefWidth(panel != null? panel.getPrefWidth() : 200.0);
+        temperatura.setPrefHeight(panel != null? panel.getPrefHeight(): 200.0);
+        temperatura.setValueColor(Color.BLACK);  
+        temperatura.setTitleColor(Color.BLACK);  
+        temperatura.setUnitColor(Color.BLACK);
+        temperatura.setSubTitleColor(Color.WHITE);  
+        temperatura.setBarColor(Color.rgb(0, 214, 215));  
+        temperatura.setNeedleColor(Color.WHITE);  
+        temperatura.setThresholdColor(Color.rgb(204, 0, 0));  
+        temperatura.setTickLabelColor(Color.rgb(151, 151, 151));  
+        temperatura.setTickMarkColor(Color.GREY);  
+        temperatura.setTickLabelOrientation(TickLabelOrientation.ORTHOGONAL);
+
+        if (panel != null) {
+            panel.getChildren().add(temperatura);
+        }
+    }
+
+    private void initConfig() {
+        progress.setVisible(false);
+        
+        crearTermometro(porcentajeDeRetribucionGauge = new Gauge(), porcentajeRetribucionPane, "Retribución", "%");
+        crearTermometro(porcentajeDeJuegosGanados = new Gauge(), porcentajeGanadosPane, "Ganados", "%");
+        crearTermometro(porcentajeDeJuegosConBolasExtra = new Gauge(), porcentajeJuegosBolasExtraPane, "Con bolas extra", "%");
+        crearTermometro(PorcentajeDeJuegosEnCiclosDe5sinGanar = new Gauge(), PorcentajeDeJuegosEnCiclosDe5sinGanarPane, "5 juegos sin ganar", "%");
+        
+        cargarBarChartTablero(panelVertical, frecuenciaDeTablero);
+    }
+    
+    private void cargarBarChartTablero(VBox panelVertical, BarChart frecuenciaTablero){
+        if (panelVertical.getChildren().contains(frecuenciaTablero)) {
+            panelVertical.getChildren().remove(frecuenciaTablero);
+        }
+        
+        CategoryAxis xAxis    = new CategoryAxis();
+        xAxis.setLabel("Figuras");
+
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Frecuencia");
+        
+        frecuenciaTablero = new BarChart(xAxis, yAxis);
+        frecuenciaTablero.setPrefHeight(200);
+        
+        panelVertical.getChildren().add(frecuenciaTablero);
+    }
+    
+    private void simular(int n){
+        
+        int[][][] figuras = obtenerFiguras(tabla.get(comboTablaPagos.getSelectionModel().getSelectedIndex()).getFiguras());
+        int acumulado = 10000;
+        boolean generarNuevoBolillero = true;
+        
+        for (int i = 0; i < n; i++) {
+            bingo = new Juego();
+            bingo.setFigurasDePago(figuras);
+            bingo.setAcumulado(acumulado);
+            
+            
+            //Jugar
+            bingo.jugar(generarNuevoBolillero);
+            
+            //Computar resultados;
+            apostado = apostado.add(BigInteger.valueOf(bingo.apuestaTotal()));
+        }
+    }
+
+    private int[][][] obtenerFiguras(List<FiguraPago> figuras) {
+        int[][][] result = new int[figuras.size()][Juego.getLineas()][Juego.getColumnas()];
+        for (int i = 0; i < figuras.size(); i++) {
+            result[i] = figuras.get(i).getCasillas();
+        }
+        return result;
+    }
+
+    private void initComputos() {
+        apostado = BigInteger.ZERO;
+        pagado = BigInteger.ZERO;
+        cantidadDeJuegosGanados = BigInteger.ZERO;
+    }
+}

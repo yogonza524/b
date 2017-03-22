@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane id="AnchorPane" fx:id="bonus_pane" prefHeight="443.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fx.controladores.BonusController">
+   <children>
+      <BorderPane layoutX="139.0" layoutY="100.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <center>
+            <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+               <bottom>
+                  <ToolBar nodeOrientation="RIGHT_TO_LEFT" prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                    <items>
+                      <Button fx:id="cerrarBtn" mnemonicParsing="false" text="Cerrar" />
+                    </items>
+                  </ToolBar>
+               </bottom>
+               <left>
+                  <VBox alignment="TOP_CENTER" prefHeight="403.0" prefWidth="158.0" BorderPane.alignment="CENTER">
+                     <children>
+                        <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../img/bonus.png" />
+                           </image>
+                           <VBox.margin>
+                              <Insets top="10.0" />
+                           </VBox.margin>
+                        </ImageView>
+                        <Label text="Bonus" textAlignment="CENTER" />
+                        <Label text="Situación especial en la cual un jugador obtiene una figura de pago marcado como Bonus" wrapText="true" />
+                        <Separator prefWidth="200.0">
+                           <VBox.margin>
+                              <Insets top="10.0" />
+                           </VBox.margin>
+                        </Separator>
+                        <Label text="Cantidad de premios (16 por defecto)" wrapText="true">
+                           <VBox.margin>
+                              <Insets top="10.0" />
+                           </VBox.margin>
+                        </Label>
+                        <TextField fx:id="cantidadDePremiosTxt" promptText="Cantidad de premios">
+                           <VBox.margin>
+                              <Insets top="5.0" />
+                           </VBox.margin>
+                        </TextField>
+                     </children>
+                     <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </padding>
+                  </VBox>
+               </left>
+               <center>
+                  <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                     <children>
+                        <TitledPane collapsible="false" layoutX="85.0" layoutY="132.0" prefHeight="200.0" prefWidth="200.0" text="Configuracion" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <content>
+                              <VBox prefHeight="200.0" prefWidth="100.0">
+                                 <children>
+                                    <HBox prefHeight="33.0" prefWidth="368.0">
+                                       <children>
+                                          <CheckBox fx:id="utilizarPremiosFijosCheck" mnemonicParsing="false" text="Utilizar premios fijos" />
+                                          <CheckBox fx:id="utilizarPremiosVariablesCheck" mnemonicParsing="false" text="Utilizar premios variables">
+                                             <HBox.margin>
+                                                <Insets left="5.0" />
+                                             </HBox.margin>
+                                          </CheckBox>
+                                       </children>
+                                    </HBox>
+                                    <VBox prefHeight="344.0" prefWidth="368.0">
+                                       <children>
+                                          <VBox fx:id="bonusFijoPane" prefHeight="253.0" prefWidth="368.0">
+                                             <children>
+                                                <Label text="Creditos de premio" textAlignment="CENTER" />
+                                                <HBox prefHeight="29.0" prefWidth="368.0">
+                                                   <children>
+                                                      <TextField maxWidth="150.0" prefHeight="26.0" prefWidth="123.0" promptText="Creditos" />
+                                                      <Button mnemonicParsing="false" text="Agregar">
+                                                         <HBox.margin>
+                                                            <Insets left="5.0" />
+                                                         </HBox.margin>
+                                                      </Button>
+                                                   </children>
+                                                </HBox>
+                                                <ListView prefHeight="101.0" prefWidth="368.0">
+                                                   <VBox.margin>
+                                                      <Insets top="5.0" />
+                                                   </VBox.margin>
+                                                </ListView>
+                                                <Label prefHeight="100.0" prefWidth="368.0" text="Los premios fijos son premios en creditos que se otorgan sin importar las apuestas del jugador. Se prefijan de antemano" wrapText="true" />
+                                             </children>
+                                          </VBox>
+                                          <VBox fx:id="bonusVariablePane" prefHeight="253.0" prefWidth="368.0">
+                                             <children>
+                                                <Label text="Factor de pago" textAlignment="CENTER" />
+                                                <HBox prefHeight="29.0" prefWidth="368.0">
+                                                   <children>
+                                                      <TextField maxWidth="150.0" prefHeight="26.0" prefWidth="123.0" promptText="Creditos" />
+                                                      <Button mnemonicParsing="false" text="Agregar">
+                                                         <HBox.margin>
+                                                            <Insets left="5.0" />
+                                                         </HBox.margin>
+                                                      </Button>
+                                                   </children>
+                                                </HBox>
+                                                <ListView prefHeight="101.0" prefWidth="368.0">
+                                                   <VBox.margin>
+                                                      <Insets top="5.0" />
+                                                   </VBox.margin>
+                                                </ListView>
+                                                <Label prefHeight="71.0" prefWidth="368.0" text="Los premios variables se calcular multiplicando el factor de pago (en creditos) por la cantidad de creditos apostados por el jugador sobre 100" wrapText="true" />
+                                             </children>
+                                          </VBox>
+                                       </children>
+                                    </VBox>
+                                 </children>
+                              </VBox>
+                           </content>
+                        </TitledPane>
+                     </children>
+                  </AnchorPane>
+               </center>
+            </BorderPane>
+         </center>
+      </BorderPane>
+   </children>
+</AnchorPane>
