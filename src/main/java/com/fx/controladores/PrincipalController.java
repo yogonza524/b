@@ -97,9 +97,11 @@ public class PrincipalController implements Initializable{
     private BigInteger cantidadDeJuegosGanados;
     private BigInteger pagado;
     private BigInteger apostado;
+    private BigInteger juegosConBolasExtra;
     private boolean tournament;
     private boolean usarUmbralParaLiberarBolasExtra;
     private double[] retribuciones; //Retribuciones parciales, para cada juego
+    private int[] frecuenciaDePremiosObtenidosPorFigura;
     
     //Simular boton
     @FXML private ProgressBar progress;
@@ -171,6 +173,7 @@ public class PrincipalController implements Initializable{
     
     private static boolean utilizarPremiosFijosEnBonus;
     private static boolean utilizarPremiosVariablesEnBonus;
+    private Integer cantidadDeSimulaciones;
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -194,11 +197,15 @@ public class PrincipalController implements Initializable{
         if (e.getCodigo() == 101 && comboTablaPagos.getSelectionModel().getSelectedIndex() > -1
                 && comboFigurasPago.getSelectionModel().getSelectedIndex() > -1) {
             try {
-                tabla.get(comboTablaPagos.getSelectionModel().getSelectedIndex())
+                if (comboFigurasPago.getSelectionModel().getSelectedIndex() < 
+                        comboTablaPagos.getSelectionModel().getSelectedItem().getFiguras().size()) {
+                    tabla.get(comboTablaPagos.getSelectionModel().getSelectedIndex())
                         .getFiguras().get(comboFigurasPago.getSelectionModel().getSelectedIndex())
                         .setCasillas(casillas);
+                }
                 PersistenciaJson.getInstancia()
-                        .persistir(tabla);
+                            .persistir(tabla);
+                
             } catch (IOException ex) {
                 Logger.getLogger(PrincipalController.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -549,8 +556,11 @@ public class PrincipalController implements Initializable{
                 
                 progress.setVisible(true);
                 
-                int n = Integer.valueOf(simulacionesTxt.getText());
-                this.retribuciones = new double[n];
+                this.cantidadDeSimulaciones = Integer.valueOf(simulacionesTxt.getText());
+                this.retribuciones = new double[cantidadDeSimulaciones];
+                
+                this.pagado = BigInteger.ZERO;
+                this.apostado = BigInteger.ZERO;
                 
                 Task<Void> task = new Task<Void>() {
                     @Override protected Void call() throws Exception {
@@ -561,7 +571,10 @@ public class PrincipalController implements Initializable{
                         
                         resultadosTxt.setText("Tablero: " + tableroElegido(comboTablaPagos.getSelectionModel().getSelectedItem()));
                         
-                        simular(n);
+                        //Inhabilitar el boton de simulacion
+                        simularBtn.setDisable(true);
+                        
+                        simular(cantidadDeSimulaciones);
                         
                         return null;
                     }
@@ -579,7 +592,11 @@ public class PrincipalController implements Initializable{
                 task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
                     @Override
                     public void handle(WorkerStateEvent t) {
-                        progress.setVisible(false);
+                        //Terminó el proceso de simulación
+                        
+                        progress.setVisible(false); //Ocultar la barra de progreso
+                        simularBtn.setDisable(false); //Habilito el boton de simular
+                        
                         
                         //Mostrar resultados
                         BigDecimal porcentajeRetribucion = Matematica.porcentaje(pagado.intValueExact(), apostado.intValueExact());
@@ -589,8 +606,25 @@ public class PrincipalController implements Initializable{
                             porcentajeDeRetribucionGauge.setValue(retribuido);
                         }
                         
+                        int cantidadGanados = cantidadDeJuegosGanados.intValueExact();
+                        BigDecimal porcentajeDeGanados = Matematica.porcentaje(cantidadGanados, cantidadDeSimulaciones);
+                        if (porcentajeDeGanados != null) {
+                            double ganado = porcentajeDeGanados.doubleValue();
+                            //Mostrar
+                            porcentajeDeJuegosGanados.setValue(ganado);
+                        }
+                        
+                        int cantidadConBolasExtra = juegosConBolasExtra.intValueExact();
+                        BigDecimal porcentajeDeJuegosConBolasExtraLiberadas = Matematica.porcentaje(cantidadConBolasExtra, cantidadDeSimulaciones);
+                        if (porcentajeDeJuegosConBolasExtraLiberadas != null) {
+                            double bolasExtra = porcentajeDeJuegosConBolasExtraLiberadas.doubleValue();
+                            //Mostrar
+                            porcentajeDeJuegosConBolasExtra.setValue(bolasExtra);
+                        }
+                        
                         //Graficar retribuciones parciales
                         graficarPorcentajesDeRetribucionParciales(retribuciones);
+                        graficarFrecuenciasDeFiguras(frecuenciaDePremiosObtenidosPorFigura);
                     }
                 });
 
@@ -727,31 +761,20 @@ public class PrincipalController implements Initializable{
         crearTermometro(porcentajeDeJuegosConBolasExtra = new Gauge(), porcentajeJuegosBolasExtraPane, "Con bolas extra", "%");
         crearTermometro(PorcentajeDeJuegosEnCiclosDe5sinGanar = new Gauge(), PorcentajeDeJuegosEnCiclosDe5sinGanarPane, "5 juegos sin ganar", "%");
         
-        cargarBarChartTablero(panelVertical, frecuenciaDeTablero);
-    }
-    
-    private void cargarBarChartTablero(VBox panelVertical, BarChart frecuenciaTablero){
-        if (panelVertical.getChildren().contains(frecuenciaTablero)) {
-            panelVertical.getChildren().remove(frecuenciaTablero);
-        }
-        
-        CategoryAxis xAxis    = new CategoryAxis();
-        xAxis.setLabel("Figuras");
-
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Frecuencia");
-        
-        frecuenciaTablero = new BarChart(xAxis, yAxis);
-        frecuenciaTablero.setPrefHeight(200);
-        
-        panelVertical.getChildren().add(frecuenciaTablero);
+        cargarBarChartTablero(panelVertical, frecuenciaDeTablero, null);
     }
     
     private void simular(int n){
         
+        //Ambiente controlado
         int[][][] figuras = obtenerFiguras(comboTablaPagos.getSelectionModel().getSelectedItem().getFiguras());
         int acumulado = 10000;
         boolean generarNuevoBolillero = true;
+        this.cantidadDeJuegosGanados = BigInteger.ZERO; //Coloco en cero el contador de juegos ganados
+        this.juegosConBolasExtra = BigInteger.ZERO; //Coloco en cero el contador de juegos ganados
+        
+        //Frecuencia de premios obtenidos por figura
+        frecuenciaDePremiosObtenidosPorFigura = new int[figuras.length];
         
         for (int i = 0; i < n; i++) {
             
@@ -761,6 +784,7 @@ public class PrincipalController implements Initializable{
             bingo = new Juego();
             bingo.setCrearFigurasDePago(false);
             bingo.setFigurasDePago(figuras);
+            bingo.setModoDebug(true);
             
             bingo.inicializar(comboTablaPagos.getSelectionModel().getSelectedItem().getFiguras());
             
@@ -780,16 +804,45 @@ public class PrincipalController implements Initializable{
             bingo.jugar(generarNuevoBolillero);
             
             //Computar resultados;
-            apostado = apostado.add(BigInteger.valueOf(bingo.apuestaTotal()));
-            pagado = pagado.add(BigInteger.valueOf(bingo.ganancias()));
+            int apuestasBasicas = bingo.apuestaTotal();
+            int invertidoEnBolasExtra = bingo.getCreditosInvertidosEnBolasExtra();
+            int apuestaTotal = apuestasBasicas + invertidoEnBolasExtra;
+            int gano = bingo.ganancias();
+            int conBolasExtra = bingo.isSeLiberaronBolasExtra() ? 1 : 0;
             
-            this.retribuciones[i] = bingo.apuestaTotal() > 0 ? Matematica.porcentaje(bingo.ganancias(), bingo.apuestaTotal()).doubleValue() : 0.0;
+            if (invertidoEnBolasExtra > 0) {
+                System.out.println("Invirtió en bolas extra: " + invertidoEnBolasExtra);
+            }
+            
+            apostado = apostado.add(BigInteger.valueOf(apuestaTotal));
+            pagado = pagado.add(BigInteger.valueOf(gano));
+            juegosConBolasExtra = juegosConBolasExtra.add(BigInteger.valueOf(conBolasExtra));
+            
+            this.retribuciones[i] = bingo.apuestaTotal() > 0 ? Matematica.porcentaje(gano, apuestaTotal).doubleValue() : 0.0;
+            this.cantidadDeJuegosGanados = bingo.ganancias() > 0 ? this.cantidadDeJuegosGanados.add(BigInteger.valueOf(1)) : this.cantidadDeJuegosGanados;
+            
+            //Computar la frecuencia de premios por cada figura
+            for (int j = 0; j < Juego.getCantidadDeCartones(); j++) {
+                for (int k = 0; k < figuras.length; k++) {
+                    frecuenciaDePremiosObtenidosPorFigura[k] += bingo.getPremiosPagados()[j][k];
+                }
+            }
             
             mostrarResultados(bingo.getResultados());
         }
     }
 
     private int[][][] obtenerFiguras(List<FiguraPago> figuras) {
+        
+        //Ordeno las figuras de mayor a menor, si no estan ordenadas el 
+        //comportamiento del simulador es erratico
+        Collections.sort(figuras, new Comparator<FiguraPago>() {
+            @Override
+            public int compare(FiguraPago o1, FiguraPago o2) {
+                return o2.getFactorGanancia() - o1.getFactorGanancia();
+            }
+        });
+        
         int[][][] result = new int[figuras.size()][Juego.getLineas()][Juego.getColumnas()];
         for (int i = 0; i < figuras.size(); i++) {
             result[i] = figuras.get(i).getCasillas();
@@ -801,6 +854,7 @@ public class PrincipalController implements Initializable{
         apostado = BigInteger.ZERO;
         pagado = BigInteger.ZERO;
         cantidadDeJuegosGanados = BigInteger.ZERO;
+        juegosConBolasExtra = BigInteger.ZERO;
     }
 
     private Perfil seleccionarPerfil(int indiceConfiguracion) {
@@ -809,11 +863,15 @@ public class PrincipalController implements Initializable{
     }
     
     private void graficarPorcentajesDeRetribucionParciales(double[] retribucionesParciales){
+        linearChart.getData().clear();
+        
         NumberAxis xAxis = new NumberAxis();
         xAxis.setLabel("Cantidad de simulaciones");
+        xAxis.setAnimated(false);
 
         NumberAxis yAxis = new NumberAxis();
         yAxis.setLabel("%");
+        yAxis.setAnimated(false);
         
         XYChart.Series dataSeries1 = new XYChart.Series();
         dataSeries1.setName("Porcentaje de retribucion");
@@ -821,11 +879,72 @@ public class PrincipalController implements Initializable{
         for (int i = 0; i < retribucionesParciales.length; i++) {
             dataSeries1.getData().add(new XYChart.Data(i + "", (int)retribucionesParciales[i]));
         }
-
-        linearChart.getData().clear();
+        
         linearChart.getData().add(dataSeries1);
     }
+    
+    private void cargarBarChartTablero(VBox panelVertical, BarChart frecuenciaTablero, int[] frecuenciaDeFiguras){
+        if (panelVertical.getChildren().contains(frecuenciaTablero)) {
+            panelVertical.getChildren().remove(frecuenciaTablero);
+        }
+        
+        CategoryAxis xAxis    = new CategoryAxis();
+        xAxis.setLabel("Figuras");
 
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Frecuencia");
+        
+        frecuenciaTablero = new BarChart(xAxis, yAxis);
+        frecuenciaTablero.setPrefHeight(200);
+        
+        //Cargo las frecuencias
+        if (frecuenciaDeFiguras != null) {
+            //TODO: rellenar con datos de las frecuencias por figura,
+            //frecuenciaDeFiguras.length = cantidad de figuras del tablero
+            XYChart.Series dataSeries1 = new XYChart.Series();
+            dataSeries1.setName("Frecuencia de figuras");
+            
+            for (int i = 0; i < frecuenciaDeFiguras.length; i++) {
+                dataSeries1.getData().add(new XYChart.Data((i + 1) + "", (int)frecuenciaDeFiguras[i]));
+            }
+
+            frecuenciaTablero.getData().add(dataSeries1);
+        }
+        
+        panelVertical.getChildren().add(frecuenciaTablero);
+    }
+
+    private void graficarFrecuenciasDeFiguras(int[] frecuenciaDeFiguras){
+        //Cargo las frecuencias
+        if (frecuenciaDeFiguras != null) {
+            //TODO: rellenar con datos de las frecuencias por figura,
+            //frecuenciaDeFiguras.length = cantidad de figuras del tablero
+            
+            if (frecuenciaDeTablero == null) {
+                CategoryAxis xAxis    = new CategoryAxis();
+                xAxis.setLabel("Figuras");
+
+                NumberAxis yAxis = new NumberAxis();
+                yAxis.setLabel("Frecuencia");
+
+                frecuenciaDeTablero = new BarChart(xAxis, yAxis);
+            }
+            
+            frecuenciaDeTablero.getData().clear();
+            
+            XYChart.Series dataSeries1 = new XYChart.Series();
+            dataSeries1.setName("Frecuencia de figuras");
+            
+            for (int i = 0; i < frecuenciaDeFiguras.length; i++) {
+                dataSeries1.getData().add(new XYChart.Data((i + 1) + "", (int)frecuenciaDeFiguras[i]));
+            }
+
+            frecuenciaDeTablero.getData().add(dataSeries1);
+        }
+        
+        
+    }
+    
     private void mostrarResultados(String val) {
         Platform.runLater(() -> {
             resultadosTxt.appendText(val);

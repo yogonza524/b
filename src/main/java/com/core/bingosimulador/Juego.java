@@ -30,6 +30,10 @@ public class Juego {
     private final static int LINEAS = 3;
     private final static int COLUMNAS = 5;
     private final static int CARTONES = 4;
+
+    public static int getCantidadDeCartones() {
+        return CARTONES;
+    }
     private final int CANTIDADDEBOLASVISIBLES = 30;
     private final int CANTIDADDEBOLASEXTRA = 10;
     private int cantidadDeFigurasDePago;
@@ -99,6 +103,8 @@ public class Juego {
     private int totalGanadoEnBonus;
     private final int cantidadTotalDePremiosEnBonus = 16;
     private int cantidadDeBolasExtraSeleccionadas;
+    private boolean seLiberaronBolasExtra;
+    private boolean modoDebug;
 
     /**
      * Constructor por defecto
@@ -316,6 +322,14 @@ public class Juego {
     public void setCrearFigurasDePago(boolean crearFigurasDePago) {
         this.crearFigurasDePago = crearFigurasDePago;
     }
+
+    public boolean isModoDebug() {
+        return modoDebug;
+    }
+
+    public void setModoDebug(boolean modoDebug) {
+        this.modoDebug = modoDebug;
+    }
     
     public int[] ganado(){
         return this.ganado;
@@ -323,6 +337,14 @@ public class Juego {
 
     public int getCantidadDeBolasExtraSeleccionadas() {
         return cantidadDeBolasExtraSeleccionadas;
+    }
+
+    public boolean isSeLiberaronBolasExtra() {
+        return seLiberaronBolasExtra;
+    }
+
+    public void setSeLiberaronBolasExtra(boolean seLiberaronBolasExtra) {
+        this.seLiberaronBolasExtra = seLiberaronBolasExtra;
     }
 
     public String getResultados() {
@@ -528,6 +550,7 @@ public class Juego {
             for (int j = 0; j < premiosPorSalir[0].length; j++) {
                 if (premiosPorSalir[i][j] > 0 && factoresDePago[j] >= umbral) {
                     result = true;
+                    this.seLiberaronBolasExtra = true;
                     log("Se deben liberar las bolas extra!");
                     break;
                 }
@@ -542,6 +565,7 @@ public class Juego {
             for (int j = 0; j < premiosPorSalir[0].length; j++) {
                 if (premiosPorSalir[i][j] > 0) {
                     result = true;
+                    this.seLiberaronBolasExtra = true;
                     log("Se deben liberar las bolas extra!");
                     break;
                 }
@@ -622,6 +646,12 @@ public class Juego {
                 }
             }
         }
+        
+        //Mostrar premios, solo para debug
+        log("Premios obtenidos: ");
+        for (int i = 0; i < CARTONES; i++) {
+            log(ArrayUtils.toString(this.premiosPagados[i]));
+        }
     }
     
     public void computarGanancias(){
@@ -696,20 +726,26 @@ public class Juego {
     }
 
     public void mostrarApuestas() {
-        log("Apuesta total: " + this.apuestaTotal());
+        int apuestaBasica = this.apuestaTotal();
+        
+        log("Apuesta básica: " + apuestaBasica);
+        log("Creditos apostados en bolas extra: " + this.creditosInvertidosEnBolasExtra);
+        log("Apuesta total: " + (apuestaBasica + this.creditosInvertidosEnBolasExtra));
         log("Apuestas individuales: " + ArrayUtils.toString(this.apostado));
     }
 
     private int premioMayorPorSalir() {
-        int premio = -1;
+        int premio = 0;
+        String nombrePremio = "";
         for (int i = 0; i < CARTONES; i++) {
             for (int j = 0; j < premiosPorSalir[i].length; j++) {
                 if (cartonesHabilitados[i] && premiosPorSalir[i][j] > premio) {
-                    premio = factoresDePago[j];
-                    break;
+                    premio = premiosPorSalir[i][j];
+                    nombrePremio = nombresDeFiguras[j];
                 }
             }
         }
+        log("Premio mayor por salir: " + nombrePremio + "("+ premio + "), premiosPorSalir: " + ArrayUtils.toString(premiosPorSalir));
         return premio;
     }
 
@@ -966,6 +1002,8 @@ public class Juego {
         mostrarCreditos();
         mostrarApuestas();
         
+        mostrarCartones();
+        
         if (generarNuevoBolillero) {
             this.generarBolillero();
         }
@@ -977,6 +1015,8 @@ public class Juego {
         }
         
         borrarJuegoAnterior();
+        
+        mostrarBolillero();
         
         if (cartonesDeJuegoVacios()) {
             log("Los cartones de juego no fueron colocados, juego abortado...");
@@ -999,7 +1039,8 @@ public class Juego {
                 creditos += totalGanadoEnBonus;
             }
 
-            if (liberarBolasExtra(umbralParaLiberarBolasExtra)) {
+            if (liberarBolasExtra()) {
+
                 //Iniciar ciclo de bolas extra
                 cicloDeBolasExtra();
             }
@@ -1010,6 +1051,7 @@ public class Juego {
         mostrarPremiosSegunApostado();
         mostrarPremiosObtenidos();
         mostrarGanado();
+        mostrarApuestas();
         
         //Si ya no tengo credito disponible, partir y deshabilitar los cartones
         if (modoDeshabilitarPorFaltaDeCredito) {
@@ -1103,6 +1145,11 @@ public class Juego {
                 
                 log("Compró la bola: " + indiceDeBolaExtraAComprar);
                 log("Costo: " + costoBolaSeleccionada);
+                
+                //Una vez que compró la bola extra se debe volver a buscar las nuevas figuras
+                //por salir, ya que la introducción de una bola nueva genera nuevas figuras por salir
+                log("Se buscaran nuevos premios por salir, ya que compró una bola extra nueva");
+                buscarPremiosPorSalir(utilizarUmbralParaLiberarBolasExtra);
             }
             else{
                 //No tiene creditos disponibles, salir del ciclo
@@ -1323,13 +1370,18 @@ public class Juego {
         int habilitados = habilitados();
         int apuestaIndividual = habilitados > 0 ? apuestaTotal : 0;
         
+        if (apuestaIndividual == 0) {
+            apuestaIndividual = 1;
+        }
+        
         for (int i = 0; i < habilitados; i++) {
             this.apostado[i] = apuestaIndividual;
         }
     }
     
     private void log(Object val){
-        resultados += val.toString() + "\n";
-        
+        if (modoDebug) {
+            resultados += val.toString() + "\n";
+        }
     }
 }

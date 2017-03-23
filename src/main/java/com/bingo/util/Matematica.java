@@ -122,6 +122,7 @@ public class Matematica {
         return BigDecimal.valueOf(base).multiply(ONE_HUNDRED).divide(BigDecimal.valueOf(pct),2, RoundingMode.HALF_UP);
     }
     
+    
     /**
      * Cuenta el numero de elementos de una matriz cuyo elemento[i][j] es mayor a cero
      * @param matrix matriz de numeros enteros
