@@ -51,6 +51,7 @@ public class Juego {
     private boolean modoBonus;
     private boolean utilizarUmbralParaLiberarBolasExtra;
     private boolean modoDeshabilitarPorFaltaDeCredito;
+    private boolean crearFigurasDePago;
     
     //Denominacion
     private Denominacion denominacion;
@@ -103,19 +104,20 @@ public class Juego {
      * Constructor por defecto
      */
     public Juego() {
-        inicializar();
+        
     }
     
     /**
      * Inicializa todos los valores del juego
+     * @param figuras
      */
-    private void inicializar(){
+    public void inicializar(List<FiguraPago> figuras){
         crearEstructuras();
         habilitarPrimerCarton();
         crearCartonesDeJuego();
         colocarApuestaInicial();
         colocarCreditosEnCero();
-        crearFigurasDePago();
+        crearFigurasDePago(figuras);
     }
 
     private void habilitarPrimerCarton() {
@@ -127,7 +129,7 @@ public class Juego {
     }
 
     private void crearEstructuras() {
-        cantidadDeFigurasDePago = FiguraPagoFactoria.cartones().size();
+        cantidadDeFigurasDePago = this.figurasDePago != null? this.figurasDePago.length : FiguraPagoFactoria.cartones().size() ;
         
         bolasExtraSeleccionadas = new boolean[CANTIDADDEBOLASEXTRA];
         
@@ -171,8 +173,10 @@ public class Juego {
         return COLUMNAS;
     }
 
-    private void crearFigurasDePago() {
-        List<FiguraPago> figuras = FiguraPagoFactoria.cartones();
+    private void crearFigurasDePago(List<FiguraPago> figuras) {
+        if (figuras == null) {
+            figuras = FiguraPagoFactoria.cartones();
+        }
         
         int i = 0;
         for(FiguraPago figura : figuras){
@@ -303,6 +307,14 @@ public class Juego {
     
     public int[] factoresDePago(){
         return this.factoresDePago;
+    }
+
+    public boolean isCrearFigurasDePago() {
+        return crearFigurasDePago;
+    }
+
+    public void setCrearFigurasDePago(boolean crearFigurasDePago) {
+        this.crearFigurasDePago = crearFigurasDePago;
     }
     
     public int[] ganado(){
@@ -545,7 +557,9 @@ public class Juego {
                 && factorDeGananciaDelPremioMayor <= limiteSuperiorParaBolaExtraGratis) {
             return 0;
         }
-        return (int)(factorDeGananciaDelPremioMayor * porcentajeDelPremioMayorPorSalirParaBolaExtra);
+        int costo = (int)(factorDeGananciaDelPremioMayor * porcentajeDelPremioMayorPorSalirParaBolaExtra);
+        log("Costo de la bola extra: " + costo);
+        return costo;
     }
     
     //Falta terminar
@@ -690,8 +704,9 @@ public class Juego {
         int premio = -1;
         for (int i = 0; i < CARTONES; i++) {
             for (int j = 0; j < premiosPorSalir[i].length; j++) {
-                if (premiosPorSalir[i][j] > premio) {
-                    premio = premiosPorSalir[i][j]; 
+                if (cartonesHabilitados[i] && premiosPorSalir[i][j] > premio) {
+                    premio = factoresDePago[j];
+                    break;
                 }
             }
         }
@@ -1058,14 +1073,14 @@ public class Juego {
             return;
         }
         while (cantidadDeBolasExtraPorComprar() > 0 && 
-                RNG.getInstance().pick() >= perfilActual.getProbabilidadDeComprarBolasExtra()) {
+                RNG.getInstance().pick() <= perfilActual.getProbabilidadDeComprarBolasExtra()) {
             
             int indiceDeBolaExtraAComprar = seleccionarAleatoriamenteBolaExtraDisponible();
             int costoBolaSeleccionada = costoBolaExtra();
             
             log("Indice de bola extra elegida: " + indiceDeBolaExtraAComprar);
             log("Costo de la bola elegida: " + costoBolaSeleccionada);
-            log("Numero de bola elegida: " + bolasExtra[indiceDeBolaExtraAComprar]);
+            log("Numero de bola: " + bolasExtra[indiceDeBolaExtraAComprar]);
             
             //Verifico que tenga creditos disponibles para comprar
             if (creditos - costoBolaSeleccionada >= 0) {
@@ -1091,6 +1106,7 @@ public class Juego {
             }
             else{
                 //No tiene creditos disponibles, salir del ciclo
+                log("No tiene creditos disponibles para comprar la bola extra!");
                 break;
             }
         }

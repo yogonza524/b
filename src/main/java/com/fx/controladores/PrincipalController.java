@@ -749,7 +749,7 @@ public class PrincipalController implements Initializable{
     
     private void simular(int n){
         
-        int[][][] figuras = obtenerFiguras(tabla.get(comboTablaPagos.getSelectionModel().getSelectedIndex()).getFiguras());
+        int[][][] figuras = obtenerFiguras(comboTablaPagos.getSelectionModel().getSelectedItem().getFiguras());
         int acumulado = 10000;
         boolean generarNuevoBolillero = true;
         
@@ -759,10 +759,17 @@ public class PrincipalController implements Initializable{
             System.out.println("Iteracion: " + i);
             
             bingo = new Juego();
+            bingo.setCrearFigurasDePago(false);
             bingo.setFigurasDePago(figuras);
+            
+            bingo.inicializar(comboTablaPagos.getSelectionModel().getSelectedItem().getFiguras());
+            
             bingo.setAcumulado(acumulado);
             bingo.setUtilizarUmbralParaLiberarBolasExtra(usarUmbralParaLiberarBolasExtra);
             bingo.setModoTournament(tournament);
+            bingo.setModoSimulacion(true);
+            bingo.setLimiteInferiorParaBolaExtraGratis(1);
+            bingo.setLimiteSuperiorParaBolaExtraGratis(10);
             bingo.setModoBonus(false);
             bingo.setPerfilActual(seleccionarPerfil(2));
             bingo.setCreditos(bingo.getPerfilActual().getCreditosMaximos());
