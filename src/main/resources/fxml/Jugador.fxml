@@ -39,13 +39,13 @@
                                           <HBox prefHeight="37.0" prefWidth="378.0">
                                              <children>
                                                 <Label prefHeight="37.0" prefWidth="129.0" text="Porcentaje de creditos a apostar" wrapText="true" />
-                                                <TextField prefHeight="37.0" prefWidth="249.0" promptText="Porcentaje (%)" />
+                                                <TextField fx:id="apuestaDebil" prefHeight="37.0" prefWidth="249.0" promptText="Porcentaje (%)" />
                                              </children>
                                           </HBox>
                                           <HBox prefHeight="56.0" prefWidth="378.0">
                                              <children>
                                                 <Label prefHeight="51.0" prefWidth="130.0" text="Probabilidad de comprar bolas extra" wrapText="true" />
-                                                <TextField prefHeight="37.0" prefWidth="249.0" promptText="Porcentaje (%)">
+                                                <TextField fx:id="comprarBolasExtraDebil" prefHeight="37.0" prefWidth="249.0" promptText="Porcentaje (%)">
                                                    <HBox.margin>
                                                       <Insets top="7.0" />
                                                    </HBox.margin>
@@ -58,7 +58,7 @@
                                           <HBox prefHeight="56.0" prefWidth="378.0">
                                              <children>
                                                 <Label prefHeight="51.0" prefWidth="130.0" text="Creditos maximos " wrapText="true" />
-                                                <TextField prefHeight="37.0" prefWidth="249.0" promptText="Total de creditos">
+                                                <TextField fx:id="creditosMaximosDebil" prefHeight="37.0" prefWidth="249.0" promptText="Total de creditos">
                                                    <HBox.margin>
                                                       <Insets top="7.0" />
                                                    </HBox.margin>
@@ -84,13 +84,13 @@
                                           <HBox prefHeight="37.0" prefWidth="378.0">
                                              <children>
                                                 <Label prefHeight="37.0" prefWidth="129.0" text="Porcentaje de creditos a apostar" wrapText="true" />
-                                                <TextField prefHeight="37.0" prefWidth="249.0" promptText="Porcentaje (%)" />
+                                                <TextField fx:id="apuestaMedio" prefHeight="37.0" prefWidth="249.0" promptText="Porcentaje (%)" />
                                              </children>
                                           </HBox>
                                           <HBox prefHeight="56.0" prefWidth="378.0">
                                              <children>
                                                 <Label prefHeight="51.0" prefWidth="130.0" text="Probabilidad de comprar bolas extra" wrapText="true" />
-                                                <TextField prefHeight="37.0" prefWidth="249.0" promptText="Porcentaje (%)">
+                                                <TextField fx:id="bolasExtraMedio" prefHeight="37.0" prefWidth="249.0" promptText="Porcentaje (%)">
                                                    <HBox.margin>
                                                       <Insets top="7.0" />
                                                    </HBox.margin>
@@ -103,7 +103,7 @@
                                           <HBox prefHeight="56.0" prefWidth="378.0">
                                              <children>
                                                 <Label prefHeight="51.0" prefWidth="130.0" text="Creditos maximos " wrapText="true" />
-                                                <TextField prefHeight="37.0" prefWidth="249.0" promptText="Total de creditos">
+                                                <TextField fx:id="creditosMaximosMedio" prefHeight="37.0" prefWidth="249.0" promptText="Total de creditos">
                                                    <HBox.margin>
                                                       <Insets top="7.0" />
                                                    </HBox.margin>
@@ -129,13 +129,13 @@
                                           <HBox prefHeight="37.0" prefWidth="378.0">
                                              <children>
                                                 <Label prefHeight="37.0" prefWidth="129.0" text="Porcentaje de creditos a apostar" wrapText="true" />
-                                                <TextField prefHeight="37.0" prefWidth="249.0" promptText="Porcentaje (%)" />
+                                                <TextField fx:id="apuestaFuerte" prefHeight="37.0" prefWidth="249.0" promptText="Porcentaje (%)" />
                                              </children>
                                           </HBox>
                                           <HBox prefHeight="56.0" prefWidth="378.0">
                                              <children>
                                                 <Label prefHeight="51.0" prefWidth="130.0" text="Probabilidad de comprar bolas extra" wrapText="true" />
-                                                <TextField prefHeight="37.0" prefWidth="249.0" promptText="Porcentaje (%)">
+                                                <TextField fx:id="bolasExtraFuerte" prefHeight="37.0" prefWidth="249.0" promptText="Porcentaje (%)">
                                                    <HBox.margin>
                                                       <Insets top="7.0" />
                                                    </HBox.margin>
@@ -148,7 +148,7 @@
                                           <HBox layoutX="10.0" layoutY="57.0" prefHeight="56.0" prefWidth="378.0">
                                              <children>
                                                 <Label prefHeight="51.0" prefWidth="130.0" text="Creditos maximos " wrapText="true" />
-                                                <TextField prefHeight="37.0" prefWidth="249.0" promptText="Total de creditos">
+                                                <TextField fx:id="creditosMaximosFuerte" prefHeight="37.0" prefWidth="249.0" promptText="Total de creditos">
                                                    <HBox.margin>
                                                       <Insets top="7.0" />
                                                    </HBox.margin>

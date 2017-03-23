@@ -34,6 +34,9 @@ public class Juego {
     private final int CANTIDADDEBOLASEXTRA = 10;
     private int cantidadDeFigurasDePago;
     
+    //Registro de resultados
+    private String resultados;
+    
     private double porcentajeDelPremioMayorPorSalirParaBolaExtra = .1; //10% del mayor
     private int umbralParaLiberarBolasExtra = 10; //Lo define el usuario
     private double tournament;
@@ -45,6 +48,9 @@ public class Juego {
     private boolean iniciado;
     private boolean modoSimulacion;
     private boolean modoTournament;
+    private boolean modoBonus;
+    private boolean utilizarUmbralParaLiberarBolasExtra;
+    private boolean modoDeshabilitarPorFaltaDeCredito;
     
     //Denominacion
     private Denominacion denominacion;
@@ -149,6 +155,8 @@ public class Juego {
         iniciado = false;
         borrarSeleccionDeBolasExtra();
         
+        //Log de resultados 
+        resultados = "";
     }
 
     private void colocarApuestaInicial() {
@@ -305,6 +313,14 @@ public class Juego {
         return cantidadDeBolasExtraSeleccionadas;
     }
 
+    public String getResultados() {
+        return resultados;
+    }
+
+    public void setResultados(String resultados) {
+        this.resultados = resultados;
+    }
+
     public double getDinero() {
         return dinero;
     }
@@ -332,14 +348,14 @@ public class Juego {
     }
 
     public void mostrarConfiguracion() {
-        System.out.println("Acumulado: " + this.acumulado());
-        System.out.println("Ganado(por carton): " + ArrayUtils.toString(this.ganado()));
-        System.out.println("Ganado(total): " + ganancias());
-        System.out.println("Apuesta total: " + this.apuestaTotal());
-        System.out.println("Apuesta individual: " + ArrayUtils.toString(apostado));
-        System.out.println("Creditos: " + this.creditos());
-        System.out.println("Cartones Habilitados: " + this.habilitados());
-        System.out.println("Cartones Habilitados(individual): " + ArrayUtils.toString(this.cartonesHabilitados));
+        log("Acumulado: " + this.acumulado());
+        log("Ganado(por carton): " + ArrayUtils.toString(this.ganado()));
+        log("Ganado(total): " + ganancias());
+        log("Apuesta total: " + this.apuestaTotal());
+        log("Apuesta individual: " + ArrayUtils.toString(apostado));
+        log("Creditos: " + this.creditos());
+        log("Cartones Habilitados: " + this.habilitados());
+        log("Cartones Habilitados(individual): " + ArrayUtils.toString(this.cartonesHabilitados));
     }
 
     public int ganancias() {
@@ -465,12 +481,12 @@ public class Juego {
      }
     
     public void mostrarBolillero(){
-        System.out.println("Bolas visibles: " + ArrayUtils.toString(this.bolasVisibles) + "(" + this.bolasVisibles.length + ")");
-        System.out.println("Bolas extra: " + ArrayUtils.toString(this.bolasExtra) + "(" + this.bolasExtra.length + ")");
+        log("Bolas visibles: " + ArrayUtils.toString(this.bolasVisibles) + "(" + this.bolasVisibles.length + ")");
+        log("Bolas extra: " + ArrayUtils.toString(this.bolasExtra) + "(" + this.bolasExtra.length + ")");
     }
     
     public void mostrarBolasExtraSeleccionadas(){
-        System.out.println("Bolas extra seleccionadas: " + ArrayUtils.toString(bolasExtraSeleccionadas));
+        log("Bolas extra seleccionadas: " + ArrayUtils.toString(bolasExtraSeleccionadas));
     }
     
     public int[] premiosSegunApostado(){
@@ -485,13 +501,13 @@ public class Juego {
         if (habilitados() > 0) {
             return this.apuestaTotal() / habilitados();
         }
-        System.out.println("No hay cartones habilitados, no se puede computar la apuesta individual");
+        log("No hay cartones habilitados, no se puede computar la apuesta individual");
         return -1;
     }
     
     public void mostrarPremiosSegunApostado(){
-        System.out.println("Premios segun apuestas: " + ArrayUtils.toString(this.premiosSegunApostado()));
-        System.out.println("Nombres: " + ArrayUtils.toString(nombresDeFiguras));
+        log("Premios segun apuestas: " + ArrayUtils.toString(this.premiosSegunApostado()));
+        log("Nombres: " + ArrayUtils.toString(nombresDeFiguras));
     }
     
     public boolean liberarBolasExtra(int umbral){
@@ -500,7 +516,21 @@ public class Juego {
             for (int j = 0; j < premiosPorSalir[0].length; j++) {
                 if (premiosPorSalir[i][j] > 0 && factoresDePago[j] >= umbral) {
                     result = true;
-                    System.out.println("Se deben liberar las bolas extra!");
+                    log("Se deben liberar las bolas extra!");
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+    
+    public boolean liberarBolasExtra(){
+        boolean result = false;
+        for (int i = 0; i < premiosPorSalir.length; i++) {
+            for (int j = 0; j < premiosPorSalir[0].length; j++) {
+                if (premiosPorSalir[i][j] > 0) {
+                    result = true;
+                    log("Se deben liberar las bolas extra!");
                     break;
                 }
             }
@@ -519,7 +549,7 @@ public class Juego {
     }
     
     //Falta terminar
-    public void buscarPremiosPorSalir(){
+    public void buscarPremiosPorSalir(boolean utilizarUmbral){
         //Inicializo los premios por salir
         this.premiosPorSalir = new int[CARTONES][cantidadDeFigurasDePago];
         //Recorro los cartones
@@ -529,14 +559,24 @@ public class Juego {
                 int[][] casillasBinarias = Matematica.figuraBinaria(bolasVisibles, cartones[i]);
                 
                 //Verifico que le falte una casilla y ademas sea mayor al umbral
-                if (cartonesHabilitados[i] && Matematica.leFaltaUno(casillasBinarias, figurasDePago[j]) 
-                        && factoresDePago[j] >= umbralParaLiberarBolasExtra) {
-                    premiosPorSalir[i][j] = premiosSegunApostado()[j];
+                if (cartonesHabilitados[i] && Matematica.leFaltaUno(casillasBinarias, figurasDePago[j])) {
                     
-                    System.out.println("Premio por salir: " + nombresDeFiguras[j] + "(" + factoresDePago[j] + "). Umbral: " + umbralParaLiberarBolasExtra);
+                    //Utilizar umbral?
+                    if (utilizarUmbral) { //Si, utilizar el umbral
+                        if (factoresDePago[j] >= umbralParaLiberarBolasExtra) { //El premio por salir supera el umbral?
+                            premiosPorSalir[i][j] = premiosSegunApostado()[j]; //Si, contabilizar el premio
+                        }
+                    }
+                    else{
+                        premiosPorSalir[i][j] = premiosSegunApostado()[j]; //No, contabilizar ya que no importa el umbral
+                    }
+                    
+                    log("Premio por salir: " + nombresDeFiguras[j] + "(" + factoresDePago[j] + "). Umbral: " + umbralParaLiberarBolasExtra
+                    + "(utilzarUmbral = " + utilizarUmbral + ")");
                 }
             }
         }
+        log("Se buscaron todos los cartones por salir");
     }
     
     private void buscarPremios(int[] bolilleroVisible, int[][][] cartones){
@@ -561,8 +601,8 @@ public class Juego {
                         if (k != indiceDelMayor && premiosPagados[i][k] > 0 
                                 && Matematica.estaContenido(figurasDePago[k], figurasDePago[indiceDelMayor])) {
                             premiosPagados[i][k] = 0;
-//                            System.out.println("Se borra el premio " + nombresDeFiguras[k]);
-//                            System.out.println("Esta contenido en " + nombresDeFiguras[indiceDelMayor]);
+//                            log("Se borra el premio " + nombresDeFiguras[k]);
+//                            log("Esta contenido en " + nombresDeFiguras[indiceDelMayor]);
                         }
                     }
                 }
@@ -585,10 +625,10 @@ public class Juego {
 //        for (int i = 0; i < this.premiosPagados[indiceCarton].length; i++) {
 //            if (premiosPagados[indiceCarton][i] > 0 && Matematica.estaContenido(figurasDePago[i], contenido)) {
 //                result = true;
-//                System.out.println("Figura premiada anteriormente: " + this.nombresDeFiguras[i]);
-//                System.out.println("No se debe pagar, casillas comparadas");
+//                log("Figura premiada anteriormente: " + this.nombresDeFiguras[i]);
+//                log("No se debe pagar, casillas comparadas");
 //                for (int j = 0; j < contenido.length; j++) {
-//                    System.out.println(ArrayUtils.toString(contenido[j]));
+//                    log(ArrayUtils.toString(contenido[j]));
 //                }
 //                break;
 //            }
@@ -616,34 +656,34 @@ public class Juego {
 
     public void mostrarPremiosObtenidos() {
         int[][] premios = this.premiosPagados();
-        System.out.println("Premios obtenidos: ");
+        log("Premios obtenidos: ");
         for (int i = 0; i < premios.length; i++) {
-            System.out.println("Carton " + (i + 1) + ": " + ArrayUtils.toString(premios[i]));
+            log("Carton " + (i + 1) + ": " + ArrayUtils.toString(premios[i]));
         }
     }
     
     public void mostrarCartones(){
-        System.out.println("Cartones actuales");
+        log("Cartones actuales");
         for (int i = 0; i < cartones.length; i++) {
             for (int j = 0; j < cartones[0].length; j++) {
-                System.out.println(ArrayUtils.toString(cartones[i][j]));
+                log(ArrayUtils.toString(cartones[i][j]));
             }
-            System.out.println("-----------------");
+            log("-----------------");
         }
     }
 
     public void mostrarGanado() {
-        System.out.println("Ganancias totales: " + ganancias());
-        System.out.println("Ganancias parciales: " + ArrayUtils.toString(this.ganado));
+        log("Ganancias totales: " + ganancias());
+        log("Ganancias parciales: " + ArrayUtils.toString(this.ganado));
     }
 
     public void mostrarCreditos() {
-        System.out.println("Creditos: " + this.creditos);
+        log("Creditos: " + this.creditos);
     }
 
     public void mostrarApuestas() {
-        System.out.println("Apuesta total: " + this.apuestaTotal());
-        System.out.println("Apuestas individuales: " + ArrayUtils.toString(this.apostado));
+        log("Apuesta total: " + this.apuestaTotal());
+        log("Apuestas individuales: " + ArrayUtils.toString(this.apostado));
     }
 
     private int premioMayorPorSalir() {
@@ -786,6 +826,14 @@ public class Juego {
         return modoTournament;
     }
 
+    public boolean isModoDeshabilitarPorFaltaDeCredito() {
+        return modoDeshabilitarPorFaltaDeCredito;
+    }
+
+    public void setModoDeshabilitarPorFaltaDeCredito(boolean modoDeshabilitarPorFaltaDeCredito) {
+        this.modoDeshabilitarPorFaltaDeCredito = modoDeshabilitarPorFaltaDeCredito;
+    }
+
     public void setModoTournament(boolean modoTournament) {
         this.modoTournament = modoTournament;
     }
@@ -854,8 +902,24 @@ public class Juego {
         this.premiosPagadosEnCicloDeBolasExtra = premiosPagadosEnCicloDeBolasExtra;
     }
 
+    public boolean isModoBonus() {
+        return modoBonus;
+    }
+
+    public void setModoBonus(boolean modoBonus) {
+        this.modoBonus = modoBonus;
+    }
+
     public boolean[] getFigurasConBonus() {
         return figurasConBonus;
+    }
+
+    public boolean isUtilizarUmbralParaLiberarBolasExtra() {
+        return utilizarUmbralParaLiberarBolasExtra;
+    }
+
+    public void setUtilizarUmbralParaLiberarBolasExtra(boolean utilizarUmbralParaLiberarBolasExtra) {
+        this.utilizarUmbralParaLiberarBolasExtra = utilizarUmbralParaLiberarBolasExtra;
     }
 
     public void setFigurasConBonus(boolean[] figurasConBonus) {
@@ -883,12 +947,16 @@ public class Juego {
     }
     
     public void jugar(boolean generarNuevoBolillero){
+        
+        mostrarCreditos();
+        mostrarApuestas();
+        
         if (generarNuevoBolillero) {
             this.generarBolillero();
         }
         
         if (this.apuestaTotal() > this.creditos) {
-            System.out.println("La apuesta total de " + this.apuestaTotal() + " supera los "
+            log("La apuesta total de " + this.apuestaTotal() + " supera los "
                     + "creditos disponibles, " + creditos);
             return;
         }
@@ -896,7 +964,7 @@ public class Juego {
         borrarJuegoAnterior();
         
         if (cartonesDeJuegoVacios()) {
-            System.out.println("Los cartones de juego no fueron colocados, juego abortado...");
+            log("Los cartones de juego no fueron colocados, juego abortado...");
             return;
         }
         
@@ -905,10 +973,10 @@ public class Juego {
         this.descontarApuestas();
         
         this.buscarPremios(); //Busco premios comunmente
-        this.buscarPremiosPorSalir(); //Busco premios por salir
+        this.buscarPremiosPorSalir(utilizarUmbralParaLiberarBolasExtra); //Busco premios por salir
         
         if (modoSimulacion) {
-            if (huboBonus()) {
+            if (modoBonus && huboBonus()) { //Si el bonus esta habilitado y ademas hay premios con bonus
                 //Iniciar ciclo de bonus
                 cicloBonus();
 
@@ -924,8 +992,14 @@ public class Juego {
         
         computarGanancias();
         
+        mostrarPremiosSegunApostado();
+        mostrarPremiosObtenidos();
+        mostrarGanado();
+        
         //Si ya no tengo credito disponible, partir y deshabilitar los cartones
-        deshabilitarCartonesSiNoHayCreditoSuficiente();
+        if (modoDeshabilitarPorFaltaDeCredito) {
+            deshabilitarCartonesSiNoHayCreditoSuficiente();
+        }
         
         //Verificar si se debe pagar el tournament
         if (pagarTournament()) {
@@ -976,11 +1050,11 @@ public class Juego {
 
     public void cicloDeBolasExtra() {
         if (perfilActual == null) {
-            System.out.println("No se ha cargado un perfil, saliendo del ciclo de bolas extra....");
+            log("No se ha cargado un perfil, saliendo del ciclo de bolas extra....");
             return;
         }
         if (cantidadDeBolasExtraPorComprar() == 0) {
-            System.out.println("No se pueden comprar bolas extra, ya no hay ninguna, saliendo del ciclo de bolas extra...");
+            log("No se pueden comprar bolas extra, ya no hay ninguna, saliendo del ciclo de bolas extra...");
             return;
         }
         while (cantidadDeBolasExtraPorComprar() > 0 && 
@@ -989,18 +1063,18 @@ public class Juego {
             int indiceDeBolaExtraAComprar = seleccionarAleatoriamenteBolaExtraDisponible();
             int costoBolaSeleccionada = costoBolaExtra();
             
-            System.out.println("Indice de bola extra elegida: " + indiceDeBolaExtraAComprar);
-            System.out.println("Costo de la bola elegida: " + costoBolaSeleccionada);
-            System.out.println("Numero de bola elegida: " + bolasExtra[indiceDeBolaExtraAComprar]);
+            log("Indice de bola extra elegida: " + indiceDeBolaExtraAComprar);
+            log("Costo de la bola elegida: " + costoBolaSeleccionada);
+            log("Numero de bola elegida: " + bolasExtra[indiceDeBolaExtraAComprar]);
             
             //Verifico que tenga creditos disponibles para comprar
             if (creditos - costoBolaSeleccionada >= 0) {
                 //Tiene creditos, descontar 
-                System.out.println("Puede comprar la bola extra! Descontando el costo anterior del credito");
+                log("Puede comprar la bola extra! Descontando el costo anterior del credito");
                 bolasExtraSeleccionadas[indiceDeBolaExtraAComprar] = true; //Marco como seleccionada
                 creditos -= costoBolaSeleccionada; //Descuento
                 
-                System.out.println("Se desconó creditos por bolas extra, credito actual: " + creditos);
+                log("Se desconó creditos por bolas extra, credito actual: " + creditos);
                 
                 //Aumento el contador de credito gastado en bolas extra
                 creditosInvertidosEnBolasExtra += costoBolaSeleccionada;
@@ -1012,8 +1086,8 @@ public class Juego {
                 bolasVisibles[bolasVisibles.length - 1] = bolasExtra[indiceDeBolaExtraAComprar]; //agrego el numero de la bola extra nueva
                 buscarPremios();
                 
-                System.out.println("Compró la bola: " + indiceDeBolaExtraAComprar);
-                System.out.println("Costo: " + costoBolaSeleccionada);
+                log("Compró la bola: " + indiceDeBolaExtraAComprar);
+                log("Costo: " + costoBolaSeleccionada);
             }
             else{
                 //No tiene creditos disponibles, salir del ciclo
@@ -1046,7 +1120,7 @@ public class Juego {
     private void descontarApuestas() {
         this.creditos -= apuestaTotal();
         
-        System.out.println("Creditos luego de descontar: " + this.creditos);
+        log("Creditos luego de descontar: " + this.creditos);
         
         //Si el juego es comunitario sumar al pozo
         if (modoTournament) {
@@ -1054,7 +1128,7 @@ public class Juego {
 //            dinero -= apuestaTotal() * porcentajeDeDescuentoParaTournament;
             this.creditos -= apuestaTotal() * porcentajeDeDescuentoParaTournament;
             
-            System.out.println("Creditos luego de descontar el tournament: " + this.creditos);
+            log("Creditos luego de descontar el tournament: " + this.creditos);
         }
     }
     
@@ -1064,20 +1138,20 @@ public class Juego {
      */
     public double cobrar(){
         
-        System.out.println("Creditos a cobrar: " + creditos);
-        System.out.println("Dinero antes del calculo: " + dinero);
+        log("Creditos a cobrar: " + creditos);
+        log("Dinero antes del calculo: " + dinero);
         
         //Sumo el dinero (si esta en modo Tournament el dinero tiene un valor
         //Negativo, debido al descuento de la apuesta del jugador)
         //Con los creditos en la denominacion elegida
         double dineroCobrado = dinero + creditos * denominacion.getValue();
         
-        System.out.println("Dinero a cobrar: " + dineroCobrado);
+        log("Dinero a cobrar: " + dineroCobrado);
         
         dineroCobrado = Matematica.redondear(dineroCobrado, 2);
         dinero = 0.0;
         
-        System.out.println("Dinero a cobrar(redondeado): " + dineroCobrado);
+        log("Dinero a cobrar(redondeado): " + dineroCobrado);
         
         return dineroCobrado;
     }
@@ -1098,7 +1172,7 @@ public class Juego {
         bonus = new int[cantidadTotalDePremiosEnBonus];
         premiosDelBonusSeleccionados = new boolean[cantidadTotalDePremiosEnBonus];
         
-        System.out.println("Comienzo del ciclo del bonus!");
+        log("Comienzo del ciclo del bonus!");
         
         //Genero los premios en funcion de lo apostado
         int apuestaIndividual = this.apuestaIndividual();
@@ -1113,7 +1187,7 @@ public class Juego {
             bonus[i] = apuestaIndividual * factoresDePremioBonus[RNG.getInstance().pickInt(factoresDePremioBonus.length)];
         }
         
-        System.out.println("Premios del bonus: " + ArrayUtils.toString(bonus));
+        log("Premios del bonus: " + ArrayUtils.toString(bonus));
         
         //Comienza la seleccion aleatoria
         int indice = RNG.getInstance().pickInt(bonus.length);
@@ -1121,13 +1195,13 @@ public class Juego {
             totalGanadoEnBonus += bonus[indice];
             premiosDelBonusSeleccionados[indice] = true;
             
-            System.out.println("Seleccionado: " + indice);
-            System.out.println("Premio bonus: " + bonus[indice]);
+            log("Seleccionado: " + indice);
+            log("Premio bonus: " + bonus[indice]);
             
             indice = RNG.getInstance().pickInt(bonus.length);
         }
         
-        System.out.println("Finalizó el bonus, indice = " + indice + ". Ganancia total: " + totalGanadoEnBonus);
+        log("Finalizó el bonus, indice = " + indice + ". Ganancia total: " + totalGanadoEnBonus);
     }
     
     public boolean quedanPremiosDelBonusDisponibles(){
@@ -1160,7 +1234,7 @@ public class Juego {
         int apuestaTotal = apuestaTotal();
         if (apuestaTotal > creditos) {
             
-            System.out.println("No hay creditos suficientes, se deshabilitaran los cartonas superiores");
+            log("No hay creditos suficientes, se deshabilitaran los cartonas superiores");
             
             apuestaTotal = apuestasNuevas;
             
@@ -1184,8 +1258,8 @@ public class Juego {
                 apostado[0] = 1;
             }
             
-            System.out.println("Cartones luego de deshabilitar: " + ArrayUtils.toString(cartonesHabilitados));
-            System.out.println("Apuestas luego de deshabilitar: ");
+            log("Cartones luego de deshabilitar: " + ArrayUtils.toString(cartonesHabilitados));
+            log("Apuestas luego de deshabilitar: ");
             mostrarApuestas();
         }
     }
@@ -1221,5 +1295,25 @@ public class Juego {
         boolean result = false;
         
         return result;
+    }
+
+    public void habilitarTodos() {
+        for (int i = 0; i < 4; i++) {
+            this.habilitar(i);
+        }
+    }
+
+    public void apostar(int apuestaTotal) {
+        int habilitados = habilitados();
+        int apuestaIndividual = habilitados > 0 ? apuestaTotal : 0;
+        
+        for (int i = 0; i < habilitados; i++) {
+            this.apostado[i] = apuestaIndividual;
+        }
+    }
+    
+    private void log(Object val){
+        resultados += val.toString() + "\n";
+        
     }
 }

@@ -16,6 +16,7 @@ public class Perfil {
 
     private int factorDeApuesta;
     private double probabilidadDeComprarBolasExtra;
+    private int creditosMaximos;
     private String nombre;
     
     private Perfil(){}
@@ -27,10 +28,17 @@ public class Perfil {
     public double getProbabilidadDeComprarBolasExtra() {
         return probabilidadDeComprarBolasExtra;
     }
-
-
+    
     public String getNombre() {
         return nombre;
+    }
+
+    public int getCreditosMaximos() {
+        return creditosMaximos;
+    }
+
+    public void setCreditosMaximos(int creditosMaximos) {
+        this.creditosMaximos = creditosMaximos;
     }
     
     public final static Perfil[] perfiles(){
@@ -41,14 +49,17 @@ public class Perfil {
         result[0].factorDeApuesta = 4;
         result[0].probabilidadDeComprarBolasExtra = .3;
         result[0].nombre = "Debil";
+        result[0].creditosMaximos = 30;
         
         result[1].factorDeApuesta = 15;
         result[1].probabilidadDeComprarBolasExtra = .6;
         result[1].nombre = "Medio";
+        result[1].creditosMaximos = 60;
         
         result[2].factorDeApuesta = 30;
         result[2].probabilidadDeComprarBolasExtra = .99;
         result[2].nombre = "Alto";
+        result[2].creditosMaximos = 120;
         
         return result;
     }

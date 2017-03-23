@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite tests="6" failures="0" name="JuegoTest" time="0.423" errors="0" skipped="5">
+<testsuite tests="6" failures="0" name="JuegoTest" time="0.912" errors="0" skipped="5">
   <properties>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
     <property name="sun.boot.library.path" value="/home/gonza/jdk1.8.0_101/jre/lib/amd64"/>
@@ -15,7 +15,7 @@
     <property name="sun.os.patch.level" value="unknown"/>
     <property name="test" value="JuegoTest"/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
-    <property name="user.dir" value="/home/gonza/Desarrollos/Github/simuladorFinal/b"/>
+    <property name="user.dir" value="/home/gonza/Escritorio/b"/>
     <property name="java.runtime.version" value="1.8.0_101-b13"/>
     <property name="java.awt.graphicsenv" value="sun.awt.X11GraphicsEnvironment"/>
     <property name="java.endorsed.dirs" value="/home/gonza/jdk1.8.0_101/jre/lib/endorsed"/>
@@ -64,17 +64,17 @@
   <testcase classname="JuegoTest" name="saveJsonTest" time="0">
     <skipped/>
   </testcase>
-  <testcase classname="JuegoTest" name="bolilleroTest" time="0.338"/>
-  <testcase classname="JuegoTest" name="guavaTest" time="0.338">
+  <testcase classname="JuegoTest" name="bolilleroTest" time="0.515"/>
+  <testcase classname="JuegoTest" name="guavaTest" time="0.515">
     <skipped/>
   </testcase>
-  <testcase classname="JuegoTest" name="randomTest" time="0.338">
+  <testcase classname="JuegoTest" name="randomTest" time="0.515">
     <skipped/>
   </testcase>
-  <testcase classname="JuegoTest" name="valoresTest" time="0.338">
+  <testcase classname="JuegoTest" name="valoresTest" time="0.517">
     <skipped/>
   </testcase>
-  <testcase classname="JuegoTest" name="readJsonFileTest" time="0.338">
+  <testcase classname="JuegoTest" name="readJsonFileTest" time="0.517">
     <skipped/>
   </testcase>
 </testsuite>

@@ -10,6 +10,9 @@ import com.bingo.entidades.FiguraPago;
 import com.bingo.entidades.TablaDePago;
 import com.bingo.enumeraciones.CodigoEvento;
 import com.bingo.fabricas.FiguraPagoFactoria;
+import com.bingo.perfilesJugador.Perfil;
+import com.bingo.rng.RNG;
+import com.bingo.util.Matematica;
 import com.core.bingosimulador.Juego;
 import com.fx.util.Dialog;
 import com.google.common.eventbus.Subscribe;
@@ -28,9 +31,12 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
@@ -49,6 +55,7 @@ import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -57,6 +64,7 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
@@ -81,11 +89,17 @@ public class PrincipalController implements Initializable{
     
     //Juego
     private static Juego bingo;
+    private int[] creditosMaximosPorPerfil;
+    private double[] probabilidadDeApostarPorPerfil;
+    private double[] probabilidadDeComprarBolasExtra;
     
     //Cómputo de resultados
     private BigInteger cantidadDeJuegosGanados;
     private BigInteger pagado;
     private BigInteger apostado;
+    private boolean tournament;
+    private boolean usarUmbralParaLiberarBolasExtra;
+    private double[] retribuciones; //Retribuciones parciales, para cada juego
     
     //Simular boton
     @FXML private ProgressBar progress;
@@ -113,6 +127,9 @@ public class PrincipalController implements Initializable{
     @FXML private TextField nombreFiguraTxt;
     @FXML private TextField factorPagoFiguraTxt;
     @FXML private CheckBox bonusCheckFigura;
+    
+    //Resultados
+    @FXML private TextArea resultadosTxt;
     
     @FXML private Pane p1;
     @FXML private Pane p2;
@@ -220,6 +237,23 @@ public class PrincipalController implements Initializable{
                     .forEach(figura -> {
                         comboFigurasPago.getItems().add(figura);
                     });
+        }
+    }
+    
+    @Subscribe
+    private void cargarPerfiles(Evento e){
+        if (e.getCodigo() == CodigoEvento.CARGARPERFILES.getValue()) {
+            Map<String,Object> parametros = e.getParametros();
+            if (parametros != null && parametros.get("creditosMaximosPorPerfil") != null &&
+                    parametros.get("probabilidadDeApostarPorPerfil") != null &&
+                    parametros.get("probabilidadDeComprarBolasExtra") != null) {
+                this.probabilidadDeApostarPorPerfil = (double[]) parametros.get("probabilidadesDeApuesta");
+                this.creditosMaximosPorPerfil = (int[]) parametros.get("creditosMaximos");
+                this.probabilidadDeComprarBolasExtra = (double[]) parametros.get("probabilidadDeComprarBolasExtra");
+            }
+            else{
+                System.out.println("Faltan parametros para cargar los perfiles, metodo suscripto");
+            }
         }
     }
     
@@ -515,15 +549,48 @@ public class PrincipalController implements Initializable{
                 
                 progress.setVisible(true);
                 
+                int n = Integer.valueOf(simulacionesTxt.getText());
+                this.retribuciones = new double[n];
+                
                 Task<Void> task = new Task<Void>() {
                     @Override protected Void call() throws Exception {
+                        
+                        //Comenzar la simulacion
+                        
+                        System.out.println("Tablero elegido: " + comboTablaPagos.getSelectionModel().getSelectedIndex());
+                        
+                        resultadosTxt.setText("Tablero: " + tableroElegido(comboTablaPagos.getSelectionModel().getSelectedItem()));
+                        
+                        simular(n);
+                        
                         return null;
+                    }
+
+                    private String tableroElegido(TablaDePago tablero) {
+                        StringBuilder result = new StringBuilder();
+                        result.append("[");
+                        for(FiguraPago figura : tablero.getFiguras()){
+                            result.append(figura.getNombre()).append("(").append(figura.getFactorGanancia())
+                                    .append("),");
+                        }
+                        return result.substring(0, result.length() -1) + "]";
                     }
                 };
                 task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
                     @Override
                     public void handle(WorkerStateEvent t) {
                         progress.setVisible(false);
+                        
+                        //Mostrar resultados
+                        BigDecimal porcentajeRetribucion = Matematica.porcentaje(pagado.intValueExact(), apostado.intValueExact());
+                        if (porcentajeRetribucion != null) {
+                            double retribuido = porcentajeRetribucion.doubleValue();
+                            //Mostrar
+                            porcentajeDeRetribucionGauge.setValue(retribuido);
+                        }
+                        
+                        //Graficar retribuciones parciales
+                        graficarPorcentajesDeRetribucionParciales(retribuciones);
                     }
                 });
 
@@ -637,6 +704,24 @@ public class PrincipalController implements Initializable{
     private void initConfig() {
         progress.setVisible(false);
         
+        creditosMaximosPorPerfil = new int[3];
+        probabilidadDeApostarPorPerfil = new double[3];
+        probabilidadDeComprarBolasExtra = new double[3];
+        
+        //Configuro los perfiles
+        creditosMaximosPorPerfil[0] = 500; //Creditos del debil
+        creditosMaximosPorPerfil[1] = 1000; //Creditos del debil
+        creditosMaximosPorPerfil[2] = 2000; //Creditos del debil
+        
+        probabilidadDeApostarPorPerfil[0] = .3;
+        probabilidadDeApostarPorPerfil[1] = .6;
+        probabilidadDeApostarPorPerfil[2] = .9;
+        
+        probabilidadDeComprarBolasExtra[0] = 1.0; //Siempre compra, a menos que David diga lo contrario
+        probabilidadDeComprarBolasExtra[0] = 1.0; //Siempre compra, a menos que David diga lo contrario
+        probabilidadDeComprarBolasExtra[0] = 1.0; //Siempre compra, a menos que David diga lo contrario
+        
+        
         crearTermometro(porcentajeDeRetribucionGauge = new Gauge(), porcentajeRetribucionPane, "Retribución", "%");
         crearTermometro(porcentajeDeJuegosGanados = new Gauge(), porcentajeGanadosPane, "Ganados", "%");
         crearTermometro(porcentajeDeJuegosConBolasExtra = new Gauge(), porcentajeJuegosBolasExtraPane, "Con bolas extra", "%");
@@ -669,16 +754,31 @@ public class PrincipalController implements Initializable{
         boolean generarNuevoBolillero = true;
         
         for (int i = 0; i < n; i++) {
+            
+            mostrarResultados("\n----------------Iteracion: " + (i + 1) + "---------------\n"); 
+            System.out.println("Iteracion: " + i);
+            
             bingo = new Juego();
             bingo.setFigurasDePago(figuras);
             bingo.setAcumulado(acumulado);
-            
+            bingo.setUtilizarUmbralParaLiberarBolasExtra(usarUmbralParaLiberarBolasExtra);
+            bingo.setModoTournament(tournament);
+            bingo.setModoBonus(false);
+            bingo.setPerfilActual(seleccionarPerfil(2));
+            bingo.setCreditos(bingo.getPerfilActual().getCreditosMaximos());
+            bingo.apostar(RNG.getInstance().pickInt(bingo.getPerfilActual().getFactorDeApuesta()));
+            bingo.habilitarTodos();
             
             //Jugar
             bingo.jugar(generarNuevoBolillero);
             
             //Computar resultados;
             apostado = apostado.add(BigInteger.valueOf(bingo.apuestaTotal()));
+            pagado = pagado.add(BigInteger.valueOf(bingo.ganancias()));
+            
+            this.retribuciones[i] = bingo.apuestaTotal() > 0 ? Matematica.porcentaje(bingo.ganancias(), bingo.apuestaTotal()).doubleValue() : 0.0;
+            
+            mostrarResultados(bingo.getResultados());
         }
     }
 
@@ -694,5 +794,34 @@ public class PrincipalController implements Initializable{
         apostado = BigInteger.ZERO;
         pagado = BigInteger.ZERO;
         cantidadDeJuegosGanados = BigInteger.ZERO;
+    }
+
+    private Perfil seleccionarPerfil(int indiceConfiguracion) {
+        //Selecciono en funcion de la configuracion
+        return Perfil.perfiles()[2]; //Siempre el fuerte
+    }
+    
+    private void graficarPorcentajesDeRetribucionParciales(double[] retribucionesParciales){
+        NumberAxis xAxis = new NumberAxis();
+        xAxis.setLabel("Cantidad de simulaciones");
+
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("%");
+        
+        XYChart.Series dataSeries1 = new XYChart.Series();
+        dataSeries1.setName("Porcentaje de retribucion");
+        
+        for (int i = 0; i < retribucionesParciales.length; i++) {
+            dataSeries1.getData().add(new XYChart.Data(i + "", (int)retribucionesParciales[i]));
+        }
+
+        linearChart.getData().clear();
+        linearChart.getData().add(dataSeries1);
+    }
+
+    private void mostrarResultados(String val) {
+        Platform.runLater(() -> {
+            resultadosTxt.appendText(val);
+        });
     }
 }
