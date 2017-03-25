@@ -23,7 +23,34 @@ public class ConfiguracionPersistencia implements Serializable{
     private double factorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor;
     private int limiteMinimoGratis;
     private int limiteMaximoGratis;
+    private boolean tournament;
+    private double porcentajeParaTournament;
+    private int indicePorcentajeTournamentCombo;
 
+    public int getIndicePorcentajeTournamentCombo() {
+        return indicePorcentajeTournamentCombo;
+    }
+
+    public void setIndicePorcentajeTournamentCombo(int indicePorcentajeTournamentCombo) {
+        this.indicePorcentajeTournamentCombo = indicePorcentajeTournamentCombo;
+    }
+
+    public boolean isTournament() {
+        return tournament;
+    }
+
+    public void setTournament(boolean tournament) {
+        this.tournament = tournament;
+    }
+
+    public double getPorcentajeParaTournament() {
+        return porcentajeParaTournament;
+    }
+
+    public void setPorcentajeParaTournament(double porcentajeParaTournament) {
+        this.porcentajeParaTournament = porcentajeParaTournament;
+    }
+    
     public String getRutaDeLasTablasDePago() {
         return rutaDeLasTablasDePago;
     }

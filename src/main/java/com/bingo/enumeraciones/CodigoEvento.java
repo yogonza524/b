@@ -14,6 +14,7 @@ public enum CodigoEvento {
     CARGAR(102),
     CARGARPERFILES(103),
     BOLASEXTRA(104),
+    TOURNAMENT(105),
     
     ;
     

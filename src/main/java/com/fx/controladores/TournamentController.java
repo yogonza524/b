@@ -5,8 +5,18 @@
  */
 package com.fx.controladores;
 
+import com.bingo.enumeraciones.CodigoEvento;
+import com.guava.core.EventBusManager;
+import com.guava.core.Evento;
+import com.persistencia.ConfiguracionPersistencia;
+import com.persistencia.PersistenciaJson;
+import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
@@ -32,7 +42,7 @@ public class TournamentController implements Initializable {
     @FXML private Button cerrarBtn;
     @FXML private AnchorPane base;
     @FXML private ComboBox<Double> comboTorunament;
-    @FXML private CheckBox usarTournament;
+    @FXML private CheckBox usarTournamentCheck;
     
     /**
      * Initializes the controller class.
@@ -41,9 +51,13 @@ public class TournamentController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
         initButtons();
-        initTextFields();
+        initCheckBoxes();
         initComboBoxes();
-        initConfig();
+        try {
+            initConfig();
+        } catch (IOException ex) {
+            Logger.getLogger(TournamentController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }    
 
     private void initButtons() {
@@ -52,11 +66,30 @@ public class TournamentController implements Initializable {
         });
     }
 
-    private void initTextFields() {
-        
+    private void initCheckBoxes() {
+        usarTournamentCheck.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                comboTorunament.setDisable(!newValue);
+                
+                if (comboTorunament.getSelectionModel().getSelectedIndex() < 0) {
+                    comboTorunament.getSelectionModel().selectFirst();
+                }
+                
+                Double porcentajeParaTournament = comboTorunament.getSelectionModel().getSelectedItem();
+                
+                Map<String,Object> param = new  HashMap<>();
+                param.put("porcentajeParaTournament", porcentajeParaTournament);
+                param.put("tournament", newValue);
+                
+                EventBusManager.getInstancia().getBus()
+                        .post(new Evento(CodigoEvento.TOURNAMENT.getValue(), param));
+            }
+            
+        });
     }
 
-    private void initConfig() {
+    private void initConfig() throws IOException {
         base.setOnKeyReleased(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
@@ -65,6 +98,14 @@ public class TournamentController implements Initializable {
                 }
             }
         });
+        
+        ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
+        
+        Boolean tournament = config.isTournament();
+        Integer indiceTournament = config.getIndicePorcentajeTournamentCombo();
+        
+        usarTournamentCheck.setSelected(tournament);
+        comboTorunament.getSelectionModel().select(indiceTournament);
     }
     
     private void cerrar() {
@@ -76,19 +117,34 @@ public class TournamentController implements Initializable {
         comboTorunament.setConverter(new StringConverter<Double>() {
             @Override
             public String toString(Double object) {
-                return object.intValue() + "% de lo apostado";
+                return (object.intValue() + 1) + "% de lo apostado";
             }
 
             @Override
             public Double fromString(String string) {
-                return Double.valueOf(string.split("%")[0]);
+                return ((Double.valueOf(string.split("%")[0])) * 0.01);
             }
         });
+        
+        for (int i = 0; i < 100; i++) {
+            comboTorunament.getItems().add(i * 1.0);
+        }
         
         comboTorunament.valueProperty().addListener(new ChangeListener<Double>() {
             @Override
             public void changed(ObservableValue<? extends Double> observable, Double oldValue, Double newValue) {
+                Double porcentajeParaTournament = (comboTorunament.getSelectionModel().getSelectedItem() + 1) * 0.01;
+                int indicePorcentajeTournamentCombo = comboTorunament.getSelectionModel().getSelectedIndex();
                 
+                Map<String,Object> param = new  HashMap<>();
+                param.put("porcentajeParaTournament", porcentajeParaTournament);
+                param.put("indicePorcentajeTournamentCombo", indicePorcentajeTournamentCombo);
+                
+                EventBusManager.getInstancia().getBus()
+                        .post(new Evento(CodigoEvento.TOURNAMENT.getValue(), param));
+                
+                //Debug
+                System.out.println("Porcentaje elegido: " + porcentajeParaTournament);
             }
         });
     }

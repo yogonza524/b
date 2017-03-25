@@ -46,7 +46,7 @@
                            <children>
                               <VBox layoutX="149.0" layoutY="78.0" prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                  <children>
-                                    <CheckBox fx:id="usarTorunamentCheck" mnemonicParsing="false" text="Modo tournament" />
+                                    <CheckBox fx:id="usarTournamentCheck" mnemonicParsing="false" text="Modo tournament" />
                                     <Label text="Porcentaje de credito destinado a tournament">
                                        <VBox.margin>
                                           <Insets top="5.0" />

@@ -1,1 +1,1 @@
-{"rutaDeLasTablasDePago":"tablasDePago.json","utilizarUmbral":true,"umbralParaLiberarBolasExtra":6,"factorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor":0.2,"limiteMinimoGratis":0,"limiteMaximoGratis":10}
+{"rutaDeLasTablasDePago":"tablasDePago.json","utilizarUmbral":false,"umbralParaLiberarBolasExtra":10,"factorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor":0.1,"limiteMinimoGratis":0,"limiteMaximoGratis":10,"tournament":true,"porcentajeParaTournament":0.04,"indicePorcentajeTournamentCombo":3}

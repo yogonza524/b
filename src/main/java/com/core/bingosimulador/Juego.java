@@ -397,6 +397,8 @@ public class Juego {
         log("Limite superior de bola extra gratis: " + this.limiteSuperiorParaBolaExtraGratis);
         log("Umbral: " + this.umbralParaLiberarBolasExtra);
         log("Utilizar umbral: " + this.utilizarUmbralParaLiberarBolasExtra);
+        log("Tournament: " + (this.modoTournament? "Si" : "No" ));
+        log("Porcentaje de descuento de apuestas para tournament: " + (int)(this.porcentajeDeDescuentoParaTournament * 100) + "%");
     }
 
     public int ganancias() {
@@ -1194,7 +1196,7 @@ public class Juego {
         
         log("Creditos luego de descontar: " + this.creditos);
         
-        //Si el juego es comunitario sumar al pozo
+        //Si el juego es comunitario sumar al pozo y descontar un porcentaje de la apuesta
         if (modoTournament) {
             acumulado += apuestaTotal() * porcentajeDeDescuentoParaTournament;
 //            dinero -= apuestaTotal() * porcentajeDeDescuentoParaTournament;

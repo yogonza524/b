@@ -101,6 +101,7 @@ public class PrincipalController implements Initializable{
     private BigInteger apostado;
     private BigInteger juegosConBolasExtra;
     private boolean tournament;
+    private double porcentajeParaTournament;
     private boolean usarUmbralParaLiberarBolasExtra;
     private int umbralParaLiberarBolasExtra;
     private double porcentajeDeCostoDeBolaExtraSegunPremioMayor;
@@ -318,6 +319,30 @@ public class PrincipalController implements Initializable{
             System.out.println("Limite maximo gratis: " + limiteMaximoGratis);
             System.out.println("Porcentaje del premio mayor para el costo: " + porcentajeDeCostoDeBolaExtraSegunPremioMayor);
             
+        }
+    }
+    
+    @Subscribe
+    private void persistirTournament(Evento e) throws IOException{
+        if (e != null && e.getCodigo() == CodigoEvento.TOURNAMENT.getValue()) {
+            int indicePorcentajeTournamentCombo = 0;
+            
+            if (e.getParametros() != null && e.getParametros().get("tournament") != null) {
+                this.tournament = Boolean.valueOf(e.getParametros().get("tournament").toString());
+            }
+            if (e.getParametros() != null && e.getParametros().get("porcentajeParaTournament") != null) {
+                this.porcentajeParaTournament = Double.valueOf(e.getParametros().get("porcentajeParaTournament").toString()) ;
+            }
+            if (e.getParametros() != null && e.getParametros().get("indicePorcentajeTournamentCombo") != null) {
+                indicePorcentajeTournamentCombo = Integer.valueOf(e.getParametros().get("indicePorcentajeTournamentCombo").toString());
+            }
+            
+            ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
+            config.setTournament(tournament);
+            config.setPorcentajeParaTournament(porcentajeParaTournament);
+            config.setIndicePorcentajeTournamentCombo(indicePorcentajeTournamentCombo);
+            
+            PersistenciaJson.getInstancia().persistirConfiguracion();
         }
     }
     
@@ -795,6 +820,10 @@ public class PrincipalController implements Initializable{
     private void initConfig() throws IOException {
         progress.setVisible(false);
         
+        //Tournament
+        tournament = false;
+        porcentajeParaTournament = .01;
+        
         creditosMaximosPorPerfil = new int[3];
         probabilidadDeApostarPorPerfil = new double[3];
         probabilidadDeComprarBolasExtra = new double[3];
@@ -826,6 +855,8 @@ public class PrincipalController implements Initializable{
         this.limiteMinimoGratis = config.getLimiteMinimoGratis();
         this.limiteMaximoGratis = config.getLimiteMaximoGratis();
         this.porcentajeDeCostoDeBolaExtraSegunPremioMayor = config.getFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor();
+        this.tournament = config.isTournament();
+        this.porcentajeParaTournament = config.getPorcentajeParaTournament();
         
         System.out.println("Porcentaje del premio mayor (initConfig): " + this.porcentajeDeCostoDeBolaExtraSegunPremioMayor);
     }
@@ -851,6 +882,11 @@ public class PrincipalController implements Initializable{
         System.out.println("Limite inferior: " + limiteMinimoGratis);
         System.out.println("Limite superior: " + limiteMaximoGratis);
         System.out.println("Porcentaje del premio mayor para bola extra: " + porcentajeDeCostoDeBolaExtraSegunPremioMayor);
+        System.out.println("Tournament: " + tournament);
+        System.out.println("Porcentaje para tournament: " + PersistenciaJson.getInstancia().getConfiguracion().getPorcentajeParaTournament());
+        
+        this.porcentajeParaTournament = PersistenciaJson.getInstancia().getConfiguracion().getPorcentajeParaTournament();
+        
         
         for (int i = 0; i < n; i++) {
             
@@ -868,6 +904,7 @@ public class PrincipalController implements Initializable{
             bingo.setUtilizarUmbralParaLiberarBolasExtra(usarUmbralParaLiberarBolasExtra);
             bingo.setUmbralParaLiberarBolasExtra(umbralParaLiberarBolasExtra);
             bingo.setModoTournament(tournament);
+            bingo.setPorcentajeDeDescuentoParaTournament(porcentajeParaTournament);
             bingo.setModoSimulacion(true);
             bingo.setLimiteInferiorParaBolaExtraGratis(limiteMinimoGratis);
             bingo.setLimiteSuperiorParaBolaExtraGratis(limiteMaximoGratis);
