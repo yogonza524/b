@@ -110,7 +110,7 @@ public class Juego {
      * Constructor por defecto
      */
     public Juego() {
-        
+        inicializar(null);
     }
     
     /**
@@ -390,6 +390,13 @@ public class Juego {
         log("Creditos: " + this.creditos());
         log("Cartones Habilitados: " + this.habilitados());
         log("Cartones Habilitados(individual): " + ArrayUtils.toString(this.cartonesHabilitados));
+    }
+    
+    public void mostrarParametros(){
+        log("Limite inferior de bola extra gratis: " + this.limiteInferiorParaBolaExtraGratis);
+        log("Limite superior de bola extra gratis: " + this.limiteSuperiorParaBolaExtraGratis);
+        log("Umbral: " + this.umbralParaLiberarBolasExtra);
+        log("Utilizar umbral: " + this.utilizarUmbralParaLiberarBolasExtra);
     }
 
     public int ganancias() {
@@ -1003,6 +1010,8 @@ public class Juego {
         mostrarApuestas();
         
         mostrarCartones();
+        
+        mostrarParametros();
         
         if (generarNuevoBolillero) {
             this.generarBolillero();

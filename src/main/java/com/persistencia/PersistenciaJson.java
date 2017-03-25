@@ -123,7 +123,7 @@ public class PersistenciaJson {
             System.out.println("Existe el archivo config.db");
             Gson gson = new Gson();
             JsonReader reader = new JsonReader(new FileReader("config.db"));
-            config = gson.fromJson(reader, ConfiguracionPersistencia.class); // Lista cargada 
+            config = gson.fromJson(reader, ConfiguracionPersistencia.class); // Configuracion cargada
         }
         else{
             //No existe el archivo, crearlo
@@ -132,6 +132,11 @@ public class PersistenciaJson {
                 
                 config = new ConfiguracionPersistencia();
                 config.setRutaDeLasTablasDePago("tablasDePago.json");
+                config.setLimiteMaximoGratis(10);
+                config.setLimiteMinimoGratis(0);
+                config.setUtilizarUmbral(false);
+                config.setUmbralParaLiberarBolasExtra(10);
+                config.setFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor(0.1);
                 
                 Gson gson = new GsonBuilder().create();
                 gson.toJson(config, writer);
@@ -140,5 +145,42 @@ public class PersistenciaJson {
                 writer.close();
             }
         }
+    }
+
+    public ConfiguracionPersistencia configuracion() throws IOException {
+        if (config == null) {
+            crearConfiguracion();
+        }
+        else{
+            //Leer la configuracion del archivo
+            config = leerConfiguracion();
+        }
+        return config;
+    }
+    
+    public ConfiguracionPersistencia getConfiguracion(){
+        return this.config;
+    }
+
+    public void persistirConfiguracion() throws IOException {
+        if (this.config != null) {
+            try (Writer writer = new FileWriter("config.db")) {
+                Gson gson = new GsonBuilder().create();
+                gson.toJson(config, writer);
+                writer.flush();
+                writer.close();
+            }
+        }
+        else{
+            throw new NullPointerException("No se pudo persistir la configuracion");
+        }
+    }
+
+    private ConfiguracionPersistencia leerConfiguracion() throws FileNotFoundException {
+        ConfiguracionPersistencia result;
+        Gson gson = new Gson();
+        JsonReader reader = new JsonReader(new FileReader("config.db"));
+        result = gson.fromJson(reader, ConfiguracionPersistencia.class); // Lista cargada
+        return result;
     }
 }

@@ -1,11 +1,114 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
-<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fx.controladores.BolasExtraController">
-    
+<AnchorPane id="AnchorPane" fx:id="base" prefHeight="438.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fx.controladores.BolasExtraController">
+   <children>
+      <BorderPane layoutX="208.0" layoutY="82.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <left>
+            <VBox alignment="TOP_CENTER" prefHeight="400.0" prefWidth="183.0" BorderPane.alignment="CENTER">
+               <children>
+                  <Label text="Bolas extra" />
+                  <ImageView fitHeight="81.0" fitWidth="82.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../img/bola.png" />
+                     </image>
+                  </ImageView>
+                  <Label prefHeight="119.0" prefWidth="178.0" text="Las bolas extra se liberan bajo determinadas condiciones y ayudan al apostador a formar nuevas figuras obteniendo nuevos premios" wrapText="true" />
+                  <Separator prefWidth="200.0" />
+                  <Label text="Cantidad de bolas extra">
+                     <VBox.margin>
+                        <Insets top="10.0" />
+                     </VBox.margin>
+                  </Label>
+                  <TextField alignment="TOP_CENTER" editable="false" text="10" />
+               </children>
+               <padding>
+                  <Insets left="5.0" right="5.0" />
+               </padding>
+            </VBox>
+         </left>
+         <center>
+            <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+               <children>
+                  <TitledPane animated="false" collapsible="false" layoutX="73.0" layoutY="104.0" text="Configuracion" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <content>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                           <children>
+                              <VBox layoutX="140.0" layoutY="53.0" prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <children>
+                                    <CheckBox fx:id="utilizarUmbralCheck" mnemonicParsing="false" text="Utilizar umbral para lanzar bolas extra" />
+                                    <Label text="Umbral de creditos">
+                                       <VBox.margin>
+                                          <Insets top="5.0" />
+                                       </VBox.margin>
+                                    </Label>
+                                    <TextField fx:id="umbralText" prefHeight="26.0" prefWidth="50.0" promptText="Créditos minimos para liberar bolas extra" />
+                                    <Label text="¿Qué es el umbral? Es el número de créditos que debe pagar una figura por salir (en cualquier carton) para liberar o no las bolas extra" textFill="#211b8d" wrapText="true">
+                                       <VBox.margin>
+                                          <Insets top="5.0" />
+                                       </VBox.margin>
+                                    </Label>
+                                    <Separator prefWidth="200.0">
+                                       <VBox.margin>
+                                          <Insets bottom="5.0" top="5.0" />
+                                       </VBox.margin>
+                                    </Separator>
+                                    <Label text="Costo de la bola extra (en creditos)" />
+                                    <ComboBox fx:id="comboCosto" prefHeight="26.0" prefWidth="306.0" promptText="Porcentaje del premio mayor por salir" />
+                                    <Separator prefWidth="200.0">
+                                       <VBox.margin>
+                                          <Insets top="5.0" />
+                                       </VBox.margin>
+                                    </Separator>
+                                    <CheckBox fx:id="bolaGratisCheck" mnemonicParsing="false" text="Bolas extra gratis">
+                                       <VBox.margin>
+                                          <Insets bottom="5.0" top="5.0" />
+                                       </VBox.margin>
+                                    </CheckBox>
+                                    <HBox prefHeight="28.0" prefWidth="395.0">
+                                       <children>
+                                          <Label prefHeight="26.0" prefWidth="118.0" text="Creditos minimos" />
+                                          <TextField fx:id="limiteMinimoBolaGratis" prefHeight="26.0" prefWidth="275.0" promptText="creditos minimos para bolas gratis" />
+                                       </children>
+                                    </HBox>
+                                    <HBox layoutX="10.0" layoutY="219.0" prefHeight="28.0" prefWidth="395.0">
+                                       <children>
+                                          <Label prefHeight="26.0" text="Creditos maximos" />
+                                          <TextField fx:id="limiteMaximoBolaGratis" prefHeight="26.0" prefWidth="275.0" promptText="creditos maximos para bolas gratis" />
+                                       </children>
+                                    </HBox>
+                                    <Label text="Los limites de creditos establecen cuales creditos de figuras por salir no seran computables para el calculo del costo de las bolas extra, es decir, las bolas extra en estos limites seran gratis" textFill="#211b8d" wrapText="true" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </AnchorPane>
+                    </content>
+                  </TitledPane>
+               </children>
+            </AnchorPane>
+         </center>
+         <bottom>
+            <ToolBar nodeOrientation="RIGHT_TO_LEFT" prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="TOP_LEFT">
+              <items>
+                <Button fx:id="cerrarBtn" mnemonicParsing="false" text="Cerrar" />
+              </items>
+            </ToolBar>
+         </bottom>
+      </BorderPane>
+   </children>
 </AnchorPane>

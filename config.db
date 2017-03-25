@@ -1,1 +1,1 @@
-{"rutaDeLasTablasDePago":"tablasDePago.json"}
+{"rutaDeLasTablasDePago":"tablasDePago.json","utilizarUmbral":true,"umbralParaLiberarBolasExtra":6,"factorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor":0.2,"limiteMinimoGratis":0,"limiteMaximoGratis":10}

@@ -12,7 +12,8 @@ package com.bingo.enumeraciones;
 public enum CodigoEvento {
     PERSISTIR(101),
     CARGAR(102),
-    CARGARPERFILES(103)
+    CARGARPERFILES(103),
+    BOLASEXTRA(104),
     
     ;
     

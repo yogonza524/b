@@ -15,12 +15,57 @@ import java.util.Objects;
  * email: yogonza524@gmail.com
  * StackOverflow: http://stackoverflow.com/users/5079517/gonza
  */
-class ConfiguracionPersistencia implements Serializable{
+public class ConfiguracionPersistencia implements Serializable{
 
     private String rutaDeLasTablasDePago;
+    private boolean utilizarUmbral;
+    private int umbralParaLiberarBolasExtra;
+    private double factorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor;
+    private int limiteMinimoGratis;
+    private int limiteMaximoGratis;
 
     public String getRutaDeLasTablasDePago() {
         return rutaDeLasTablasDePago;
+    }
+
+    public boolean isUtilizarUmbral() {
+        return utilizarUmbral;
+    }
+
+    public void setUtilizarUmbral(boolean utilizarUmbral) {
+        this.utilizarUmbral = utilizarUmbral;
+    }
+
+    public int getUmbralParaLiberarBolasExtra() {
+        return umbralParaLiberarBolasExtra;
+    }
+
+    public void setUmbralParaLiberarBolasExtra(int umbralParaLiberarBolasExtra) {
+        this.umbralParaLiberarBolasExtra = umbralParaLiberarBolasExtra;
+    }
+
+    public double getFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor() {
+        return factorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor;
+    }
+
+    public void setFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor(double factorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor) {
+        this.factorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor = factorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor;
+    }
+
+    public int getLimiteMinimoGratis() {
+        return limiteMinimoGratis;
+    }
+
+    public void setLimiteMinimoGratis(int limiteMinimoGratis) {
+        this.limiteMinimoGratis = limiteMinimoGratis;
+    }
+
+    public int getLimiteMaximoGratis() {
+        return limiteMaximoGratis;
+    }
+
+    public void setLimiteMaximoGratis(int limiteMaximoGratis) {
+        this.limiteMaximoGratis = limiteMaximoGratis;
     }
 
     public void setRutaDeLasTablasDePago(String rutaDeLasTablasDePago) {
@@ -28,6 +73,15 @@ class ConfiguracionPersistencia implements Serializable{
     }
 
     public ConfiguracionPersistencia() {
+    }
+
+    public ConfiguracionPersistencia(String rutaDeLasTablasDePago, boolean utilizarUmbral, int umbralParaLiberarBolasExtra, int factorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor, int limiteMinimoGratis, int limiteMaximoGratis) {
+        this.rutaDeLasTablasDePago = rutaDeLasTablasDePago;
+        this.utilizarUmbral = utilizarUmbral;
+        this.umbralParaLiberarBolasExtra = umbralParaLiberarBolasExtra;
+        this.factorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor = factorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor;
+        this.limiteMinimoGratis = limiteMinimoGratis;
+        this.limiteMaximoGratis = limiteMaximoGratis;
     }
 
     public ConfiguracionPersistencia(String rutaDeLasTablasDePago) {

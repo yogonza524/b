@@ -18,6 +18,7 @@ import com.fx.util.Dialog;
 import com.google.common.eventbus.Subscribe;
 import com.guava.core.EventBusManager;
 import com.guava.core.Evento;
+import com.persistencia.ConfiguracionPersistencia;
 import com.persistencia.PersistenciaJson;
 import eu.hansolo.medusa.Gauge;
 import eu.hansolo.medusa.GaugeDesign;
@@ -68,6 +69,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -100,11 +102,17 @@ public class PrincipalController implements Initializable{
     private BigInteger juegosConBolasExtra;
     private boolean tournament;
     private boolean usarUmbralParaLiberarBolasExtra;
+    private int umbralParaLiberarBolasExtra;
+    private double porcentajeDeCostoDeBolaExtraSegunPremioMayor;
+    private int limiteMinimoGratis;
+    private int limiteMaximoGratis;
     private double[] retribuciones; //Retribuciones parciales, para cada juego
     private int[] frecuenciaDePremiosObtenidosPorFigura;
     
     //Simular boton
     @FXML private ProgressBar progress;
+    
+    
     
     //Sensores
     private Gauge porcentajeDeRetribucionGauge;
@@ -187,7 +195,11 @@ public class PrincipalController implements Initializable{
         initTextFields();
         initButtons();
         initMenu();
-        initConfig();
+        try {
+            initConfig();
+        } catch (IOException ex) {
+            Logger.getLogger(PrincipalController.class.getName()).log(Level.SEVERE, null, ex);
+        }
         initComputos();
         
     }
@@ -261,6 +273,51 @@ public class PrincipalController implements Initializable{
             else{
                 System.out.println("Faltan parametros para cargar los perfiles, metodo suscripto");
             }
+        }
+    }
+    
+    @Subscribe
+    private void configurarBolasExtra(Evento e) throws IOException{
+        if (e.getCodigo() == CodigoEvento.BOLASEXTRA.getValue()) {
+            if (e.getParametros() != null && e.getParametros().get("utilizarUmbral") != null) {
+                this.usarUmbralParaLiberarBolasExtra = Boolean.valueOf(e.getParametros().get("utilizarUmbral").toString());
+            }
+            
+            if (e.getParametros() != null && e.getParametros().get("umbralParaLiberarBolasExtra") != null) {
+                this.umbralParaLiberarBolasExtra = Integer.valueOf(e.getParametros().get("umbralParaLiberarBolasExtra").toString());
+            }
+            
+            if (e.getParametros() != null && e.getParametros().get("porcentajeDeCostoDeBolaExtraSegunPremioMayor") != null) {
+                this.porcentajeDeCostoDeBolaExtraSegunPremioMayor = Double.valueOf(e.getParametros().get("porcentajeDeCostoDeBolaExtraSegunPremioMayor").toString());
+            }
+            
+            if (e.getParametros() != null && e.getParametros().get("limiteMinimoGratis") != null) {
+                this.limiteMinimoGratis = Integer.valueOf(e.getParametros().get("limiteMinimoGratis").toString());
+            }
+            
+            if (e.getParametros() != null && e.getParametros().get("limiteMaximoGratis") != null) {
+                this.limiteMaximoGratis = Integer.valueOf(e.getParametros().get("limiteMaximoGratis").toString());
+            }
+            
+            //Cargar los datos a la configuracion
+            ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
+            config.setUtilizarUmbral(usarUmbralParaLiberarBolasExtra);
+            config.setUmbralParaLiberarBolasExtra(umbralParaLiberarBolasExtra);
+            config.setLimiteMinimoGratis(limiteMinimoGratis);
+            config.setLimiteMaximoGratis(limiteMaximoGratis);
+            config.setFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor(porcentajeDeCostoDeBolaExtraSegunPremioMayor);
+            
+            //Persistir
+            PersistenciaJson.getInstancia().persistirConfiguracion();
+            
+            //Debug
+            System.out.println("Metodo suscripto a bolas extra");
+            System.out.println("utilziar Umbral de bolas extra: " + usarUmbralParaLiberarBolasExtra);
+            System.out.println("Umbral de bolas extra: " + umbralParaLiberarBolasExtra);
+            System.out.println("Limite minimo gratis: " + limiteMinimoGratis);
+            System.out.println("Limite maximo gratis: " + limiteMaximoGratis);
+            System.out.println("Porcentaje del premio mayor para el costo: " + porcentajeDeCostoDeBolaExtraSegunPremioMayor);
+            
         }
     }
     
@@ -735,7 +792,7 @@ public class PrincipalController implements Initializable{
         }
     }
 
-    private void initConfig() {
+    private void initConfig() throws IOException {
         progress.setVisible(false);
         
         creditosMaximosPorPerfil = new int[3];
@@ -762,9 +819,19 @@ public class PrincipalController implements Initializable{
         crearTermometro(PorcentajeDeJuegosEnCiclosDe5sinGanar = new Gauge(), PorcentajeDeJuegosEnCiclosDe5sinGanarPane, "5 juegos sin ganar", "%");
         
         cargarBarChartTablero(panelVertical, frecuenciaDeTablero, null);
+        
+        ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
+        this.usarUmbralParaLiberarBolasExtra = config.isUtilizarUmbral();
+        this.umbralParaLiberarBolasExtra = config.getUmbralParaLiberarBolasExtra();
+        this.limiteMinimoGratis = config.getLimiteMinimoGratis();
+        this.limiteMaximoGratis = config.getLimiteMaximoGratis();
+        this.porcentajeDeCostoDeBolaExtraSegunPremioMayor = config.getFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor();
+        
+        System.out.println("Porcentaje del premio mayor (initConfig): " + this.porcentajeDeCostoDeBolaExtraSegunPremioMayor);
     }
     
-    private void simular(int n){
+    
+    private void simular(int n) throws IOException{
         
         //Ambiente controlado
         int[][][] figuras = obtenerFiguras(comboTablaPagos.getSelectionModel().getSelectedItem().getFiguras());
@@ -775,6 +842,15 @@ public class PrincipalController implements Initializable{
         
         //Frecuencia de premios obtenidos por figura
         frecuenciaDePremiosObtenidosPorFigura = new int[figuras.length];
+        
+        porcentajeDeCostoDeBolaExtraSegunPremioMayor = PersistenciaJson.getInstancia().getConfiguracion().getFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor();
+        
+        //Debug
+        System.out.println("Utilizar umbral: " + usarUmbralParaLiberarBolasExtra);
+        System.out.println("Umbral: " + this.umbralParaLiberarBolasExtra);
+        System.out.println("Limite inferior: " + limiteMinimoGratis);
+        System.out.println("Limite superior: " + limiteMaximoGratis);
+        System.out.println("Porcentaje del premio mayor para bola extra: " + porcentajeDeCostoDeBolaExtraSegunPremioMayor);
         
         for (int i = 0; i < n; i++) {
             
@@ -790,10 +866,12 @@ public class PrincipalController implements Initializable{
             
             bingo.setAcumulado(acumulado);
             bingo.setUtilizarUmbralParaLiberarBolasExtra(usarUmbralParaLiberarBolasExtra);
+            bingo.setUmbralParaLiberarBolasExtra(umbralParaLiberarBolasExtra);
             bingo.setModoTournament(tournament);
             bingo.setModoSimulacion(true);
-            bingo.setLimiteInferiorParaBolaExtraGratis(1);
-            bingo.setLimiteSuperiorParaBolaExtraGratis(10);
+            bingo.setLimiteInferiorParaBolaExtraGratis(limiteMinimoGratis);
+            bingo.setLimiteSuperiorParaBolaExtraGratis(limiteMaximoGratis);
+            bingo.setPorcentajeDelPremioMayorPorSalirParaBolaExtra(porcentajeDeCostoDeBolaExtraSegunPremioMayor);
             bingo.setModoBonus(false);
             bingo.setPerfilActual(seleccionarPerfil(2));
             bingo.setCreditos(bingo.getPerfilActual().getCreditosMaximos());
