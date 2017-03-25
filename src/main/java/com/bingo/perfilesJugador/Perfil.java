@@ -19,7 +19,7 @@ public class Perfil {
     private int creditosMaximos;
     private String nombre;
     
-    private Perfil(){}
+    public Perfil(){}
 
     public int getFactorDeApuesta() {
         return factorDeApuesta;
@@ -27,6 +27,18 @@ public class Perfil {
 
     public double getProbabilidadDeComprarBolasExtra() {
         return probabilidadDeComprarBolasExtra;
+    }
+
+    public void setFactorDeApuesta(int factorDeApuesta) {
+        this.factorDeApuesta = factorDeApuesta;
+    }
+
+    public void setProbabilidadDeComprarBolasExtra(double probabilidadDeComprarBolasExtra) {
+        this.probabilidadDeComprarBolasExtra = probabilidadDeComprarBolasExtra;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
     }
     
     public String getNombre() {

@@ -142,6 +142,10 @@ public class PersistenciaJson {
                 config.setUtilizarPremiosVariablesBonus(false);
                 config.setPremiosVariablesBonus(new Integer[]{2,15,20});
                 config.setCantidadDePremiosEnBonus(16);
+                config.setIndiceConfiguracionJugadores(0);
+                config.setProbabilidadDeApostarPorPerfil(new Double[]{.3, .6, .95});
+                config.setProbabilidadDeComprarBolasExtra(new Double[]{.3,.6,.95});
+                config.setCreditosMaximosPorPerfil(new Integer[]{100, 250, 500});
                 
                 Gson gson = new GsonBuilder().create();
                 gson.toJson(config, writer);

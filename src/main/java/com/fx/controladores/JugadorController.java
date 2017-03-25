@@ -8,10 +8,17 @@ package com.fx.controladores;
 import com.bingo.enumeraciones.CodigoEvento;
 import com.guava.core.EventBusManager;
 import com.guava.core.Evento;
+import com.persistencia.ConfiguracionPersistencia;
+import com.persistencia.PersistenciaJson;
+import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Accordion;
@@ -29,9 +36,12 @@ import javafx.stage.Stage;
 public class JugadorController implements Initializable {
 
     //Jugadores
-    private int[] creditosMaximosPorPerfil;
-    private double[] probabilidadDeApostarPorPerfil;
-    private double[] probabilidadDeComprarBolasExtra;
+    private Integer[] creditosMaximosPorPerfil;
+    private Double[] probabilidadDeApostarPorPerfil;
+    private Double[] probabilidadDeComprarBolasExtra;
+    
+    private int indiceConfiguracion;
+    private String[] configuraciones;
     
     @FXML private Accordion jugadorAccordion;
     @FXML private TitledPane paneJugadorDebil;
@@ -57,7 +67,11 @@ public class JugadorController implements Initializable {
         initAccordions();
         initButtons();
         initComboBoxes();
-        initConfig();
+        try {
+            initConfig();
+        } catch (IOException ex) {
+            Logger.getLogger(JugadorController.class.getName()).log(Level.SEVERE, null, ex);
+        }
         initTextFields();
     }    
     
@@ -80,10 +94,53 @@ public class JugadorController implements Initializable {
         
     }
 
-    private void initConfig() {
-        creditosMaximosPorPerfil = new int[3];
-        probabilidadDeApostarPorPerfil = new double[3];
-        probabilidadDeComprarBolasExtra = new double[3];
+    private void initConfig() throws IOException {
+        ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
+        
+        creditosMaximosPorPerfil = config.getCreditosMaximosPorPerfil();
+        probabilidadDeApostarPorPerfil = config.getProbabilidadDeApostarPorPerfil();
+        probabilidadDeComprarBolasExtra = config.getProbabilidadDeComprarBolasExtra();
+        indiceConfiguracion = config.getIndiceConfiguracionJugadores();
+        
+        //Debil
+        apuestaDebil.setText((int)(probabilidadDeApostarPorPerfil[0] * 100) + "");
+        comprarBolasExtraDebil.setText((int)(probabilidadDeComprarBolasExtra[0] * 100) + "");
+        creditosMaximosDebil.setText(creditosMaximosPorPerfil[0] + "");
+        
+        //Medio
+        apuestaMedio.setText((int)(probabilidadDeApostarPorPerfil[1] * 100) + "");
+        bolasExtraMedio.setText((int)(probabilidadDeComprarBolasExtra[1] * 100) + "");
+        creditosMaximosMedio.setText(creditosMaximosPorPerfil[1] + "");
+        
+        //Fuerte
+        apuestaFuerte.setText((int)(probabilidadDeApostarPorPerfil[2] * 100) + "");
+        bolasExtraFuerte.setText((int)(probabilidadDeComprarBolasExtra[2] * 100) + "");
+        creditosMaximosFuerte.setText(creditosMaximosPorPerfil[2] + "");
+        
+        //Cargar el combo de configuracion
+        configuracionJugadoresComboBox.getItems().clear();
+        
+        configuraciones = new String[]{
+            "Debil[30%] - Medio[30%] - Fuerte[40%]",
+            "Debil[40%] - Medio[30%] - Fuerte[30%]",
+            "Debil[10%] - Medio[45%] - Fuerte[45%]",
+            "Debil[100%]",
+            "Medio[100%]",
+            "Fuerte[100%]",
+        };
+        
+        for(String con : configuraciones){
+            configuracionJugadoresComboBox.getItems().add(con);
+        }
+        
+        configuracionJugadoresComboBox.valueProperty().addListener(new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                cargarPerfiles();
+            }
+        });
+        
+        configuracionJugadoresComboBox.getSelectionModel().select(config.getIndiceConfiguracionJugadores());
     }
 
     private void initTextFields() {
@@ -92,7 +149,7 @@ public class JugadorController implements Initializable {
                 apuestaDebil.setText(newValue.replaceAll("[^\\d]", ""));
                 return;
             }
-            this.probabilidadDeApostarPorPerfil[0] = Double.valueOf(apuestaDebil.getText());
+            this.probabilidadDeApostarPorPerfil[0] = Integer.valueOf(apuestaDebil.getText()) * 0.01;
             cargarPerfiles();
         });
         
@@ -101,7 +158,7 @@ public class JugadorController implements Initializable {
                 comprarBolasExtraDebil.setText(newValue.replaceAll("[^\\d]", ""));
                 return;
             }
-            this.probabilidadDeComprarBolasExtra[0] = Double.valueOf(comprarBolasExtraDebil.getText());
+            this.probabilidadDeComprarBolasExtra[0] = Integer.valueOf(comprarBolasExtraDebil.getText()) * 0.01;
             cargarPerfiles();
         });
         creditosMaximosDebil.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -117,7 +174,7 @@ public class JugadorController implements Initializable {
                 apuestaMedio.setText(newValue.replaceAll("[^\\d]", ""));
                 return;
             }
-            this.probabilidadDeApostarPorPerfil[1] = Double.valueOf(apuestaMedio.getText());
+            this.probabilidadDeApostarPorPerfil[1] = Integer.valueOf(apuestaMedio.getText()) * 0.01;
             cargarPerfiles();
         });
         bolasExtraMedio.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -125,7 +182,7 @@ public class JugadorController implements Initializable {
                 bolasExtraMedio.setText(newValue.replaceAll("[^\\d]", ""));
                 return;
             }
-            this.probabilidadDeComprarBolasExtra[1] = Double.valueOf(bolasExtraMedio.getText());
+            this.probabilidadDeComprarBolasExtra[1] = Integer.valueOf(bolasExtraMedio.getText()) * 0.01;
             cargarPerfiles();
         });
         creditosMaximosMedio.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -141,7 +198,7 @@ public class JugadorController implements Initializable {
                 apuestaFuerte.setText(newValue.replaceAll("[^\\d]", ""));
                 return;
             }
-            this.probabilidadDeApostarPorPerfil[2] = Double.valueOf(apuestaFuerte.getText());
+            this.probabilidadDeApostarPorPerfil[2] = Integer.valueOf(apuestaFuerte.getText()) * 0.01;
             cargarPerfiles();
         });
         bolasExtraFuerte.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -149,7 +206,7 @@ public class JugadorController implements Initializable {
                 bolasExtraFuerte.setText(newValue.replaceAll("[^\\d]", ""));
                 return;
             }
-            this.probabilidadDeComprarBolasExtra[2] = Double.valueOf(bolasExtraFuerte.getText());
+            this.probabilidadDeComprarBolasExtra[2] = Integer.valueOf(bolasExtraFuerte.getText()) * 0.01;
             cargarPerfiles();
         });
         creditosMaximosFuerte.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -169,6 +226,15 @@ public class JugadorController implements Initializable {
         parametros.put("creditosMaximosPorPerfil", creditosMaximosPorPerfil);
         parametros.put("probabilidadDeApostarPorPerfil", probabilidadDeApostarPorPerfil);
         parametros.put("probabilidadDeComprarBolasExtra", probabilidadDeComprarBolasExtra);
+        
+        if (configuracionJugadoresComboBox.getSelectionModel().getSelectedIndex() < 0) {
+            parametros.put("indiceConfiguracionJugadores", 0);
+        }
+        else{
+            parametros.put("indiceConfiguracionJugadores", configuracionJugadoresComboBox.getSelectionModel().getSelectedIndex());
+        }
+        
+        System.out.println("Indice de configuracion: " + parametros.get("indiceConfiguracionJugadores"));
         
         EventBusManager.getInstancia().getBus()
                 .post(new Evento(CodigoEvento.CARGARPERFILES.getValue(),parametros));

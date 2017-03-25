@@ -93,9 +93,10 @@ public class PrincipalController implements Initializable{
     
     //Juego
     private static Juego bingo;
-    private int[] creditosMaximosPorPerfil;
-    private double[] probabilidadDeApostarPorPerfil;
-    private double[] probabilidadDeComprarBolasExtra;
+    private Integer[] creditosMaximosPorPerfil;
+    private Double[] probabilidadDeApostarPorPerfil;
+    private Double[] probabilidadDeComprarBolasExtra;
+    private int indiceConfiguracionJugadores;
     
     //Bonus
     private Integer[] premiosFijosBonus;
@@ -272,19 +273,33 @@ public class PrincipalController implements Initializable{
     }
     
     @Subscribe
-    private void cargarPerfiles(Evento e){
+    private void cargarPerfiles(Evento e) throws IOException{
         if (e.getCodigo() == CodigoEvento.CARGARPERFILES.getValue()) {
             Map<String,Object> parametros = e.getParametros();
-            if (parametros != null && parametros.get("creditosMaximosPorPerfil") != null &&
-                    parametros.get("probabilidadDeApostarPorPerfil") != null &&
-                    parametros.get("probabilidadDeComprarBolasExtra") != null) {
-                this.probabilidadDeApostarPorPerfil = (double[]) parametros.get("probabilidadesDeApuesta");
-                this.creditosMaximosPorPerfil = (int[]) parametros.get("creditosMaximos");
-                this.probabilidadDeComprarBolasExtra = (double[]) parametros.get("probabilidadDeComprarBolasExtra");
+            if (parametros != null && parametros.get("creditosMaximosPorPerfil") != null){
+                Object[] aux = (Object[]) e.getParametros().get("creditosMaximosPorPerfil");
+                this.creditosMaximosPorPerfil = Arrays.copyOf(aux, aux.length, Integer[].class);  
             }
-            else{
-                System.out.println("Faltan parametros para cargar los perfiles, metodo suscripto");
+            if (parametros != null && parametros.get("probabilidadDeApostarPorPerfil") != null){
+                Object[] aux = (Object[]) e.getParametros().get("probabilidadDeApostarPorPerfil");
+                this.probabilidadDeApostarPorPerfil = Arrays.copyOf(aux, aux.length, Double[].class);  
             }
+            if (parametros != null && parametros.get("probabilidadDeComprarBolasExtra") != null){
+                Object[] aux = (Object[]) e.getParametros().get("probabilidadDeComprarBolasExtra");
+                this.probabilidadDeComprarBolasExtra = Arrays.copyOf(aux, aux.length, Double[].class);  
+            }
+            if (parametros != null && parametros.get("indiceConfiguracionJugadores") != null){
+                this.indiceConfiguracionJugadores = Integer.valueOf(parametros.get("indiceConfiguracionJugadores").toString());  
+            }
+            
+            ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
+            
+            config.setProbabilidadDeApostarPorPerfil(probabilidadDeApostarPorPerfil);
+            config.setProbabilidadDeComprarBolasExtra(probabilidadDeComprarBolasExtra);
+            config.setCreditosMaximosPorPerfil(creditosMaximosPorPerfil);
+            config.setIndiceConfiguracionJugadores(indiceConfiguracionJugadores);
+            
+            PersistenciaJson.getInstancia().persistirConfiguracion();
         }
     }
     
@@ -876,23 +891,11 @@ public class PrincipalController implements Initializable{
         tournament = false;
         porcentajeParaTournament = .01;
         
-        creditosMaximosPorPerfil = new int[3];
-        probabilidadDeApostarPorPerfil = new double[3];
-        probabilidadDeComprarBolasExtra = new double[3];
+        ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
         
-        //Configuro los perfiles
-        creditosMaximosPorPerfil[0] = 500; //Creditos del debil
-        creditosMaximosPorPerfil[1] = 1000; //Creditos del debil
-        creditosMaximosPorPerfil[2] = 2000; //Creditos del debil
-        
-        probabilidadDeApostarPorPerfil[0] = .3;
-        probabilidadDeApostarPorPerfil[1] = .6;
-        probabilidadDeApostarPorPerfil[2] = .9;
-        
-        probabilidadDeComprarBolasExtra[0] = 1.0; //Siempre compra, a menos que David diga lo contrario
-        probabilidadDeComprarBolasExtra[0] = 1.0; //Siempre compra, a menos que David diga lo contrario
-        probabilidadDeComprarBolasExtra[0] = 1.0; //Siempre compra, a menos que David diga lo contrario
-        
+        creditosMaximosPorPerfil = config.getCreditosMaximosPorPerfil();
+        probabilidadDeApostarPorPerfil = config.getProbabilidadDeApostarPorPerfil();
+        probabilidadDeComprarBolasExtra = config.getProbabilidadDeComprarBolasExtra();
         
         crearTermometro(porcentajeDeRetribucionGauge = new Gauge(), porcentajeRetribucionPane, "Retribución", "%");
         crearTermometro(porcentajeDeJuegosGanados = new Gauge(), porcentajeGanadosPane, "Ganados", "%");
@@ -901,7 +904,6 @@ public class PrincipalController implements Initializable{
         
         cargarBarChartTablero(panelVertical, frecuenciaDeTablero, null);
         
-        ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
         this.usarUmbralParaLiberarBolasExtra = config.isUtilizarUmbral();
         this.umbralParaLiberarBolasExtra = config.getUmbralParaLiberarBolasExtra();
         this.limiteMinimoGratis = config.getLimiteMinimoGratis();
@@ -943,6 +945,7 @@ public class PrincipalController implements Initializable{
         System.out.println("Porcentaje del premio mayor para bola extra: " + porcentajeDeCostoDeBolaExtraSegunPremioMayor);
         System.out.println("Tournament: " + tournament);
         System.out.println("Porcentaje para tournament: " + PersistenciaJson.getInstancia().getConfiguracion().getPorcentajeParaTournament());
+        System.out.println("indice");
         
         this.porcentajeParaTournament = PersistenciaJson.getInstancia().getConfiguracion().getPorcentajeParaTournament();
         
@@ -974,7 +977,7 @@ public class PrincipalController implements Initializable{
                     this.premiosFijosBonus, 
                     this.premiosVariablesBonus, 
                     this.cantidadDePremiosBonus);
-            bingo.setPerfilActual(seleccionarPerfil(2));
+            bingo.setPerfilActual(seleccionarPerfil(PersistenciaJson.getInstancia().getConfiguracion().getIndiceConfiguracionJugadores(), i));
             bingo.setCreditos(bingo.getPerfilActual().getCreditosMaximos());
             bingo.apostar(RNG.getInstance().pickInt(bingo.getPerfilActual().getFactorDeApuesta()));
             bingo.habilitarTodos();
@@ -1036,9 +1039,44 @@ public class PrincipalController implements Initializable{
         juegosConBolasExtra = BigInteger.ZERO;
     }
 
-    private Perfil seleccionarPerfil(int indiceConfiguracion) {
-        //Selecciono en funcion de la configuracion
-        return Perfil.perfiles()[2]; //Siempre el fuerte
+    private Perfil seleccionarPerfil(int indiceConfiguracion, int iteracionActual) {
+        Perfil p = null;
+        try {
+            //Selecciono en funcion de la configuracion y el indice elegido
+            ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
+            
+            if (indiceConfiguracion == 3) {
+                //Debil
+                p = new Perfil();
+                p.setCreditosMaximos(config.getCreditosMaximosPorPerfil()[0]);
+                p.setProbabilidadDeComprarBolasExtra(config.getProbabilidadDeComprarBolasExtra()[0]);
+                p.setNombre("Debil");
+                p.setFactorDeApuesta((int)(config.getProbabilidadDeApostarPorPerfil()[0] * config.getCreditosMaximosPorPerfil()[0]));
+                return p;
+            }
+            
+            if (indiceConfiguracion == 4) {
+                p = new Perfil();
+                p.setCreditosMaximos(config.getCreditosMaximosPorPerfil()[1]);
+                p.setProbabilidadDeComprarBolasExtra(config.getProbabilidadDeComprarBolasExtra()[1]);
+                p.setNombre("Medio");
+                p.setFactorDeApuesta((int)(config.getProbabilidadDeApostarPorPerfil()[1] * config.getCreditosMaximosPorPerfil()[1]));
+                return p;
+            }
+            
+            if (indiceConfiguracion == 5) {
+                p = new Perfil();
+                p.setCreditosMaximos(config.getCreditosMaximosPorPerfil()[2]);
+                p.setProbabilidadDeComprarBolasExtra(config.getProbabilidadDeComprarBolasExtra()[2]);
+                p.setNombre("Fuerte");
+                p.setFactorDeApuesta((int)(config.getProbabilidadDeApostarPorPerfil()[2] * config.getCreditosMaximosPorPerfil()[2]));
+                return p;
+            }
+            
+        } catch (IOException ex) {
+            Logger.getLogger(PrincipalController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return p; 
     }
     
     private void graficarPorcentajesDeRetribucionParciales(double[] retribucionesParciales){

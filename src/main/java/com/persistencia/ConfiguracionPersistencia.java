@@ -32,6 +32,44 @@ public class ConfiguracionPersistencia implements Serializable{
     private Integer[] premiosFijosBonus;
     private Integer[] premiosVariablesBonus;
     private int cantidadDePremiosEnBonus;
+    
+    //Jugador
+    private int indiceConfiguracionJugadores;
+    private Integer[] creditosMaximosPorPerfil;
+    private Double[] probabilidadDeApostarPorPerfil;
+    private Double[] probabilidadDeComprarBolasExtra;
+
+    public int getIndiceConfiguracionJugadores() {
+        return indiceConfiguracionJugadores;
+    }
+
+    public void setIndiceConfiguracionJugadores(int indiceConfiguracionJugadores) {
+        this.indiceConfiguracionJugadores = indiceConfiguracionJugadores;
+    }
+
+    public Integer[] getCreditosMaximosPorPerfil() {
+        return creditosMaximosPorPerfil;
+    }
+
+    public void setCreditosMaximosPorPerfil(Integer[] creditosMaximosPorPerfil) {
+        this.creditosMaximosPorPerfil = creditosMaximosPorPerfil;
+    }
+
+    public Double[] getProbabilidadDeApostarPorPerfil() {
+        return probabilidadDeApostarPorPerfil;
+    }
+
+    public void setProbabilidadDeApostarPorPerfil(Double[] probabilidadDeApostarPorPerfil) {
+        this.probabilidadDeApostarPorPerfil = probabilidadDeApostarPorPerfil;
+    }
+
+    public Double[] getProbabilidadDeComprarBolasExtra() {
+        return probabilidadDeComprarBolasExtra;
+    }
+
+    public void setProbabilidadDeComprarBolasExtra(Double[] probabilidadDeComprarBolasExtra) {
+        this.probabilidadDeComprarBolasExtra = probabilidadDeComprarBolasExtra;
+    }
 
     public int getCantidadDePremiosEnBonus() {
         return cantidadDePremiosEnBonus;

@@ -1431,6 +1431,10 @@ public class Juego {
             apuestaIndividual = 1;
         }
         
+        if (apuestaIndividual > 30) {
+            apuestaIndividual = 30;
+        }
+        
         for (int i = 0; i < habilitados; i++) {
             this.apostado[i] = apuestaIndividual;
         }
