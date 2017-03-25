@@ -81,6 +81,7 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 import javafx.util.converter.FormatStringConverter;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * 
@@ -378,6 +379,13 @@ public class PrincipalController implements Initializable{
             if (e.getParametros() != null && e.getParametros().get("cantidadDePremiosBonus") != null) {
                 this.cantidadDePremiosBonus = Integer.valueOf(e.getParametros().get("cantidadDePremiosBonus").toString());
             }
+            
+            //Debug
+            System.out.println("---------Bonus-----------");
+            System.out.println("Utilizar premios fijos: " + utilizarPremiosFijosBonus);
+            System.out.println("Utilizar premios variables: " + utilizarPremiosVariablesBonus);
+            System.out.println("Premios fijos: " + ArrayUtils.toString(premiosFijosBonus));
+            System.out.println("Premios variables: " + ArrayUtils.toString(premiosVariablesBonus));
             
             ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
             config.setUtilizarPremiosFijosBonus(utilizarPremiosFijosBonus);

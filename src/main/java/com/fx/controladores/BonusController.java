@@ -90,6 +90,7 @@ public class BonusController implements Initializable{
                 
                 Map<String,Object> params = new HashMap<>();
                 params.put("utilizarPremiosFijos", newValue);
+                params.put("utilizarPremiosVariables", !newValue);
                 
                 EventBusManager.getInstancia().getBus()
                         .post(new Evento(CodigoEvento.BONUS.getValue(), params));
@@ -222,7 +223,7 @@ public class BonusController implements Initializable{
                 creditosVariablesTxt.setText("");
                 
                 Map<String,Object> params = new HashMap<>();
-                params.put("premiosVariables", listaFija.getItems().toArray());
+                params.put("premiosVariables", listaVariable.getItems().toArray());
                 
                 EventBusManager.getInstancia().getBus()
                         .post(new Evento(CodigoEvento.BONUS.getValue(), params));

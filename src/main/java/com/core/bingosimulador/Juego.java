@@ -177,6 +177,7 @@ public class Juego {
         utilizarPremiosVariablesBonus = false;
         premiosFijosBonus = Matematica.crearArregloAleatorioConCeros(new Integer[]{100,50}, this.cantidadDePremiosBonusFijo);
         premiosVariablesBonus = Matematica.crearArregloAleatorioConCeros(new Integer[]{10,20,30}, this.cantidadDePremiosBonusFijo);
+        totalGanadoEnBonus = 0;
         
         //Log de resultados 
         resultados = "";
@@ -421,6 +422,7 @@ public class Juego {
         for (int i = 0; i < ganado.length; i++) {
             result += ganado[i];
         }
+        result += totalGanadoEnBonus;
         return result;
     }
     
@@ -743,6 +745,7 @@ public class Juego {
     public void mostrarGanado() {
         log("Ganancias totales: " + ganancias());
         log("Ganancias parciales: " + ArrayUtils.toString(this.ganado));
+        log("Ganancias en bonus: " + totalGanadoEnBonus);
     }
 
     public void mostrarCreditos() {
@@ -1063,7 +1066,7 @@ public class Juego {
                 cicloBonus();
 
                 //Computar la ganancia del bonus
-                creditos += totalGanadoEnBonus;
+                totalGanadoEnBonus += totalGanadoEnBonus;
             }
 
             if (liberarBolasExtra()) {
@@ -1163,7 +1166,7 @@ public class Juego {
                 bolasExtraSeleccionadas[indiceDeBolaExtraAComprar] = true; //Marco como seleccionada
                 creditos -= costoBolaSeleccionada; //Descuento
                 
-                log("Se desconó creditos por bolas extra, credito actual: " + creditos);
+                log("Se descontaron creditos por la bolas extra, credito actual: " + creditos);
                 
                 //Aumento el contador de credito gastado en bolas extra
                 creditosInvertidosEnBolasExtra += costoBolaSeleccionada;
@@ -1178,19 +1181,18 @@ public class Juego {
                 log("Compró la bola: " + indiceDeBolaExtraAComprar);
                 log("Costo: " + costoBolaSeleccionada);
                 
+                //Verificar si se debe lanzar el bonus
+                if (salioUnNuevoBonus()) {
+                    log("Comenzó el ciclo de bonus gracias a la bola extra");
+                    
+                    cicloBonus();
+                }
+                
                 //Una vez que compró la bola extra se debe volver a buscar las nuevas figuras
                 //por salir, ya que la introducción de una bola nueva genera nuevas figuras por salir
                 log("Se buscaran nuevos premios por salir, ya que compró una bola extra nueva");
                 buscarPremiosPorSalir(utilizarUmbralParaLiberarBolasExtra);
                 
-                //Verificar si se debe lanzar el bonus
-                if (modoBonus && inicioDelCicloDeJuego && salioElBonusAlInicioDelJuego && huboBonus()) {
-                    log("Comenzó el ciclo de bonus gracias a la bola extra");
-                    
-                    cicloBonus();
-                    
-                    creditos += totalGanadoEnBonus;
-                }
             }
             else{
                 //No tiene creditos disponibles, salir del ciclo
@@ -1283,9 +1285,9 @@ public class Juego {
         
         //Cargo los valores aleatorios
         if (utilizarPremiosVariablesBonus) {
-            Integer[] variables = Matematica.crearArregloAleatorioConCeros(premiosVariablesBonus, cantidadDePremiosBonusFijo);
+            Integer[] variables = Matematica.crearArregloAleatorioConCeros(premiosVariablesBonus, cantidadTotalDePremiosEnBonus);
             for (int i = 0; i < cantidadTotalDePremiosEnBonus; i++) {
-                bonus[i] = apuestaIndividual * variables[RNG.getInstance().pickInt(premiosVariablesBonus.length)];
+                bonus[i] = apuestaIndividual * variables[i];
             }
         }
         else{
@@ -1446,5 +1448,27 @@ public class Juego {
         this.premiosFijosBonus = premiosFijosBonus;
         this.premiosVariablesBonus = premiosVariablesBonus;
         this.cantidadTotalDePremiosEnBonus = cantidadDePremiosBonus;
+    }
+
+    private boolean salioUnNuevoBonus() {
+        boolean result = false;
+        //Recorrer los premios nuevos, si la interseccion entre los premios
+        //obtenidos y los premios por salir es mayor a cero entonces
+        //la bola extra comprada produjo un nuevo premio, verificar si este 
+        //nuevo premio es bonus
+        for (int i = 0; i < Juego.CARTONES; i++) {
+            for (int j = 0; j < premiosPagados[i].length; j++) {
+                if (premiosPagados[i][j] > 0 && premiosPorSalir[i][j] > 0) {
+                    //El premio por salir efectivamente salió
+                    //Verificar si es bonus
+                    if (figurasConBonus[j]) {
+                        //Es bonus
+                        result = true;
+                        break;
+                    }
+                }
+            }
+        }
+        return result;
     }
 }
