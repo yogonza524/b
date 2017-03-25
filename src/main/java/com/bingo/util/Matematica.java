@@ -6,6 +6,7 @@
 
 package com.bingo.util;
 
+import com.bingo.rng.RNG;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.SecureRandom;
@@ -25,6 +26,22 @@ public class Matematica {
     // <editor-fold defaultstate="collapsed" desc="Atributos">
     public static final BigDecimal ONE_HUNDRED = new BigDecimal(100);
     //</editor-fold>
+
+    public static Integer[] crearArregloAleatorioConCeros(Integer[] val, int cantidadDePremiosBonusFijo) {
+        Integer[] result = null;
+        if (cantidadDePremiosBonusFijo > 0) {
+            result = new Integer[cantidadDePremiosBonusFijo];
+            for (int i = 0; i < result.length; i++) {
+                if (RNG.getInstance().pick() > .5) {
+                    result[i] = val[RNG.getInstance().pickInt(val.length)];
+                }
+                else{
+                    result[i] = 0;
+                }
+            }
+        }
+        return result;
+    }
 
     // <editor-fold defaultstate="collapsed" desc="Constructor">
     /**

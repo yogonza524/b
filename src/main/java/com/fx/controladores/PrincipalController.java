@@ -32,6 +32,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -94,6 +95,14 @@ public class PrincipalController implements Initializable{
     private int[] creditosMaximosPorPerfil;
     private double[] probabilidadDeApostarPorPerfil;
     private double[] probabilidadDeComprarBolasExtra;
+    
+    //Bonus
+    private Integer[] premiosFijosBonus;
+    private Integer[] premiosVariablesBonus;
+    private boolean utilizarPremiosFijosBonus;
+    private boolean utilizarPremiosVariablesBonus;
+    private int cantidadDePremiosBonusFijo;
+    private int cantidadDePremiosBonusVariable;
     
     //Cómputo de resultados
     private BigInteger cantidadDeJuegosGanados;
@@ -183,6 +192,7 @@ public class PrincipalController implements Initializable{
     private static boolean utilizarPremiosFijosEnBonus;
     private static boolean utilizarPremiosVariablesEnBonus;
     private Integer cantidadDeSimulaciones;
+    private int cantidadDePremiosBonus;
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -341,6 +351,40 @@ public class PrincipalController implements Initializable{
             config.setTournament(tournament);
             config.setPorcentajeParaTournament(porcentajeParaTournament);
             config.setIndicePorcentajeTournamentCombo(indicePorcentajeTournamentCombo);
+            
+            PersistenciaJson.getInstancia().persistirConfiguracion();
+        }
+    }
+    
+    @Subscribe
+    private void persistirBonus(Evento e) throws IOException{
+        if (e != null && e.getCodigo() == CodigoEvento.BONUS.getValue()) {
+            if (e.getParametros() != null && e.getParametros().get("premiosFijos") != null) {
+                Object[] premios = (Object[]) e.getParametros().get("premiosFijos");
+                this.premiosFijosBonus = Arrays.copyOf(premios, premios.length, Integer[].class);  
+            }
+            if (e.getParametros() != null && e.getParametros().get("premiosVariables") != null) {
+                Object[] premios = (Object[]) e.getParametros().get("premiosVariables");
+                this.premiosVariablesBonus = Arrays.copyOf(premios, premios.length, Integer[].class);  
+            }
+            if (e.getParametros() != null && e.getParametros().get("utilizarPremiosVariables") != null) {
+                this.utilizarPremiosVariablesBonus = Boolean.valueOf(e.getParametros().get("utilizarPremiosVariables").toString());
+            }
+            
+            if (e.getParametros() != null && e.getParametros().get("utilizarPremiosFijos") != null) {
+                this.utilizarPremiosFijosBonus = Boolean.valueOf(e.getParametros().get("utilizarPremiosFijos").toString());
+            }
+            
+            if (e.getParametros() != null && e.getParametros().get("cantidadDePremiosBonus") != null) {
+                this.cantidadDePremiosBonus = Integer.valueOf(e.getParametros().get("cantidadDePremiosBonus").toString());
+            }
+            
+            ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
+            config.setUtilizarPremiosFijosBonus(utilizarPremiosFijosBonus);
+            config.setUtilizarPremiosVariablesBonus(utilizarPremiosVariablesBonus);
+            config.setPremiosFijosBonus(premiosFijosBonus);
+            config.setPremiosVariablesBonus(premiosVariablesBonus);
+            config.setCantidadDePremiosEnBonus(cantidadDePremiosBonus);
             
             PersistenciaJson.getInstancia().persistirConfiguracion();
         }
@@ -857,6 +901,12 @@ public class PrincipalController implements Initializable{
         this.porcentajeDeCostoDeBolaExtraSegunPremioMayor = config.getFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor();
         this.tournament = config.isTournament();
         this.porcentajeParaTournament = config.getPorcentajeParaTournament();
+        //Bonus
+        this.premiosFijosBonus = config.getPremiosFijosBonus();
+        this.premiosVariablesBonus = config.getPremiosVariablesBonus();
+        this.utilizarPremiosFijosBonus = config.isUtilizarPremiosFijosBonus();
+        this.utilizarPremiosVariablesBonus = config.isUtilizarPremiosVariablesBonus();
+        this.cantidadDePremiosBonus = config.getCantidadDePremiosEnBonus();
         
         System.out.println("Porcentaje del premio mayor (initConfig): " + this.porcentajeDeCostoDeBolaExtraSegunPremioMayor);
     }
@@ -875,6 +925,7 @@ public class PrincipalController implements Initializable{
         frecuenciaDePremiosObtenidosPorFigura = new int[figuras.length];
         
         porcentajeDeCostoDeBolaExtraSegunPremioMayor = PersistenciaJson.getInstancia().getConfiguracion().getFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor();
+        cantidadDePremiosBonus = PersistenciaJson.getInstancia().getConfiguracion().getCantidadDePremiosEnBonus();
         
         //Debug
         System.out.println("Utilizar umbral: " + usarUmbralParaLiberarBolasExtra);
@@ -909,7 +960,12 @@ public class PrincipalController implements Initializable{
             bingo.setLimiteInferiorParaBolaExtraGratis(limiteMinimoGratis);
             bingo.setLimiteSuperiorParaBolaExtraGratis(limiteMaximoGratis);
             bingo.setPorcentajeDelPremioMayorPorSalirParaBolaExtra(porcentajeDeCostoDeBolaExtraSegunPremioMayor);
-            bingo.setModoBonus(false);
+            bingo.setModoBonus(true);
+            bingo.setPametrosBonus(this.utilizarPremiosFijosBonus, 
+                    this.utilizarPremiosVariablesBonus, 
+                    this.premiosFijosBonus, 
+                    this.premiosVariablesBonus, 
+                    this.cantidadDePremiosBonus);
             bingo.setPerfilActual(seleccionarPerfil(2));
             bingo.setCreditos(bingo.getPerfilActual().getCreditosMaximos());
             bingo.apostar(RNG.getInstance().pickInt(bingo.getPerfilActual().getFactorDeApuesta()));

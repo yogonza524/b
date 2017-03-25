@@ -137,6 +137,11 @@ public class PersistenciaJson {
                 config.setUtilizarUmbral(false);
                 config.setUmbralParaLiberarBolasExtra(10);
                 config.setFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor(0.1);
+                config.setUtilizarPremiosFijosBonus(true);
+                config.setPremiosFijosBonus(new Integer[]{100,50,20});
+                config.setUtilizarPremiosVariablesBonus(false);
+                config.setPremiosVariablesBonus(new Integer[]{2,15,20});
+                config.setCantidadDePremiosEnBonus(16);
                 
                 Gson gson = new GsonBuilder().create();
                 gson.toJson(config, writer);

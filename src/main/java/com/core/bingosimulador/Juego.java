@@ -98,13 +98,22 @@ public class Juego {
     private boolean[] figurasConBonus;
     
     //Bonus
-    private int[] bonus; //Premios, se calculan en funcion de la apuesta
+    private Integer[] bonus; //Premios, se calculan en funcion de la apuesta
     private boolean[] premiosDelBonusSeleccionados; //Premios seleccionados
     private int totalGanadoEnBonus;
-    private final int cantidadTotalDePremiosEnBonus = 16;
+    private int cantidadTotalDePremiosEnBonus = 16;
     private int cantidadDeBolasExtraSeleccionadas;
     private boolean seLiberaronBolasExtra;
     private boolean modoDebug;
+    
+    private Integer[] premiosFijosBonus;
+    private Integer[] premiosVariablesBonus;
+    private boolean utilizarPremiosFijosBonus;
+    private boolean utilizarPremiosVariablesBonus;
+    private int cantidadDePremiosBonusFijo;
+    private int cantidadDePremiosBonusVariable;
+    private boolean salioElBonusAlInicioDelJuego;
+    private boolean inicioDelCicloDeJuego;
 
     /**
      * Constructor por defecto
@@ -162,6 +171,12 @@ public class Juego {
         creditosInvertidosEnBolasExtra = 0;
         iniciado = false;
         borrarSeleccionDeBolasExtra();
+        
+        //Bonus
+        utilizarPremiosFijosBonus = true;
+        utilizarPremiosVariablesBonus = false;
+        premiosFijosBonus = Matematica.crearArregloAleatorioConCeros(new Integer[]{100,50}, this.cantidadDePremiosBonusFijo);
+        premiosVariablesBonus = Matematica.crearArregloAleatorioConCeros(new Integer[]{10,20,30}, this.cantidadDePremiosBonusFijo);
         
         //Log de resultados 
         resultados = "";
@@ -934,11 +949,11 @@ public class Juego {
         this.nombresDeFiguras = nombresDeFiguras;
     }
 
-    public int[] getBonus() {
+    public Integer[] getBonus() {
         return bonus;
     }
 
-    public void setBonus(int[] bonus) {
+    public void setBonus(Integer[] bonus) {
         this.bonus = bonus;
     }
 
@@ -1035,6 +1050,7 @@ public class Juego {
         }
         
         iniciado = true; //Comenzó el juego
+        inicioDelCicloDeJuego = true;
         
         this.descontarApuestas();
         
@@ -1083,6 +1099,9 @@ public class Juego {
         for (int i = 0; i < premiosPagados.length; i++) {
             for (int j = 0; j < premiosPagados[i].length; j++) {
                 if (premiosPagados[i][j] > 0 && figurasConBonus[j]) {
+                    if (inicioDelCicloDeJuego) {
+                        this.salioElBonusAlInicioDelJuego = true;
+                    }
                     return true;
                 }
             }
@@ -1110,6 +1129,8 @@ public class Juego {
         
         creditosInvertidosEnBolasExtra = 0;
         totalGanadoEnBonus = 0;
+        salioElBonusAlInicioDelJuego = false;
+        inicioDelCicloDeJuego = false;
     }
 
     private void borrarSeleccionDeBolasExtra() {
@@ -1161,6 +1182,15 @@ public class Juego {
                 //por salir, ya que la introducción de una bola nueva genera nuevas figuras por salir
                 log("Se buscaran nuevos premios por salir, ya que compró una bola extra nueva");
                 buscarPremiosPorSalir(utilizarUmbralParaLiberarBolasExtra);
+                
+                //Verificar si se debe lanzar el bonus
+                if (modoBonus && inicioDelCicloDeJuego && salioElBonusAlInicioDelJuego && huboBonus()) {
+                    log("Comenzó el ciclo de bonus gracias a la bola extra");
+                    
+                    cicloBonus();
+                    
+                    creditos += totalGanadoEnBonus;
+                }
             }
             else{
                 //No tiene creditos disponibles, salir del ciclo
@@ -1243,7 +1273,7 @@ public class Juego {
     private void cicloBonus() {
         //Inicializo los valores
         totalGanadoEnBonus = 0;
-        bonus = new int[cantidadTotalDePremiosEnBonus];
+        bonus = new Integer[cantidadTotalDePremiosEnBonus];
         premiosDelBonusSeleccionados = new boolean[cantidadTotalDePremiosEnBonus];
         
         log("Comienzo del ciclo del bonus!");
@@ -1251,15 +1281,26 @@ public class Juego {
         //Genero los premios en funcion de lo apostado
         int apuestaIndividual = this.apuestaIndividual();
         
-        //Genero factores de pago, al seleccionar el 0 se termina el ciclo
-        int[] factoresDePremioBonus = new int[]{
-            10,20,0,0
-        };
-        
         //Cargo los valores aleatorios
-        for (int i = 0; i < cantidadTotalDePremiosEnBonus; i++) {
-            bonus[i] = apuestaIndividual * factoresDePremioBonus[RNG.getInstance().pickInt(factoresDePremioBonus.length)];
+        if (utilizarPremiosVariablesBonus) {
+            Integer[] variables = Matematica.crearArregloAleatorioConCeros(premiosVariablesBonus, cantidadDePremiosBonusFijo);
+            for (int i = 0; i < cantidadTotalDePremiosEnBonus; i++) {
+                bonus[i] = apuestaIndividual * variables[RNG.getInstance().pickInt(premiosVariablesBonus.length)];
+            }
         }
+        else{
+            if (utilizarPremiosFijosBonus) {
+                bonus = Matematica.crearArregloAleatorioConCeros(premiosFijosBonus, cantidadTotalDePremiosEnBonus);
+            }
+            else{
+                //Por defecto cargo el bonus fijo
+                Integer[] val = Matematica.crearArregloAleatorioConCeros(new Integer[]{50,100}, 16);
+                for (int i = 0; i < val.length; i++) {
+                    bonus[i] = val[i];
+                }
+            }
+        }
+        
         
         log("Premios del bonus: " + ArrayUtils.toString(bonus));
         
@@ -1272,10 +1313,13 @@ public class Juego {
             log("Seleccionado: " + indice);
             log("Premio bonus: " + bonus[indice]);
             
-            indice = RNG.getInstance().pickInt(bonus.length);
+            while(premiosDelBonusSeleccionados[indice] && quedanPremiosDelBonusDisponibles()){
+                indice = RNG.getInstance().pickInt(bonus.length);
+            }
         }
         
         log("Finalizó el bonus, indice = " + indice + ". Ganancia total: " + totalGanadoEnBonus);
+        log("Creditos: " + creditos);
     }
     
     public boolean quedanPremiosDelBonusDisponibles(){
@@ -1394,5 +1438,13 @@ public class Juego {
         if (modoDebug) {
             resultados += val.toString() + "\n";
         }
+    }
+
+    public void setPametrosBonus(boolean utilizarPremiosFijosBonus, boolean utilizarPremiosVariablesBonus, Integer[] premiosFijosBonus, Integer[] premiosVariablesBonus, int cantidadDePremiosBonus) {
+        this.utilizarPremiosFijosBonus = utilizarPremiosFijosBonus;
+        this.utilizarPremiosVariablesBonus = utilizarPremiosVariablesBonus;
+        this.premiosFijosBonus = premiosFijosBonus;
+        this.premiosVariablesBonus = premiosVariablesBonus;
+        this.cantidadTotalDePremiosEnBonus = cantidadDePremiosBonus;
     }
 }

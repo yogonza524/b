@@ -26,6 +26,52 @@ public class ConfiguracionPersistencia implements Serializable{
     private boolean tournament;
     private double porcentajeParaTournament;
     private int indicePorcentajeTournamentCombo;
+    
+    private boolean utilizarPremiosFijosBonus;
+    private boolean utilizarPremiosVariablesBonus;
+    private Integer[] premiosFijosBonus;
+    private Integer[] premiosVariablesBonus;
+    private int cantidadDePremiosEnBonus;
+
+    public int getCantidadDePremiosEnBonus() {
+        return cantidadDePremiosEnBonus;
+    }
+
+    public void setCantidadDePremiosEnBonus(int cantidadDePremiosEnBonus) {
+        this.cantidadDePremiosEnBonus = cantidadDePremiosEnBonus;
+    }
+
+    public boolean isUtilizarPremiosFijosBonus() {
+        return utilizarPremiosFijosBonus;
+    }
+
+    public void setUtilizarPremiosFijosBonus(boolean utilizarPremiosFijosBonus) {
+        this.utilizarPremiosFijosBonus = utilizarPremiosFijosBonus;
+    }
+
+    public boolean isUtilizarPremiosVariablesBonus() {
+        return utilizarPremiosVariablesBonus;
+    }
+
+    public void setUtilizarPremiosVariablesBonus(boolean utilizarPremiosVariablesBonus) {
+        this.utilizarPremiosVariablesBonus = utilizarPremiosVariablesBonus;
+    }
+
+    public Integer[] getPremiosFijosBonus() {
+        return premiosFijosBonus;
+    }
+
+    public void setPremiosFijosBonus(Integer[] premiosFijosBonus) {
+        this.premiosFijosBonus = premiosFijosBonus;
+    }
+
+    public Integer[] getPremiosVariablesBonus() {
+        return premiosVariablesBonus;
+    }
+
+    public void setPremiosVariablesBonus(Integer[] premiosVariablesBonus) {
+        this.premiosVariablesBonus = premiosVariablesBonus;
+    }
 
     public int getIndicePorcentajeTournamentCombo() {
         return indicePorcentajeTournamentCombo;
