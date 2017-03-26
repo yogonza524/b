@@ -1056,7 +1056,47 @@ public class PrincipalController implements Initializable{
             if (indiceConfiguracion == 0) {
                 double porcentajeDeAvance = iteracionActual / totalDeSimulaciones;
                 if (porcentajeDeAvance <= .3) {
-                    
+                    return perfiles[0]; //Debil
+                }
+                else{
+                    if (porcentajeDeAvance > .3 && porcentajeDeAvance <= .6) {
+                        return perfiles[1]; //Medio
+                    }
+                    else{
+                        return perfiles[2]; //Fuerte
+                    }
+                }
+            }
+            
+            if (indiceConfiguracion == 1) {
+                double porcentajeDeAvance = iteracionActual / totalDeSimulaciones;
+                if (porcentajeDeAvance <= .4) {
+                    return perfiles[0]; //Debil
+                }
+                else{
+                    if (porcentajeDeAvance > .4 && porcentajeDeAvance <= 7) {
+                        return perfiles[1]; //Medio
+                    }
+                    else{
+                        return perfiles[2]; //Fuerte
+                    }
+                }
+            }
+            
+            if (indiceConfiguracion == 0) {
+                double porcentajeDeAvance = iteracionActual / totalDeSimulaciones;
+                System.out.println("Configuracion 0 de jugadores!");
+                System.out.println("Porcentaje de avance: " + porcentajeDeAvance);
+                if (porcentajeDeAvance <= .1) {
+                    return perfiles[0]; //Debil
+                }
+                else{
+                    if (porcentajeDeAvance > .1 && porcentajeDeAvance <= .55) {
+                        return perfiles[1]; //Medio
+                    }
+                    else{
+                        return perfiles[2]; //Fuerte
+                    }
                 }
             }
             
