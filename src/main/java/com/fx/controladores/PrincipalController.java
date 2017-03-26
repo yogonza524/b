@@ -954,6 +954,9 @@ public class PrincipalController implements Initializable{
         
         this.porcentajeParaTournament = config.getPorcentajeParaTournament();
         
+        //Creo los perfiles segun la configuracion
+        Perfil[] perfiles = crearPerfiles(config);
+        
         
         for (int i = 0; i < n; i++) {
             
@@ -982,7 +985,7 @@ public class PrincipalController implements Initializable{
                     this.premiosFijosBonus, 
                     this.premiosVariablesBonus, 
                     this.cantidadDePremiosBonus);
-            bingo.setPerfilActual(seleccionarPerfil(config.getIndiceConfiguracionJugadores(), i));
+            bingo.setPerfilActual(seleccionarPerfil(config.getIndiceConfiguracionJugadores(), i, cantidadDeSimulaciones, perfiles));
             bingo.setCreditos(bingo.getPerfilActual().getCreditosMaximos());
             bingo.apostar(RNG.getInstance().pickInt(bingo.getPerfilActual().getFactorDeApuesta()));
             bingo.habilitarTodos();
@@ -1044,38 +1047,30 @@ public class PrincipalController implements Initializable{
         juegosConBolasExtra = BigInteger.ZERO;
     }
 
-    private Perfil seleccionarPerfil(int indiceConfiguracion, int iteracionActual) {
+    private Perfil seleccionarPerfil(int indiceConfiguracion, int iteracionActual, Integer totalDeSimulaciones, Perfil[] perfiles) {
         Perfil p = null;
         try {
             //Selecciono en funcion de la configuracion y el indice elegido
             ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
             
+            if (indiceConfiguracion == 0) {
+                double porcentajeDeAvance = iteracionActual / totalDeSimulaciones;
+                if (porcentajeDeAvance <= .3) {
+                    
+                }
+            }
+            
             if (indiceConfiguracion == 3) {
                 //Debil
-                p = new Perfil();
-                p.setCreditosMaximos(config.getCreditosMaximosPorPerfil()[0]);
-                p.setProbabilidadDeComprarBolasExtra(config.getProbabilidadDeComprarBolasExtra()[0]);
-                p.setNombre("Debil");
-                p.setFactorDeApuesta((int)(config.getProbabilidadDeApostarPorPerfil()[0] * config.getCreditosMaximosPorPerfil()[0]));
-                return p;
+                return perfiles[0];
             }
             
             if (indiceConfiguracion == 4) {
-                p = new Perfil();
-                p.setCreditosMaximos(config.getCreditosMaximosPorPerfil()[1]);
-                p.setProbabilidadDeComprarBolasExtra(config.getProbabilidadDeComprarBolasExtra()[1]);
-                p.setNombre("Medio");
-                p.setFactorDeApuesta((int)(config.getProbabilidadDeApostarPorPerfil()[1] * config.getCreditosMaximosPorPerfil()[1]));
-                return p;
+                return perfiles[1];
             }
             
             if (indiceConfiguracion == 5) {
-                p = new Perfil();
-                p.setCreditosMaximos(config.getCreditosMaximosPorPerfil()[2]);
-                p.setProbabilidadDeComprarBolasExtra(config.getProbabilidadDeComprarBolasExtra()[2]);
-                p.setNombre("Fuerte");
-                p.setFactorDeApuesta((int)(config.getProbabilidadDeApostarPorPerfil()[2] * config.getCreditosMaximosPorPerfil()[2]));
-                return p;
+                return perfiles[2];
             }
             
         } catch (IOException ex) {
@@ -1171,5 +1166,32 @@ public class PrincipalController implements Initializable{
         Platform.runLater(() -> {
             resultadosTxt.appendText(val);
         });
+    }
+
+    private Perfil[] crearPerfiles(ConfiguracionPersistencia config) {
+        Perfil[] result = new Perfil[3];
+        
+        //Debil
+        result[0] = new Perfil();
+        result[0].setCreditosMaximos(config.getCreditosMaximosPorPerfil()[0]);
+        result[0].setProbabilidadDeComprarBolasExtra(config.getProbabilidadDeComprarBolasExtra()[0]);
+        result[0].setNombre("Debil");
+        result[0].setFactorDeApuesta((int)(config.getProbabilidadDeApostarPorPerfil()[0] * config.getCreditosMaximosPorPerfil()[0]));
+        
+        //Medio
+        result[1] = new Perfil();
+        result[1].setCreditosMaximos(config.getCreditosMaximosPorPerfil()[1]);
+        result[1].setProbabilidadDeComprarBolasExtra(config.getProbabilidadDeComprarBolasExtra()[1]);
+        result[1].setNombre("Medio");
+        result[1].setFactorDeApuesta((int)(config.getProbabilidadDeApostarPorPerfil()[1] * config.getCreditosMaximosPorPerfil()[1]));
+        
+        //Fuerte
+        result[2] = new Perfil();
+        result[2].setCreditosMaximos(config.getCreditosMaximosPorPerfil()[2]);
+        result[2].setProbabilidadDeComprarBolasExtra(config.getProbabilidadDeComprarBolasExtra()[2]);
+        result[2].setNombre("Fuerte");
+        result[2].setFactorDeApuesta((int)(config.getProbabilidadDeApostarPorPerfil()[2] * config.getCreditosMaximosPorPerfil()[2]));
+        
+        return result;
     }
 }
