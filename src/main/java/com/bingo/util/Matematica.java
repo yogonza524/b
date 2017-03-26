@@ -8,6 +8,7 @@ package com.bingo.util;
 
 import com.bingo.rng.RNG;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -126,6 +127,10 @@ public class Matematica {
      */
     public static BigDecimal porcentaje(BigDecimal base, BigDecimal pct){
         return base.multiply(ONE_HUNDRED).divide(pct,2, RoundingMode.HALF_UP);
+    }
+    
+    public static BigDecimal porcentaje(BigInteger base, BigInteger pct){
+        return BigDecimal.valueOf(base.intValueExact()).multiply(ONE_HUNDRED).divide(BigDecimal.valueOf(pct.doubleValue()),2, RoundingMode.HALF_UP);
     }
     
     /**

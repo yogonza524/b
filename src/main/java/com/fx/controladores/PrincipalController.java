@@ -51,6 +51,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Side;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.chart.BarChart;
@@ -939,6 +940,10 @@ public class PrincipalController implements Initializable{
         //Frecuencia de premios obtenidos por figura
         frecuenciaDePremiosObtenidosPorFigura = new BigInteger[figuras.length];
         
+        for (int i = 0; i < figuras.length; i++) {
+            frecuenciaDePremiosObtenidosPorFigura[i] = BigInteger.ZERO;
+        }
+        
         porcentajeDeCostoDeBolaExtraSegunPremioMayor = config.getFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor();
         cantidadDePremiosBonus = config.getCantidadDePremiosEnBonus();
         
@@ -1212,12 +1217,12 @@ public class PrincipalController implements Initializable{
             for (int i = 0; i < frecuenciaDeFiguras.length; i++) {
                 String nombreFigura = comboFigurasPago.getItems().get(i).getNombre();
                 System.out.println(nombreFigura);
-                dataSeries1.getData().add(new XYChart.Data(nombreFigura, frecuenciaDeFiguras[i].divide(totalCreditosGanados).multiply(BigInteger.valueOf(100))));
+                BigDecimal porcentaje = Matematica.porcentaje(frecuenciaDeFiguras[i], totalCreditosGanados);
+                dataSeries1.getData().add(new XYChart.Data(nombreFigura + "(" + porcentaje.intValue() + ")", porcentaje));
             }
 
             frecuenciaDeTablero.getData().add(dataSeries1);
-            frecuenciaDeTablero.setVisible(false);
-            frecuenciaDeTablero.setVisible(true);
+            frecuenciaDeTablero.setLegendSide(Side.TOP);
         }
         
         
