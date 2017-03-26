@@ -2,6 +2,7 @@
 
 <?import java.net.URL?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
@@ -201,6 +202,14 @@
                                                       </Tab>
                                                    </tabs>
                                                 </TabPane>
+                                                <HBox prefHeight="200.0" prefWidth="200.0">
+                                                   <children>
+                                                      <Pane fx:id="porcentajeRetribucionPane" prefHeight="200.0" prefWidth="200.0" />
+                                                      <Pane fx:id="porcentajeGanadosPane" prefHeight="200.0" prefWidth="200.0" />
+                                                      <Pane fx:id="porcentajeJuegosBolasExtraPane" layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" />
+                                                      <Pane fx:id="PorcentajeDeJuegosEnCiclosDe5sinGanarPane" layoutX="410.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" />
+                                                   </children>
+                                                </HBox>
                                                 <TitledPane animated="false" collapsible="false" prefHeight="198.0" prefWidth="351.0" text="Graficos">
                                                    <content>
                                                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
@@ -217,14 +226,23 @@
                                                       </AnchorPane>
                                                    </content>
                                                 </TitledPane>
-                                                <HBox prefHeight="200.0" prefWidth="200.0">
-                                                   <children>
-                                                      <Pane fx:id="porcentajeRetribucionPane" prefHeight="200.0" prefWidth="200.0" />
-                                                      <Pane fx:id="porcentajeGanadosPane" prefHeight="200.0" prefWidth="200.0" />
-                                                      <Pane fx:id="porcentajeJuegosBolasExtraPane" layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" />
-                                                      <Pane fx:id="PorcentajeDeJuegosEnCiclosDe5sinGanarPane" layoutX="410.0" layoutY="10.0" prefHeight="200.0" prefWidth="200.0" />
-                                                   </children>
-                                                </HBox>
+                                                <TitledPane animated="false" collapsible="false" layoutX="10.0" layoutY="210.0" prefHeight="500.0" prefWidth="351.0" text="Frecuencia de premios">
+                                                   <content>
+                                                      <AnchorPane minHeight="0.0" minWidth="0.0" prefWidth="200.0">
+                                                         <children>
+                                                            <BarChart fx:id="frecuenciaDeTablero" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                               <xAxis>
+                                                                  <CategoryAxis side="BOTTOM" />
+                                                               </xAxis>
+                                                               <yAxis>
+                                                                  <NumberAxis side="LEFT" />
+                                                               </yAxis>
+                                                            </BarChart>
+                                                         </children>
+                                                      </AnchorPane>
+                                                   </content>
+                                                </TitledPane>
+                                                
                                              </children>
                                           </VBox>
                                        </children>

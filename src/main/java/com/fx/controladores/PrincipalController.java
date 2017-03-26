@@ -119,7 +119,10 @@ public class PrincipalController implements Initializable{
     private int limiteMinimoGratis;
     private int limiteMaximoGratis;
     private double[] retribuciones; //Retribuciones parciales, para cada juego
-    private int[] frecuenciaDePremiosObtenidosPorFigura;
+    private BigInteger[] frecuenciaDePremiosObtenidosPorFigura;
+    
+    //Computo de graficos
+    private BigInteger[] ganaciasPorFigura;
     
     //Simular boton
     @FXML private ProgressBar progress;
@@ -189,7 +192,7 @@ public class PrincipalController implements Initializable{
     //Graficos
     @FXML private LineChart linearChart;
     
-    private BarChart frecuenciaDeTablero;
+    @FXML private BarChart frecuenciaDeTablero;
     
     private static boolean utilizarPremiosFijosEnBonus;
     private static boolean utilizarPremiosVariablesEnBonus;
@@ -902,7 +905,7 @@ public class PrincipalController implements Initializable{
         crearTermometro(porcentajeDeJuegosConBolasExtra = new Gauge(), porcentajeJuegosBolasExtraPane, "Con bolas extra", "%");
         crearTermometro(PorcentajeDeJuegosEnCiclosDe5sinGanar = new Gauge(), PorcentajeDeJuegosEnCiclosDe5sinGanarPane, "5 juegos sin ganar", "%");
         
-        cargarBarChartTablero(panelVertical, frecuenciaDeTablero, null);
+//        cargarBarChartTablero(panelVertical, frecuenciaDeTablero, null);
         
         this.usarUmbralParaLiberarBolasExtra = config.isUtilizarUmbral();
         this.umbralParaLiberarBolasExtra = config.getUmbralParaLiberarBolasExtra();
@@ -934,7 +937,7 @@ public class PrincipalController implements Initializable{
         ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
         
         //Frecuencia de premios obtenidos por figura
-        frecuenciaDePremiosObtenidosPorFigura = new int[figuras.length];
+        frecuenciaDePremiosObtenidosPorFigura = new BigInteger[figuras.length];
         
         porcentajeDeCostoDeBolaExtraSegunPremioMayor = config.getFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor();
         cantidadDePremiosBonus = config.getCantidadDePremiosEnBonus();
@@ -1014,7 +1017,7 @@ public class PrincipalController implements Initializable{
             //Computar la frecuencia de premios por cada figura
             for (int j = 0; j < Juego.getCantidadDeCartones(); j++) {
                 for (int k = 0; k < figuras.length; k++) {
-                    frecuenciaDePremiosObtenidosPorFigura[k] += bingo.getPremiosPagados()[j][k];
+                    frecuenciaDePremiosObtenidosPorFigura[k] = frecuenciaDePremiosObtenidosPorFigura[k].add(BigInteger.valueOf(bingo.getPremiosPagados()[j][k]));
                 }
             }
             
@@ -1145,10 +1148,12 @@ public class PrincipalController implements Initializable{
     }
     
     private void cargarBarChartTablero(VBox panelVertical, BarChart frecuenciaTablero, int[] frecuenciaDeFiguras){
-        if (panelVertical.getChildren().contains(frecuenciaTablero)) {
-            panelVertical.getChildren().remove(frecuenciaTablero);
-        }
+//        if (panelVertical.getChildren().contains(frecuenciaTablero)) {
+//            panelVertical.getChildren().remove(frecuenciaTablero);
+//        }
+
         
+
         CategoryAxis xAxis    = new CategoryAxis();
         xAxis.setLabel("Figuras");
 
@@ -1172,14 +1177,15 @@ public class PrincipalController implements Initializable{
             frecuenciaTablero.getData().add(dataSeries1);
         }
         
-        panelVertical.getChildren().add(frecuenciaTablero);
+//        panelVertical.getChildren().add(frecuenciaTablero);
     }
 
-    private void graficarFrecuenciasDeFiguras(int[] frecuenciaDeFiguras){
+    private void graficarFrecuenciasDeFiguras(BigInteger[] frecuenciaDeFiguras){
         //Cargo las frecuencias
         if (frecuenciaDeFiguras != null) {
             //TODO: rellenar con datos de las frecuencias por figura,
             //frecuenciaDeFiguras.length = cantidad de figuras del tablero
+            
             
             if (frecuenciaDeTablero == null) {
                 CategoryAxis xAxis    = new CategoryAxis();
@@ -1196,11 +1202,22 @@ public class PrincipalController implements Initializable{
             XYChart.Series dataSeries1 = new XYChart.Series();
             dataSeries1.setName("Frecuencia de figuras");
             
+            //Calculo el total de creditos obtenidos
+            BigInteger totalCreditosGanados = BigInteger.ZERO;
+            
             for (int i = 0; i < frecuenciaDeFiguras.length; i++) {
-                dataSeries1.getData().add(new XYChart.Data((i + 1) + "", (int)frecuenciaDeFiguras[i]));
+                totalCreditosGanados = totalCreditosGanados.add(frecuenciaDeFiguras[i]);
+            }
+            
+            for (int i = 0; i < frecuenciaDeFiguras.length; i++) {
+                String nombreFigura = comboFigurasPago.getItems().get(i).getNombre();
+                System.out.println(nombreFigura);
+                dataSeries1.getData().add(new XYChart.Data(nombreFigura, frecuenciaDeFiguras[i].divide(totalCreditosGanados).multiply(BigInteger.valueOf(100))));
             }
 
             frecuenciaDeTablero.getData().add(dataSeries1);
+            frecuenciaDeTablero.setVisible(false);
+            frecuenciaDeTablero.setVisible(true);
         }
         
         
