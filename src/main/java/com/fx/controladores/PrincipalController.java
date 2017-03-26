@@ -931,11 +931,13 @@ public class PrincipalController implements Initializable{
         this.cantidadDeJuegosGanados = BigInteger.ZERO; //Coloco en cero el contador de juegos ganados
         this.juegosConBolasExtra = BigInteger.ZERO; //Coloco en cero el contador de juegos ganados
         
+        ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
+        
         //Frecuencia de premios obtenidos por figura
         frecuenciaDePremiosObtenidosPorFigura = new int[figuras.length];
         
-        porcentajeDeCostoDeBolaExtraSegunPremioMayor = PersistenciaJson.getInstancia().getConfiguracion().getFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor();
-        cantidadDePremiosBonus = PersistenciaJson.getInstancia().getConfiguracion().getCantidadDePremiosEnBonus();
+        porcentajeDeCostoDeBolaExtraSegunPremioMayor = config.getFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor();
+        cantidadDePremiosBonus = config.getCantidadDePremiosEnBonus();
         
         //Debug
         System.out.println("Utilizar umbral: " + usarUmbralParaLiberarBolasExtra);
@@ -944,10 +946,13 @@ public class PrincipalController implements Initializable{
         System.out.println("Limite superior: " + limiteMaximoGratis);
         System.out.println("Porcentaje del premio mayor para bola extra: " + porcentajeDeCostoDeBolaExtraSegunPremioMayor);
         System.out.println("Tournament: " + tournament);
-        System.out.println("Porcentaje para tournament: " + PersistenciaJson.getInstancia().getConfiguracion().getPorcentajeParaTournament());
-        System.out.println("indice");
+        System.out.println("Porcentaje para tournament: " + config.getPorcentajeParaTournament());
+        System.out.println("Indice de configuracion de jugadores: " + config.getIndiceConfiguracionJugadores());
+        System.out.println("Creditos maximos por perfil: " + ArrayUtils.toString(config.getCreditosMaximosPorPerfil()));
+        System.out.println("Probabilidad de apuestas por perfil: " + ArrayUtils.toString(config.getProbabilidadDeApostarPorPerfil()));
+        System.out.println("Probabilidad de comprar bolas extra por perfil: " + ArrayUtils.toString(config.getProbabilidadDeComprarBolasExtra()));
         
-        this.porcentajeParaTournament = PersistenciaJson.getInstancia().getConfiguracion().getPorcentajeParaTournament();
+        this.porcentajeParaTournament = config.getPorcentajeParaTournament();
         
         
         for (int i = 0; i < n; i++) {
@@ -977,7 +982,7 @@ public class PrincipalController implements Initializable{
                     this.premiosFijosBonus, 
                     this.premiosVariablesBonus, 
                     this.cantidadDePremiosBonus);
-            bingo.setPerfilActual(seleccionarPerfil(PersistenciaJson.getInstancia().getConfiguracion().getIndiceConfiguracionJugadores(), i));
+            bingo.setPerfilActual(seleccionarPerfil(config.getIndiceConfiguracionJugadores(), i));
             bingo.setCreditos(bingo.getPerfilActual().getCreditosMaximos());
             bingo.apostar(RNG.getInstance().pickInt(bingo.getPerfilActual().getFactorDeApuesta()));
             bingo.habilitarTodos();
