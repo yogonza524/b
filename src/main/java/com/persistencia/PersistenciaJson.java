@@ -146,6 +146,7 @@ public class PersistenciaJson {
                 config.setProbabilidadDeApostarPorPerfil(new Double[]{.3, .6, .95});
                 config.setProbabilidadDeComprarBolasExtra(new Double[]{.3,.6,.95});
                 config.setCreditosMaximosPorPerfil(new Integer[]{100, 250, 500});
+                config.setIndiceConfiguracionCostoBolaExtra(0);
                 
                 Gson gson = new GsonBuilder().create();
                 gson.toJson(config, writer);

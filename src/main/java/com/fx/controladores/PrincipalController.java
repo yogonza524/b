@@ -123,6 +123,7 @@ public class PrincipalController implements Initializable{
     private double[] retribuciones; //Retribuciones parciales, para cada juego
     private BigInteger[] frecuenciaDePremiosObtenidosPorFigura;
     private double[] retribucionesParcialesAcumuladas;
+    private BigInteger cantidadDeJuegosConBonus;
     
     //Computo de graficos
     private BigInteger[] ganaciasPorFigura;
@@ -136,7 +137,7 @@ public class PrincipalController implements Initializable{
     private Gauge porcentajeDeRetribucionGauge;
     private Gauge porcentajeDeJuegosGanados;
     private Gauge porcentajeDeJuegosConBolasExtra;
-    private Gauge PorcentajeDeJuegosEnCiclosDe5sinGanar;
+    private Gauge porcentajeDeBonusEnJuegosTotales;
     
     //Banderas
     
@@ -201,6 +202,7 @@ public class PrincipalController implements Initializable{
     private static boolean utilizarPremiosVariablesEnBonus;
     private Integer cantidadDeSimulaciones;
     private int cantidadDePremiosBonus;
+    private int indiceConfiguracionCostoBolaExtra;
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -331,6 +333,9 @@ public class PrincipalController implements Initializable{
             if (e.getParametros() != null && e.getParametros().get("limiteMaximoGratis") != null) {
                 this.limiteMaximoGratis = Integer.valueOf(e.getParametros().get("limiteMaximoGratis").toString());
             }
+            if (e.getParametros() != null && e.getParametros().get("indiceConfiguracionCostoBolaExtra") != null) {
+                this.indiceConfiguracionCostoBolaExtra = Integer.valueOf(e.getParametros().get("indiceConfiguracionCostoBolaExtra").toString());
+            }
             
             //Cargar los datos a la configuracion
             ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
@@ -339,7 +344,7 @@ public class PrincipalController implements Initializable{
             config.setLimiteMinimoGratis(limiteMinimoGratis);
             config.setLimiteMaximoGratis(limiteMaximoGratis);
             config.setFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor(porcentajeDeCostoDeBolaExtraSegunPremioMayor);
-            
+            config.setIndiceConfiguracionCostoBolaExtra(indiceConfiguracionCostoBolaExtra);
             //Persistir
             PersistenciaJson.getInstancia().persistirConfiguracion();
             
@@ -779,6 +784,11 @@ public class PrincipalController implements Initializable{
                             porcentajeDeJuegosConBolasExtra.setValue(bolasExtra);
                         }
                         
+                        double porcentajeDeJuegosConBonus = Matematica.porcentaje(cantidadDeJuegosConBonus, BigInteger.valueOf(cantidadDeSimulaciones)).doubleValue();
+                        porcentajeDeBonusEnJuegosTotales.setValue(Matematica.redondear(porcentajeDeJuegosConBonus, 2));
+                        
+                        System.out.println("Cantidad de bonus obtenidos: " + cantidadDeJuegosConBonus.intValue());
+                        
                         //Graficar retribuciones parciales
                         graficarPorcentajesDeRetribucionParciales(retribucionesParcialesAcumuladas);
                         graficarFrecuenciasDeFiguras(frecuenciaDePremiosObtenidosPorFigura);
@@ -908,7 +918,7 @@ public class PrincipalController implements Initializable{
         crearTermometro(porcentajeDeRetribucionGauge = new Gauge(), porcentajeRetribucionPane, "Retribución", "%");
         crearTermometro(porcentajeDeJuegosGanados = new Gauge(), porcentajeGanadosPane, "Ganados", "%");
         crearTermometro(porcentajeDeJuegosConBolasExtra = new Gauge(), porcentajeJuegosBolasExtraPane, "Con bolas extra", "%");
-        crearTermometro(PorcentajeDeJuegosEnCiclosDe5sinGanar = new Gauge(), PorcentajeDeJuegosEnCiclosDe5sinGanarPane, "5 juegos sin ganar", "%");
+        crearTermometro(porcentajeDeBonusEnJuegosTotales = new Gauge(), PorcentajeDeJuegosEnCiclosDe5sinGanarPane, "Bonus obtenidos", "%");
         
 //        cargarBarChartTablero(panelVertical, frecuenciaDeTablero, null);
         
@@ -938,6 +948,7 @@ public class PrincipalController implements Initializable{
         boolean generarNuevoBolillero = true;
         this.cantidadDeJuegosGanados = BigInteger.ZERO; //Coloco en cero el contador de juegos ganados
         this.juegosConBolasExtra = BigInteger.ZERO; //Coloco en cero el contador de juegos ganados
+        this.cantidadDeJuegosConBonus = BigInteger.ZERO;
         
         ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
         
@@ -965,6 +976,8 @@ public class PrincipalController implements Initializable{
         mostrarPorPantalla("Probabilidad de comprar bolas extra por perfil: " + ArrayUtils.toString(config.getProbabilidadDeComprarBolasExtra()));
         
         this.porcentajeParaTournament = config.getPorcentajeParaTournament();
+        
+        mostrarPorPantalla("Porcentaje de tournament: " + porcentajeParaTournament);
         
         //Creo los perfiles segun la configuracion
         Perfil[] perfiles = crearPerfiles(config);
@@ -1018,6 +1031,11 @@ public class PrincipalController implements Initializable{
             int apuestaTotal = apuestasBasicas + invertidoEnBolasExtra;
             int gano = bingo.ganancias();
             int conBolasExtra = bingo.isSeLiberaronBolasExtra() ? 1 : 0;
+            if (bingo.huboBonus()) {
+                System.out.println("Salio el bonus");
+            }
+            cantidadDeJuegosConBonus = cantidadDeJuegosConBonus.add(bingo.huboBonus() ? BigInteger.ONE : BigInteger.ZERO);
+            
             
             if (invertidoEnBolasExtra > 0) {
                 mostrarPorPantalla("Invirtió en bolas extra: " + invertidoEnBolasExtra);

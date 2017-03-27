@@ -26,6 +26,7 @@ public class ConfiguracionPersistencia implements Serializable{
     private boolean tournament;
     private double porcentajeParaTournament;
     private int indicePorcentajeTournamentCombo;
+    private int indiceConfiguracionCostoBolaExtra;
     
     private boolean utilizarPremiosFijosBonus;
     private boolean utilizarPremiosVariablesBonus;
@@ -38,6 +39,14 @@ public class ConfiguracionPersistencia implements Serializable{
     private Integer[] creditosMaximosPorPerfil;
     private Double[] probabilidadDeApostarPorPerfil;
     private Double[] probabilidadDeComprarBolasExtra;
+
+    public int getIndiceConfiguracionCostoBolaExtra() {
+        return indiceConfiguracionCostoBolaExtra;
+    }
+
+    public void setIndiceConfiguracionCostoBolaExtra(int indiceConfiguracionCostoBolaExtra) {
+        this.indiceConfiguracionCostoBolaExtra = indiceConfiguracionCostoBolaExtra;
+    }
 
     public int getIndiceConfiguracionJugadores() {
         return indiceConfiguracionJugadores;

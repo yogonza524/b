@@ -85,7 +85,7 @@ public class BolasExtraController implements Initializable {
         limiteMaximoGratis = config.getLimiteMaximoGratis();
         
         utilizarUmbralCheck.setSelected(utilizarUmbral);
-        comboCosto.getSelectionModel().selectFirst();
+        
         umbralText.setText(umbralParaLiberarBolasExtra + "");
         limiteMinimoBolaGratis.setText(limiteMinimoGratis + "");
         limiteMaximoBolaGratis.setText(limiteMaximoGratis + "");
@@ -210,12 +210,18 @@ public class BolasExtraController implements Initializable {
             if (comboCosto.getSelectionModel().getSelectedIndex() > -1) {
                 Map<String,Object> parametros = new HashMap<>();
                 parametros.put("porcentajeDeCostoDeBolaExtraSegunPremioMayor",  comboCosto.getSelectionModel().getSelectedItem() * 0.01);
-                
+                parametros.put("indiceConfiguracionCostoBolaExtra", comboCosto.getSelectionModel().getSelectedIndex());
                 //Avisar al oyente
                 EventBusManager.getInstancia().getBus()
                         .post(new Evento(CodigoEvento.BOLASEXTRA.getValue(), parametros));
             }
         });
+        
+        try {
+            comboCosto.getSelectionModel().select(PersistenciaJson.getInstancia().getConfiguracion().getIndiceConfiguracionCostoBolaExtra());
+        } catch (IOException ex) {
+            Logger.getLogger(BolasExtraController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private void initCheckBoxes() {

@@ -1102,13 +1102,14 @@ public class Juego {
         return this.cartones == null;
     }
 
-    private boolean huboBonus() {
+    public boolean huboBonus() {
         for (int i = 0; i < premiosPagados.length; i++) {
             for (int j = 0; j < premiosPagados[i].length; j++) {
                 if (premiosPagados[i][j] > 0 && figurasConBonus[j]) {
                     if (inicioDelCicloDeJuego) {
                         this.salioElBonusAlInicioDelJuego = true;
                     }
+                    System.out.println("Premio con bonus: " + nombresDeFiguras[j]);
                     return true;
                 }
             }
@@ -1236,7 +1237,11 @@ public class Juego {
         if (modoTournament) {
             acumulado += apuestaTotal() * porcentajeDeDescuentoParaTournament;
 //            dinero -= apuestaTotal() * porcentajeDeDescuentoParaTournament;
-            this.creditos -= apuestaTotal() * porcentajeDeDescuentoParaTournament;
+            this.creditos -= apuestaTotal() * porcentajeDeDescuentoParaTournament;//Descuento el porcentaje de tournament al credito
+            
+            if (creditos < 0) {
+                creditos = 0;
+            }
             
             log("Creditos luego de descontar el tournament: " + this.creditos);
         }

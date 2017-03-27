@@ -135,24 +135,12 @@
          <top>
             <MenuBar BorderPane.alignment="CENTER">
               <menus>
-                <Menu mnemonicParsing="false" text="Archivo">
-                  <items>
-                    <MenuItem mnemonicParsing="false" text="Cargar tablas de pago" />
-                        <MenuItem mnemonicParsing="false" text="Guardar tablas de pago" />
-                        <MenuItem mnemonicParsing="false" text="Cerrar" />
-                  </items>
-                </Menu>
                 <Menu mnemonicParsing="false" text="Configuracion">
                   <items>
                         <MenuItem fx:id="bolasExtraMenuItem" mnemonicParsing="false" text="Bolas extra" />
                     <MenuItem fx:id="tournamentMenuItem" mnemonicParsing="false" text="Tournament" />
                         <MenuItem fx:id="bonusMenuItem" mnemonicParsing="false" text="Bonus" />
                         <MenuItem fx:id="jugadorMenuItem" mnemonicParsing="false" text="Jugador" />
-                  </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Ayuda">
-                  <items>
-                    <MenuItem mnemonicParsing="false" text="Acerca de" />
                   </items>
                 </Menu>
               </menus>
