@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: JuegoTest
 -------------------------------------------------------------------------------
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 5, Time elapsed: 0.634 sec
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 7, Time elapsed: 0.101 sec

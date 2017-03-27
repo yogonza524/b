@@ -7,6 +7,7 @@
 package com.persistencia;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -30,8 +31,8 @@ public class ConfiguracionPersistencia implements Serializable{
     
     private boolean utilizarPremiosFijosBonus;
     private boolean utilizarPremiosVariablesBonus;
-    private Integer[] premiosFijosBonus;
-    private Integer[] premiosVariablesBonus;
+    private Map<Integer,Integer> premiosFijosBonus;
+    private Map<Integer,Integer> premiosVariablesBonus;
     private int cantidadDePremiosEnBonus;
     
     //Jugador
@@ -40,6 +41,22 @@ public class ConfiguracionPersistencia implements Serializable{
     private Double[] probabilidadDeApostarPorPerfil;
     private Double[] probabilidadDeComprarBolasExtra;
 
+    public Map<Integer, Integer> getPremiosFijosBonus() {
+        return premiosFijosBonus;
+    }
+
+    public void setPremiosFijosBonus(Map<Integer, Integer> premiosFijosBonus) {
+        this.premiosFijosBonus = premiosFijosBonus;
+    }
+
+    public Map<Integer, Integer> getPremiosVariablesBonus() {
+        return premiosVariablesBonus;
+    }
+
+    public void setPremiosVariablesBonus(Map<Integer, Integer> premiosVariablesBonus) {
+        this.premiosVariablesBonus = premiosVariablesBonus;
+    }
+    
     public int getIndiceConfiguracionCostoBolaExtra() {
         return indiceConfiguracionCostoBolaExtra;
     }
@@ -102,22 +119,6 @@ public class ConfiguracionPersistencia implements Serializable{
 
     public void setUtilizarPremiosVariablesBonus(boolean utilizarPremiosVariablesBonus) {
         this.utilizarPremiosVariablesBonus = utilizarPremiosVariablesBonus;
-    }
-
-    public Integer[] getPremiosFijosBonus() {
-        return premiosFijosBonus;
-    }
-
-    public void setPremiosFijosBonus(Integer[] premiosFijosBonus) {
-        this.premiosFijosBonus = premiosFijosBonus;
-    }
-
-    public Integer[] getPremiosVariablesBonus() {
-        return premiosVariablesBonus;
-    }
-
-    public void setPremiosVariablesBonus(Integer[] premiosVariablesBonus) {
-        this.premiosVariablesBonus = premiosVariablesBonus;
     }
 
     public int getIndicePorcentajeTournamentCombo() {

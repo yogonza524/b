@@ -83,16 +83,17 @@
                                        <children>
                                           <VBox fx:id="bonusFijoPane" prefHeight="253.0" prefWidth="368.0">
                                              <children>
-                                                <Label text="Creditos de premio" textAlignment="CENTER" />
+                                                <Label text="Creditos de premio (creditos de premio - frecuencia)" textAlignment="CENTER" />
                                                 <HBox prefHeight="29.0" prefWidth="368.0">
                                                    <children>
                                                       <TextField fx:id="creditosFijosTxt" maxWidth="150.0" prefHeight="26.0" prefWidth="123.0" promptText="Creditos" />
+                                                      <TextField fx:id="frecuenciaFijosTxt" layoutX="10.0" layoutY="10.0" maxWidth="150.0" prefHeight="26.0" prefWidth="123.0" promptText="Frecuencia" />
                                                       <Button fx:id="agregarFijoBtn" mnemonicParsing="false" prefHeight="26.0" prefWidth="88.0" text="Agregar">
                                                          <HBox.margin>
                                                             <Insets left="5.0" />
                                                          </HBox.margin>
                                                       </Button>
-                                                      <Button fx:id="eliminarFijo" mnemonicParsing="false" prefHeight="26.0" prefWidth="212.0" text="Eliminar seleccionado">
+                                                      <Button fx:id="eliminarFijo" mnemonicParsing="false" prefHeight="26.0" prefWidth="94.0" text="Eliminar">
                                                          <HBox.margin>
                                                             <Insets left="5.0" />
                                                          </HBox.margin>
@@ -109,16 +110,17 @@
                                           </VBox>
                                           <VBox fx:id="bonusVariablePane" prefHeight="253.0" prefWidth="368.0">
                                              <children>
-                                                <Label text="Factor de pago" textAlignment="CENTER" />
+                                                <Label text="Factor de pago (factor de premio - frecuencia)" textAlignment="CENTER" />
                                                 <HBox prefHeight="29.0" prefWidth="368.0">
                                                    <children>
                                                       <TextField fx:id="creditosVariablesTxt" maxWidth="150.0" prefHeight="26.0" prefWidth="123.0" promptText="Creditos" />
+                                                      <TextField fx:id="frecuenciaVariablesTxt" layoutX="10.0" layoutY="10.0" maxWidth="150.0" prefHeight="26.0" prefWidth="123.0" promptText="Frecuencia" />
                                                       <Button fx:id="agregarVariableBtn" mnemonicParsing="false" prefHeight="26.0" prefWidth="86.0" text="Agregar">
                                                          <HBox.margin>
                                                             <Insets left="5.0" />
                                                          </HBox.margin>
                                                       </Button>
-                                                      <Button fx:id="eliminarVariable" mnemonicParsing="false" prefHeight="26.0" prefWidth="214.0" text="Eliminar seleccionado">
+                                                      <Button fx:id="eliminarVariable" mnemonicParsing="false" prefHeight="26.0" prefWidth="91.0" text="Eliminar">
                                                          <HBox.margin>
                                                             <Insets left="5.0" />
                                                          </HBox.margin>

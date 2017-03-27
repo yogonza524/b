@@ -104,8 +104,8 @@ public class PrincipalController implements Initializable{
     private int indiceConfiguracionJugadores;
     
     //Bonus
-    private Integer[] premiosFijosBonus;
-    private Integer[] premiosVariablesBonus;
+    private Map<Integer,Integer> premiosFijosBonus;
+    private Map<Integer,Integer> premiosVariablesBonus;
     private boolean utilizarPremiosFijosBonus;
     private boolean utilizarPremiosVariablesBonus;
     private int cantidadDePremiosBonusFijo;
@@ -395,12 +395,10 @@ public class PrincipalController implements Initializable{
     private void persistirBonus(Evento e) throws IOException{
         if (e != null && e.getCodigo() == CodigoEvento.BONUS.getValue()) {
             if (e.getParametros() != null && e.getParametros().get("premiosFijos") != null) {
-                Object[] premios = (Object[]) e.getParametros().get("premiosFijos");
-                this.premiosFijosBonus = Arrays.copyOf(premios, premios.length, Integer[].class);  
+                this.premiosFijosBonus =  (Map<Integer, Integer>) e.getParametros().get("premiosFijos");
             }
             if (e.getParametros() != null && e.getParametros().get("premiosVariables") != null) {
-                Object[] premios = (Object[]) e.getParametros().get("premiosVariables");
-                this.premiosVariablesBonus = Arrays.copyOf(premios, premios.length, Integer[].class);  
+                this.premiosVariablesBonus = (Map<Integer, Integer>) e.getParametros().get("premiosVariables");  
             }
             if (e.getParametros() != null && e.getParametros().get("utilizarPremiosVariables") != null) {
                 this.utilizarPremiosVariablesBonus = Boolean.valueOf(e.getParametros().get("utilizarPremiosVariables").toString());

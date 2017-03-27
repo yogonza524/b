@@ -22,7 +22,9 @@ import java.io.Writer;
 import java.lang.reflect.Type;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 
@@ -130,6 +132,20 @@ public class PersistenciaJson {
             System.out.println("No existe el archivo config.db, creando...");
             try (Writer writer = new FileWriter("config.db")) {
                 
+                //Bonus por defecto
+                Map<Integer,Integer> premiosFijosBonusMap = new HashMap<>();
+                Map<Integer,Integer> premiosVariablesBonusMap = new HashMap<>();
+                
+                //Bonus fijo
+                premiosFijosBonusMap.put(10, 4);
+                premiosFijosBonusMap.put(50, 4);
+                premiosFijosBonusMap.put(100, 4);
+                
+                //Premios variables
+                premiosVariablesBonusMap.put(2, 4);
+                premiosVariablesBonusMap.put(4, 4);
+                premiosVariablesBonusMap.put(8, 4);
+                
                 config = new ConfiguracionPersistencia();
                 config.setRutaDeLasTablasDePago("tablasDePago.json");
                 config.setLimiteMaximoGratis(10);
@@ -138,9 +154,9 @@ public class PersistenciaJson {
                 config.setUmbralParaLiberarBolasExtra(10);
                 config.setFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor(0.1);
                 config.setUtilizarPremiosFijosBonus(true);
-                config.setPremiosFijosBonus(new Integer[]{100,50,20});
+                config.setPremiosFijosBonus(premiosFijosBonusMap);
                 config.setUtilizarPremiosVariablesBonus(false);
-                config.setPremiosVariablesBonus(new Integer[]{2,15,20});
+                config.setPremiosVariablesBonus(premiosVariablesBonusMap);
                 config.setCantidadDePremiosEnBonus(16);
                 config.setIndiceConfiguracionJugadores(0);
                 config.setProbabilidadDeApostarPorPerfil(new Double[]{.3, .6, .95});

@@ -50,6 +50,8 @@ public class BonusController implements Initializable{
     @FXML private TextField cantidadDePremiosTxt;
     @FXML private TextField creditosFijosTxt;
     @FXML private TextField creditosVariablesTxt;
+    @FXML private TextField frecuenciaFijosTxt;
+    @FXML private TextField frecuenciaVariablesTxt;
     @FXML private Button cerrarBtn;
     @FXML private Button eliminarFijo;
     @FXML private Button eliminarVariable;
@@ -60,6 +62,9 @@ public class BonusController implements Initializable{
     
     private boolean premiosFijos;
     private boolean premiosVariables;
+    
+    private Map<Integer,Integer> premiosFijosMap;
+    private Map<Integer,Integer> premiosVariablesMap;
     
     
     @Override
@@ -133,15 +138,15 @@ public class BonusController implements Initializable{
         listaFija.getItems().clear();
         listaVariable.getItems().clear();
         
-        Integer[] fijos = config.getPremiosFijosBonus();
-        Integer[] variables = config.getPremiosVariablesBonus();
+        premiosFijosMap = config.getPremiosFijosBonus();
+        premiosVariablesMap = config.getPremiosVariablesBonus();
         
-        for (int i = 0; i < fijos.length; i++) {
-            listaFija.getItems().add(fijos[i]);
+        for(Map.Entry<Integer,Integer> premio : premiosFijosMap.entrySet()){
+            listaFija.getItems().add(premio.getKey() + "(frecuencia = " + premio.getValue() + ")");
         }
         
-        for (int i = 0; i < variables.length; i++) {
-            listaVariable.getItems().add(variables[i]);
+        for(Map.Entry<Integer,Integer> premio : premiosVariablesMap.entrySet()){
+            listaVariable.getItems().add(premio.getKey() + "(frecuencia = " + premio.getValue() + ")");
         }
         
         bonus_pane.setOnKeyReleased(new EventHandler<KeyEvent>() {
@@ -166,33 +171,49 @@ public class BonusController implements Initializable{
                 return;
             }
             
+            if (frecuenciaFijosTxt.getText().isEmpty()) {
+                return;
+            }
+            
             int totalPremios = Integer.valueOf(cantidadDePremiosTxt.getText());
             
-            if (listaFija.getItems().size() >= totalPremios - 1 ) {
-                Dialog.error("No se puede agregar", "La cantidad de premios no puede exceder el total de premios menos uno (condicion de salida: premio con valor 0)", "Elimine premios e intentelo de nuevo");
+            //Verificar si se puede agregar
+            int frecuenciaTotal = 0;
+            for(Map.Entry<Integer,Integer> entry : premiosFijosMap.entrySet()){
+                frecuenciaTotal += entry.getValue();
+            }
+            
+            int frecuencia = Integer.valueOf(frecuenciaFijosTxt.getText());
+            
+            if (frecuenciaTotal + frecuencia >= totalPremios) { 
+                if (frecuenciaTotal > totalPremios) {
+                    Dialog.error("Error al agregar", "La cantidad total de premios no puede ser\n mayor a " + frecuenciaTotal, "Se requiere al menos un premio \ncon valor cero para salir del bonus");
+                }
+                else{
+                    Dialog.error("Error al agregar", "La cantidad total de premios no puede ser\n mayor a " + (totalPremios - 1), "Se requiere al menos un premio \ncon valor cero para salir del bonus");
+                }
                 return;
             }
             
             int creditos = Integer.valueOf(creditosFijosTxt.getText());
-            boolean existe = false;
             
-            for (int i = 0; i < listaFija.getItems().size(); i++) {
-                if (creditos == Integer.valueOf(listaFija.getItems().get(i).toString())) {
-                    existe = true;
-                    break;
-                }
+            premiosFijosMap.put(creditos, frecuencia);
+            
+            Map<String,Object> params = new HashMap<>();
+            params.put("premiosFijos", premiosFijosMap);
+
+            EventBusManager.getInstancia().getBus()
+                    .post(new Evento(CodigoEvento.BONUS.getValue(), params));
+            
+            listaFija.getItems().clear();
+            
+            for(Map.Entry<Integer,Integer> entry : premiosFijosMap.entrySet()){
+                listaFija.getItems().add(entry.getKey() + "(frecuencia = " + entry.getValue() + ")");
             }
             
-            if (!existe) {
-                listaFija.getItems().add(creditos);
-                creditosFijosTxt.setText("");
-                
-                Map<String,Object> params = new HashMap<>();
-                params.put("premiosFijos", listaFija.getItems().toArray());
-                
-                EventBusManager.getInstancia().getBus()
-                        .post(new Evento(CodigoEvento.BONUS.getValue(), params));
-            }
+            
+            creditosFijosTxt.setText("");
+            frecuenciaFijosTxt.setText("");
             
         });
         
@@ -201,44 +222,59 @@ public class BonusController implements Initializable{
                 return;
             }
             
-            int totalPremios = Integer.valueOf(cantidadDePremiosTxt.getText());
+            if (frecuenciaVariablesTxt.getText().isEmpty()) {
+                return;
+            }
             
-            if (listaVariable.getItems().size() >= totalPremios - 1 ) {
-                Dialog.error("No se puede agregar", "La cantidad de factores no puede exceder el \ntotal de premios menos uno (condicion de salida: premio con valor 0)", "Elimine premios e intentelo de nuevo");
-                return; 
+            int totalPremios = Integer.valueOf(cantidadDePremiosTxt.getText());
+            //Verificar si se puede agregar
+            int frecuenciaTotal = 0;
+            for(Map.Entry<Integer,Integer> entry : premiosVariablesMap.entrySet()){
+                frecuenciaTotal += entry.getValue();
+            }
+            
+            int frecuencia = Integer.valueOf(frecuenciaVariablesTxt.getText());
+            
+            if (frecuenciaTotal + frecuencia >= totalPremios) { 
+                if (frecuenciaTotal > totalPremios) {
+                    Dialog.error("Error al agregar", "La cantidad total de factores no puede ser\n mayor a " + frecuenciaTotal, "Se requiere al menos un premio \ncon valor cero para salir del bonus");
+                }
+                else{
+                    Dialog.error("Error al agregar", "La cantidad total de factores no puede ser\n mayor a " + (totalPremios - 1), "Se requiere al menos un premio \ncon valor cero para salir del bonus");
+                }
+                return;
             }
             
             int creditos = Integer.valueOf(creditosVariablesTxt.getText());
-            boolean existe = false;
             
-            for (int i = 0; i < listaVariable.getItems().size(); i++) {
-                if (creditos == Integer.valueOf(listaVariable.getItems().get(i).toString())) {
-                    existe = true;
-                    break;
-                }
+            premiosVariablesMap.put(creditos, frecuencia);
+            
+            Map<String,Object> params = new HashMap<>();
+            params.put("premiosFijos", premiosVariablesMap);
+
+            EventBusManager.getInstancia().getBus()
+                    .post(new Evento(CodigoEvento.BONUS.getValue(), params));
+            
+            listaVariable.getItems().clear();
+            
+            for(Map.Entry<Integer,Integer> entry : premiosVariablesMap.entrySet()){
+                listaVariable.getItems().add(entry.getKey() + "(frecuencia = " + entry.getValue() + ")");
             }
             
-            if (!existe) {
-                listaVariable.getItems().add(creditos);
-                creditosVariablesTxt.setText("");
-                
-                Map<String,Object> params = new HashMap<>();
-                params.put("premiosVariables", listaVariable.getItems().toArray());
-                
-                EventBusManager.getInstancia().getBus()
-                        .post(new Evento(CodigoEvento.BONUS.getValue(), params));
-            }
-            
-            
+            creditosVariablesTxt.setText("");
+            frecuenciaVariablesTxt.setText("");
             
         });
         
         eliminarFijo.setOnAction(e -> {
             if (listaFija.getSelectionModel().getSelectedIndex() > -1) {
+                 
+                Integer value = Integer.valueOf(listaFija.getSelectionModel().getSelectedItem().toString().split("\\(")[0]);
+                premiosFijosMap.remove(value);
                 listaFija.getItems().remove(listaFija.getSelectionModel().getSelectedIndex());
                 
                 Map<String,Object> params = new HashMap<>();
-                params.put("premiosFijos", listaFija.getItems().toArray());
+                params.put("premiosFijos", premiosFijosMap);
                 
                 EventBusManager.getInstancia().getBus()
                         .post(new Evento(CodigoEvento.BONUS.getValue(), params));
@@ -246,11 +282,13 @@ public class BonusController implements Initializable{
         });
         
         eliminarVariable.setOnAction(e -> {
-            if (listaVariable.getSelectionModel().getSelectedIndex() > -1) {
+            if (listaVariable.getSelectionModel().getSelectedIndex() > -1) {  
+                Integer value = Integer.valueOf(listaVariable.getSelectionModel().getSelectedItem().toString().split("\\(")[0]);
+                premiosVariablesMap.remove(value);
                 listaVariable.getItems().remove(listaVariable.getSelectionModel().getSelectedIndex());
                 
                 Map<String,Object> params = new HashMap<>();
-                params.put("premiosVariables", listaVariable.getItems().toArray());
+                params.put("premiosVariables", premiosVariablesMap);
                 
                 EventBusManager.getInstancia().getBus()
                         .post(new Evento(CodigoEvento.BONUS.getValue(), params));
@@ -268,12 +306,27 @@ public class BonusController implements Initializable{
                         return;
                     }
                     
-                    if (cantidadDePremiosTxt.getText().isEmpty()) {
-                        cantidadDePremiosTxt.setText("16");
+                    int total = cantidadDePremiosTxt.getText().isEmpty() ? 0 : Integer.valueOf(cantidadDePremiosTxt.getText());
+                    int cantidadDeFijos = 0;
+                    int cantidadDeVariables = 0;
+                    
+                    for(Map.Entry<Integer,Integer> entry : premiosFijosMap.entrySet()){
+                        cantidadDeFijos += entry.getValue();
                     }
                     
+                    for(Map.Entry<Integer,Integer> entry : premiosVariablesMap.entrySet()){
+                        cantidadDeVariables += entry.getValue();
+                    }
+                    
+                    int mayor = cantidadDeFijos > cantidadDeVariables ? cantidadDeFijos : cantidadDeVariables;
+                    
+                    if (total < mayor) {
+                        total = mayor + 1;
+                    }
+                    
+                    
                     Map<String,Object> params = new HashMap<>();
-                    params.put("cantidadDePremiosBonus", Integer.valueOf(cantidadDePremiosTxt.getText()));
+                    params.put("cantidadDePremiosBonus", cantidadDePremiosTxt.getText().isEmpty() ? mayor : total);
 
                     EventBusManager.getInstancia().getBus()
                             .post(new Evento(CodigoEvento.BONUS.getValue(), params));
@@ -293,12 +346,36 @@ public class BonusController implements Initializable{
             }
         });
         
+        frecuenciaFijosTxt.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if (frecuenciaFijosTxt.isFocused()) {
+                    if (!newValue.matches("\\d*")) {
+                        frecuenciaFijosTxt.setText(newValue.replaceAll("[^\\d]", ""));
+                        return;
+                    }
+                }
+            }
+        });
+        
         creditosVariablesTxt.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 if (creditosVariablesTxt.isFocused()) {
                     if (!newValue.matches("\\d*")) {
                         creditosVariablesTxt.setText(newValue.replaceAll("[^\\d]", ""));
+                        return;
+                    }
+                }
+            }
+        });
+        
+        frecuenciaVariablesTxt.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if (frecuenciaVariablesTxt.isFocused()) {
+                    if (!newValue.matches("\\d*")) {
+                        frecuenciaVariablesTxt.setText(newValue.replaceAll("[^\\d]", ""));
                         return;
                     }
                 }

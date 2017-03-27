@@ -12,10 +12,16 @@ import com.bingo.fabricas.FiguraPagoFactoria;
 import com.bingo.perfilesJugador.Perfil;
 import com.bingo.rng.RNG;
 import com.bingo.util.Matematica;
+import com.persistencia.ConfiguracionPersistencia;
+import com.persistencia.PersistenciaJson;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
@@ -106,8 +112,8 @@ public class Juego {
     private boolean seLiberaronBolasExtra;
     private boolean modoDebug;
     
-    private Integer[] premiosFijosBonus;
-    private Integer[] premiosVariablesBonus;
+    private Map<Integer,Integer> premiosFijosBonus;
+    private Map<Integer,Integer> premiosVariablesBonus;
     private boolean utilizarPremiosFijosBonus;
     private boolean utilizarPremiosVariablesBonus;
     private int cantidadDePremiosBonusFijo;
@@ -120,14 +126,18 @@ public class Juego {
      * Constructor por defecto
      */
     public Juego() {
-        inicializar(null);
+        try {
+            inicializar(null);
+        } catch (IOException ex) {
+            Logger.getLogger(Juego.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     /**
      * Inicializa todos los valores del juego
      * @param figuras
      */
-    public void inicializar(List<FiguraPago> figuras){
+    public void inicializar(List<FiguraPago> figuras) throws IOException{
         crearEstructuras();
         habilitarPrimerCarton();
         crearCartonesDeJuego();
@@ -144,7 +154,9 @@ public class Juego {
         cartonesHabilitados[0] = true;
     }
 
-    private void crearEstructuras() {
+    private void crearEstructuras() throws IOException {
+        ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
+        
         cantidadDeFigurasDePago = this.figurasDePago != null? this.figurasDePago.length : FiguraPagoFactoria.cartones().size() ;
         
         bolasExtraSeleccionadas = new boolean[CANTIDADDEBOLASEXTRA];
@@ -176,8 +188,8 @@ public class Juego {
         //Bonus
         utilizarPremiosFijosBonus = true;
         utilizarPremiosVariablesBonus = false;
-        premiosFijosBonus = Matematica.crearArregloAleatorioConCeros(new Integer[]{100,50}, this.cantidadDePremiosBonusFijo);
-        premiosVariablesBonus = Matematica.crearArregloAleatorioConCeros(new Integer[]{10,20,30}, this.cantidadDePremiosBonusFijo);
+        premiosFijosBonus = config.getPremiosFijosBonus();
+        premiosVariablesBonus = config.getPremiosVariablesBonus();
         totalGanadoEnBonus = 0;
         
         //Log de resultados 
@@ -1115,7 +1127,7 @@ public class Juego {
         for (int i = 0; i < premiosPagados.length; i++) {
             for (int j = 0; j < premiosPagados[i].length; j++) {
                 if (premiosPagados[i][j] > 0 && figurasConBonus[j]) {
-                    System.out.println("Bonus en figura: " + nombresDeFiguras[j]);
+//                    System.out.println("Bonus en figura: " + nombresDeFiguras[j]);Bonus en figura
                     return true;
                 }
             }
@@ -1307,19 +1319,19 @@ public class Juego {
         if (utilizarPremiosVariablesBonus) {
             Integer[] variables = Matematica.crearArregloAleatorioConCeros(premiosVariablesBonus, cantidadTotalDePremiosEnBonus);
             for (int i = 0; i < cantidadTotalDePremiosEnBonus; i++) {
-                bonus[i] = apuestaIndividual * variables[i];
+                bonus[i] = apuestaIndividual * variables[i];   
             }
+//            System.out.println("Premios del bonus: " + ArrayUtils.toString(bonus));
         }
         else{
             if (utilizarPremiosFijosBonus) {
                 bonus = Matematica.crearArregloAleatorioConCeros(premiosFijosBonus, cantidadTotalDePremiosEnBonus);
+//                System.out.println("Premios del bonus: " + ArrayUtils.toString(bonus));
             }
             else{
                 //Por defecto cargo el bonus fijo
-                Integer[] val = Matematica.crearArregloAleatorioConCeros(new Integer[]{50,100}, 16);
-                for (int i = 0; i < val.length; i++) {
-                    bonus[i] = val[i];
-                }
+                bonus = Matematica.crearArregloAleatorioConCeros(premiosFijosBonus, cantidadTotalDePremiosEnBonus);
+//                System.out.println("Premios del bonus: " + ArrayUtils.toString(bonus));
             }
         }
         
@@ -1466,7 +1478,7 @@ public class Juego {
         }
     }
 
-    public void setPametrosBonus(boolean utilizarPremiosFijosBonus, boolean utilizarPremiosVariablesBonus, Integer[] premiosFijosBonus, Integer[] premiosVariablesBonus, int cantidadDePremiosBonus) {
+    public void setPametrosBonus(boolean utilizarPremiosFijosBonus, boolean utilizarPremiosVariablesBonus, Map<Integer,Integer> premiosFijosBonus, Map<Integer,Integer> premiosVariablesBonus, int cantidadDePremiosBonus) {
         this.utilizarPremiosFijosBonus = utilizarPremiosFijosBonus;
         this.utilizarPremiosVariablesBonus = utilizarPremiosVariablesBonus;
         this.premiosFijosBonus = premiosFijosBonus;
@@ -1488,7 +1500,7 @@ public class Juego {
                     if (figurasConBonus[j]) {
                         //Es bonus
                         result = true;
-                        System.out.println("Salio un nuevo bonus: " + nombresDeFiguras[j]);
+//                        System.out.println("Salio un nuevo bonus: " + nombresDeFiguras[j]);
                         break;
                     }
                 }

@@ -9,6 +9,7 @@ import com.bingo.entidades.TablaDePago;
 import com.bingo.enumeraciones.Denominacion;
 import com.bingo.fabricas.FiguraPagoFactoria;
 import com.bingo.rng.RNG;
+import com.bingo.util.Matematica;
 import com.core.bingosimulador.Juego;
 import com.google.common.eventbus.DeadEvent;
 import com.google.common.eventbus.EventBus;
@@ -25,7 +26,9 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -96,7 +99,7 @@ public class JuegoTest {
      }
      
     @Test
-//    @Ignore
+    @Ignore
     public void bolilleroTest() {
         Juego j = new Juego();
         j.setModoSimulacion(true);
@@ -194,5 +197,15 @@ public class JuegoTest {
                 System.out.println(figura.getNumero());
             });
         }
+    }
+    
+    @Test
+    @Ignore
+    public void crearBonusTest() {
+        Map<Integer,Integer> mapa = new HashMap<>();
+        mapa.put(2, 4);
+        mapa.put(3, 4);
+        
+        System.out.println(ArrayUtils.toString(Matematica.crearArregloAleatorioConCeros(mapa, 16)));
     }
 }

@@ -12,8 +12,10 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  *
@@ -41,6 +43,24 @@ public class Matematica {
                 }
             }
         }
+        return result;
+    }
+
+    public static Integer[] crearArregloAleatorioConCeros(Map<Integer, Integer> mapa, int cantidadTotalDePremiosEnBonus) {
+        Integer[] result = new Integer[cantidadTotalDePremiosEnBonus];
+        
+        for (int i = 0; i < cantidadTotalDePremiosEnBonus; i++) {
+            result[i] = 0;
+        }
+        
+        int indice = 0;
+        for(Map.Entry<Integer,Integer> entry : mapa.entrySet()){
+            for (int i = 0; i < entry.getValue(); i++) {
+                result[indice] = entry.getKey();
+                indice++;
+            }
+        }
+        Matematica.revolver(result);
         return result;
     }
 
