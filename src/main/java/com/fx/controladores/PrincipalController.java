@@ -106,6 +106,7 @@ public class PrincipalController implements Initializable{
     private boolean utilizarPremiosVariablesBonus;
     private int cantidadDePremiosBonusFijo;
     private int cantidadDePremiosBonusVariable;
+    private boolean modoDebug;
     
     //Cómputo de resultados
     private BigInteger cantidadDeJuegosGanados;
@@ -121,6 +122,7 @@ public class PrincipalController implements Initializable{
     private int limiteMaximoGratis;
     private double[] retribuciones; //Retribuciones parciales, para cada juego
     private BigInteger[] frecuenciaDePremiosObtenidosPorFigura;
+    private double[] retribucionesParcialesAcumuladas;
     
     //Computo de graficos
     private BigInteger[] ganaciasPorFigura;
@@ -245,7 +247,7 @@ public class PrincipalController implements Initializable{
     private void cargarTablaDePagos(Evento e){
         if (e.getCodigo() == 102) {
             
-            System.out.println("Cargar la tabla de la base de datos");
+            mostrarPorPantalla("Cargar la tabla de la base de datos");
             
             comboTablaPagos.getItems().clear();
             
@@ -342,12 +344,12 @@ public class PrincipalController implements Initializable{
             PersistenciaJson.getInstancia().persistirConfiguracion();
             
             //Debug
-            System.out.println("Metodo suscripto a bolas extra");
-            System.out.println("utilziar Umbral de bolas extra: " + usarUmbralParaLiberarBolasExtra);
-            System.out.println("Umbral de bolas extra: " + umbralParaLiberarBolasExtra);
-            System.out.println("Limite minimo gratis: " + limiteMinimoGratis);
-            System.out.println("Limite maximo gratis: " + limiteMaximoGratis);
-            System.out.println("Porcentaje del premio mayor para el costo: " + porcentajeDeCostoDeBolaExtraSegunPremioMayor);
+            mostrarPorPantalla("Metodo suscripto a bolas extra");
+            mostrarPorPantalla("utilziar Umbral de bolas extra: " + usarUmbralParaLiberarBolasExtra);
+            mostrarPorPantalla("Umbral de bolas extra: " + umbralParaLiberarBolasExtra);
+            mostrarPorPantalla("Limite minimo gratis: " + limiteMinimoGratis);
+            mostrarPorPantalla("Limite maximo gratis: " + limiteMaximoGratis);
+            mostrarPorPantalla("Porcentaje del premio mayor para el costo: " + porcentajeDeCostoDeBolaExtraSegunPremioMayor);
             
         }
     }
@@ -400,11 +402,11 @@ public class PrincipalController implements Initializable{
             }
             
             //Debug
-            System.out.println("---------Bonus-----------");
-            System.out.println("Utilizar premios fijos: " + utilizarPremiosFijosBonus);
-            System.out.println("Utilizar premios variables: " + utilizarPremiosVariablesBonus);
-            System.out.println("Premios fijos: " + ArrayUtils.toString(premiosFijosBonus));
-            System.out.println("Premios variables: " + ArrayUtils.toString(premiosVariablesBonus));
+            mostrarPorPantalla("---------Bonus-----------");
+            mostrarPorPantalla("Utilizar premios fijos: " + utilizarPremiosFijosBonus);
+            mostrarPorPantalla("Utilizar premios variables: " + utilizarPremiosVariablesBonus);
+            mostrarPorPantalla("Premios fijos: " + ArrayUtils.toString(premiosFijosBonus));
+            mostrarPorPantalla("Premios variables: " + ArrayUtils.toString(premiosVariablesBonus));
             
             ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
             config.setUtilizarPremiosFijosBonus(utilizarPremiosFijosBonus);
@@ -720,7 +722,7 @@ public class PrincipalController implements Initializable{
                         
                         //Comenzar la simulacion
                         
-                        System.out.println("Tablero elegido: " + comboTablaPagos.getSelectionModel().getSelectedIndex());
+                        mostrarPorPantalla("Tablero elegido: " + comboTablaPagos.getSelectionModel().getSelectedIndex());
                         
                         resultadosTxt.setText("");
                         
@@ -778,7 +780,7 @@ public class PrincipalController implements Initializable{
                         }
                         
                         //Graficar retribuciones parciales
-                        graficarPorcentajesDeRetribucionParciales(retribuciones);
+                        graficarPorcentajesDeRetribucionParciales(retribucionesParcialesAcumuladas);
                         graficarFrecuenciasDeFiguras(frecuenciaDePremiosObtenidosPorFigura);
                     }
                 });
@@ -924,7 +926,7 @@ public class PrincipalController implements Initializable{
         this.utilizarPremiosVariablesBonus = config.isUtilizarPremiosVariablesBonus();
         this.cantidadDePremiosBonus = config.getCantidadDePremiosEnBonus();
         
-        System.out.println("Porcentaje del premio mayor (initConfig): " + this.porcentajeDeCostoDeBolaExtraSegunPremioMayor);
+        mostrarPorPantalla("Porcentaje del premio mayor (initConfig): " + this.porcentajeDeCostoDeBolaExtraSegunPremioMayor);
     }
     
     
@@ -950,17 +952,17 @@ public class PrincipalController implements Initializable{
         cantidadDePremiosBonus = config.getCantidadDePremiosEnBonus();
         
         //Debug
-        System.out.println("Utilizar umbral: " + usarUmbralParaLiberarBolasExtra);
-        System.out.println("Umbral: " + this.umbralParaLiberarBolasExtra);
-        System.out.println("Limite inferior: " + limiteMinimoGratis);
-        System.out.println("Limite superior: " + limiteMaximoGratis);
-        System.out.println("Porcentaje del premio mayor para bola extra: " + porcentajeDeCostoDeBolaExtraSegunPremioMayor);
-        System.out.println("Tournament: " + tournament);
-        System.out.println("Porcentaje para tournament: " + config.getPorcentajeParaTournament());
-        System.out.println("Indice de configuracion de jugadores: " + config.getIndiceConfiguracionJugadores());
-        System.out.println("Creditos maximos por perfil: " + ArrayUtils.toString(config.getCreditosMaximosPorPerfil()));
-        System.out.println("Probabilidad de apuestas por perfil: " + ArrayUtils.toString(config.getProbabilidadDeApostarPorPerfil()));
-        System.out.println("Probabilidad de comprar bolas extra por perfil: " + ArrayUtils.toString(config.getProbabilidadDeComprarBolasExtra()));
+        mostrarPorPantalla("Utilizar umbral: " + usarUmbralParaLiberarBolasExtra);
+        mostrarPorPantalla("Umbral: " + this.umbralParaLiberarBolasExtra);
+        mostrarPorPantalla("Limite inferior: " + limiteMinimoGratis);
+        mostrarPorPantalla("Limite superior: " + limiteMaximoGratis);
+        mostrarPorPantalla("Porcentaje del premio mayor para bola extra: " + porcentajeDeCostoDeBolaExtraSegunPremioMayor);
+        mostrarPorPantalla("Tournament: " + tournament);
+        mostrarPorPantalla("Porcentaje para tournament: " + config.getPorcentajeParaTournament());
+        mostrarPorPantalla("Indice de configuracion de jugadores: " + config.getIndiceConfiguracionJugadores());
+        mostrarPorPantalla("Creditos maximos por perfil: " + ArrayUtils.toString(config.getCreditosMaximosPorPerfil()));
+        mostrarPorPantalla("Probabilidad de apuestas por perfil: " + ArrayUtils.toString(config.getProbabilidadDeApostarPorPerfil()));
+        mostrarPorPantalla("Probabilidad de comprar bolas extra por perfil: " + ArrayUtils.toString(config.getProbabilidadDeComprarBolasExtra()));
         
         this.porcentajeParaTournament = config.getPorcentajeParaTournament();
         
@@ -970,17 +972,20 @@ public class PrincipalController implements Initializable{
         //Indice de muestra de resultados
         int l = 1;
         
+        int cantidadDeMediciones = 10;
         int total = n;
-        int avance = total / 10;
+        int avance = total / cantidadDeMediciones;
+        
+        retribucionesParcialesAcumuladas = new double[cantidadDeMediciones];
         
         for (int i = 0; i < n; i++) { 
             
-            System.out.println("Iteracion: " + i);
+            mostrarPorPantalla("Iteracion: " + i);
             
             bingo = new Juego();
             bingo.setCrearFigurasDePago(false);
             bingo.setFigurasDePago(figuras);
-            bingo.setModoDebug(true);
+            bingo.setModoDebug(false);
             
             bingo.inicializar(comboTablaPagos.getSelectionModel().getSelectedItem().getFiguras());
             
@@ -1015,7 +1020,7 @@ public class PrincipalController implements Initializable{
             int conBolasExtra = bingo.isSeLiberaronBolasExtra() ? 1 : 0;
             
             if (invertidoEnBolasExtra > 0) {
-                System.out.println("Invirtió en bolas extra: " + invertidoEnBolasExtra);
+                mostrarPorPantalla("Invirtió en bolas extra: " + invertidoEnBolasExtra);
             }
             
             apostado = apostado.add(BigInteger.valueOf(apuestaTotal));
@@ -1037,6 +1042,7 @@ public class PrincipalController implements Initializable{
             
             if (i == (avance * l)) {
                 mostrarResultados("Simulación " + i + ". Porcentaje de retribución: " + Matematica.redondear(retribuidoParcial.doubleValue(), 2) +"%\n");
+                retribucionesParcialesAcumuladas[l] = Matematica.redondear(retribuidoParcial.doubleValue(), 2);
                 l++;
             }
             
@@ -1044,6 +1050,12 @@ public class PrincipalController implements Initializable{
         }
     }
 
+    private void mostrarPorPantalla(Object o){
+        if (modoDebug) {
+            System.out.println(o);
+        }
+    }
+    
     private int[][][] obtenerFiguras(List<FiguraPago> figuras) {
         
         //Ordeno las figuras de mayor a menor, si no estan ordenadas el 
@@ -1077,8 +1089,8 @@ public class PrincipalController implements Initializable{
             
             if (indiceConfiguracion == 0) {
                 double porcentajeDeAvance = iteracionActual / totalDeSimulaciones;
-                System.out.println("Configuracion 0 de jugadores!");
-                System.out.println("Porcentaje de avance: " + porcentajeDeAvance);
+                mostrarPorPantalla("Configuracion 0 de jugadores!");
+                mostrarPorPantalla("Porcentaje de avance: " + porcentajeDeAvance);
                 if (porcentajeDeAvance <= .3) {
                     return perfiles[0]; //Debil
                 }
@@ -1094,8 +1106,8 @@ public class PrincipalController implements Initializable{
             
             if (indiceConfiguracion == 1) {
                 double porcentajeDeAvance = iteracionActual / totalDeSimulaciones;
-                System.out.println("Configuracion 1 de jugadores!");
-                System.out.println("Porcentaje de avance: " + porcentajeDeAvance);
+                mostrarPorPantalla("Configuracion 1 de jugadores!");
+                mostrarPorPantalla("Porcentaje de avance: " + porcentajeDeAvance);
                 if (porcentajeDeAvance <= .4) {
                     return perfiles[0]; //Debil
                 }
@@ -1111,8 +1123,8 @@ public class PrincipalController implements Initializable{
             
             if (indiceConfiguracion == 2) {
                 double porcentajeDeAvance = iteracionActual / (double)totalDeSimulaciones;
-                System.out.println("Configuracion 2 de jugadores!");
-                System.out.println("Porcentaje de avance: " + porcentajeDeAvance);
+                mostrarPorPantalla("Configuracion 2 de jugadores!");
+                mostrarPorPantalla("Porcentaje de avance: " + porcentajeDeAvance);
                 if (porcentajeDeAvance <= .1) {
                     return perfiles[0]; //Debil
                 }
@@ -1219,7 +1231,7 @@ public class PrincipalController implements Initializable{
             frecuenciaDeTablero.getData().clear();
             
             XYChart.Series dataSeries1 = new XYChart.Series();
-            dataSeries1.setName("Porcentaje de retribución según figuras");
+            dataSeries1.setName("Porcentaje de creditos ganados según figuras");
             
             //Calculo el total de creditos obtenidos
             BigInteger totalCreditosGanados = BigInteger.ZERO;
@@ -1230,7 +1242,7 @@ public class PrincipalController implements Initializable{
             
             for (int i = 0; i < frecuenciaDeFiguras.length; i++) {
                 String nombreFigura = comboFigurasPago.getItems().get(i).getNombre();
-                System.out.println(nombreFigura);
+                mostrarPorPantalla(nombreFigura);
                 BigDecimal porcentaje = Matematica.porcentaje(frecuenciaDeFiguras[i], totalCreditosGanados);
                 dataSeries1.getData().add(new XYChart.Data(nombreFigura + "(" + porcentaje.intValue() + "%)", porcentaje));
             }

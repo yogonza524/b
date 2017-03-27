@@ -391,7 +391,7 @@ public class FiguraPagoFactoria {
      * @param factorGanancia
      * @return
      */
-    public static FiguraPago piramideNuevoOrdenMundial(int factorGanancia){
+    public static FiguraPago piramideComun(int factorGanancia){
         String name = new Object(){}.getClass().getEnclosingMethod().getName();
         FiguraPago.FiguraPagoBuilder cb = new FiguraPago.FiguraPagoBuilder()
                 .factorDeGanancia(factorGanancia)
@@ -459,7 +459,7 @@ public class FiguraPagoFactoria {
                 .agregar(FiguraPagoFactoria.tt(100))
                 .agregar(FiguraPagoFactoria.grilla(40))
                 .agregar(FiguraPagoFactoria.y(8))
-                .agregar(FiguraPagoFactoria.piramideNuevoOrdenMundial(8))
+                .agregar(FiguraPagoFactoria.piramideComun(8))
                 .agregar(FiguraPagoFactoria.vInvertida(3))
                 .agregar(FiguraPagoFactoria.v(3))
                 .agregar(FiguraPagoFactoria.consuelo1(1))

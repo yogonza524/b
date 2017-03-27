@@ -397,6 +397,10 @@ public class Juego {
         }
     }
 
+    private void mostrarPorPantalla(Object val){
+        System.out.println(val);
+    }
+    
     public void mostrarConfiguracion() {
         log("Acumulado: " + this.acumulado());
         log("Ganado(por carton): " + ArrayUtils.toString(this.ganado()));
