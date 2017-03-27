@@ -149,7 +149,10 @@ public class JugadorController implements Initializable {
                 apuestaDebil.setText(newValue.replaceAll("[^\\d]", ""));
                 return;
             }
-            this.probabilidadDeApostarPorPerfil[0] = Integer.valueOf(apuestaDebil.getText()) * 0.01;
+            try {
+                this.probabilidadDeApostarPorPerfil[0] = Integer.valueOf(apuestaDebil.getText()) * 0.01;
+            } catch (Exception e) {
+            }
             cargarPerfiles();
         });
         
@@ -158,7 +161,10 @@ public class JugadorController implements Initializable {
                 comprarBolasExtraDebil.setText(newValue.replaceAll("[^\\d]", ""));
                 return;
             }
-            this.probabilidadDeComprarBolasExtra[0] = Integer.valueOf(comprarBolasExtraDebil.getText()) * 0.01;
+            try {
+                this.probabilidadDeComprarBolasExtra[0] = Integer.valueOf(comprarBolasExtraDebil.getText()) * 0.01;
+            } catch (Exception e) {
+            }
             cargarPerfiles();
         });
         creditosMaximosDebil.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -166,7 +172,10 @@ public class JugadorController implements Initializable {
                 creditosMaximosDebil.setText(newValue.replaceAll("[^\\d]", ""));
                 return;
             }
-            this.creditosMaximosPorPerfil[1] = Integer.valueOf(creditosMaximosDebil.getText());
+            try {
+                this.creditosMaximosPorPerfil[1] = Integer.valueOf(creditosMaximosDebil.getText());
+            } catch (Exception e) {
+            }
             cargarPerfiles();
         });
         apuestaMedio.textProperty().addListener((observable, oldValue, newValue) -> {

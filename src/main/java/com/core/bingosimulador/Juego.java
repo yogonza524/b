@@ -114,6 +114,7 @@ public class Juego {
     private int cantidadDePremiosBonusVariable;
     private boolean salioElBonusAlInicioDelJuego;
     private boolean inicioDelCicloDeJuego;
+    private int cantidadDeVecesQueSeObtuvoElBonus;
 
     /**
      * Constructor por defecto
@@ -402,23 +403,23 @@ public class Juego {
     }
     
     public void mostrarConfiguracion() {
-        log("Acumulado: " + this.acumulado());
-        log("Ganado(por carton): " + ArrayUtils.toString(this.ganado()));
-        log("Ganado(total): " + ganancias());
-        log("Apuesta total: " + this.apuestaTotal());
-        log("Apuesta individual: " + ArrayUtils.toString(apostado));
-        log("Creditos: " + this.creditos());
-        log("Cartones Habilitados: " + this.habilitados());
-        log("Cartones Habilitados(individual): " + ArrayUtils.toString(this.cartonesHabilitados));
+        //log(("Acumulado: " + this.acumulado());
+        //log(("Ganado(por carton): " + ArrayUtils.toString(this.ganado()));
+        //log(("Ganado(total): " + ganancias());
+        //log(("Apuesta total: " + this.apuestaTotal());
+        //log(("Apuesta individual: " + ArrayUtils.toString(apostado));
+        //log(("Creditos: " + this.creditos());
+        //log(("Cartones Habilitados: " + this.habilitados());
+        //log(("Cartones Habilitados(individual): " + ArrayUtils.toString(this.cartonesHabilitados));
     }
     
     public void mostrarParametros(){
-        log("Limite inferior de bola extra gratis: " + this.limiteInferiorParaBolaExtraGratis);
-        log("Limite superior de bola extra gratis: " + this.limiteSuperiorParaBolaExtraGratis);
-        log("Umbral: " + this.umbralParaLiberarBolasExtra);
-        log("Utilizar umbral: " + this.utilizarUmbralParaLiberarBolasExtra);
-        log("Tournament: " + (this.modoTournament? "Si" : "No" ));
-        log("Porcentaje de descuento de apuestas para tournament: " + (int)(this.porcentajeDeDescuentoParaTournament * 100) + "%");
+        //log(("Limite inferior de bola extra gratis: " + this.limiteInferiorParaBolaExtraGratis);
+        //log(("Limite superior de bola extra gratis: " + this.limiteSuperiorParaBolaExtraGratis);
+        //log(("Umbral: " + this.umbralParaLiberarBolasExtra);
+        //log(("Utilizar umbral: " + this.utilizarUmbralParaLiberarBolasExtra);
+        //log(("Tournament: " + (this.modoTournament? "Si" : "No" ));
+        //log(("Porcentaje de descuento de apuestas para tournament: " + (int)(this.porcentajeDeDescuentoParaTournament * 100) + "%");
     }
 
     public int ganancias() {
@@ -545,12 +546,12 @@ public class Juego {
      }
     
     public void mostrarBolillero(){
-        log("Bolas visibles: " + ArrayUtils.toString(this.bolasVisibles) + "(" + this.bolasVisibles.length + ")");
-        log("Bolas extra: " + ArrayUtils.toString(this.bolasExtra) + "(" + this.bolasExtra.length + ")");
+        //log(("Bolas visibles: " + ArrayUtils.toString(this.bolasVisibles) + "(" + this.bolasVisibles.length + ")");
+        //log(("Bolas extra: " + ArrayUtils.toString(this.bolasExtra) + "(" + this.bolasExtra.length + ")");
     }
     
     public void mostrarBolasExtraSeleccionadas(){
-        log("Bolas extra seleccionadas: " + ArrayUtils.toString(bolasExtraSeleccionadas));
+        //log(("Bolas extra seleccionadas: " + ArrayUtils.toString(bolasExtraSeleccionadas));
     }
     
     public int[] premiosSegunApostado(){
@@ -565,13 +566,13 @@ public class Juego {
         if (habilitados() > 0) {
             return this.apuestaTotal() / habilitados();
         }
-        log("No hay cartones habilitados, no se puede computar la apuesta individual");
+        //log(("No hay cartones habilitados, no se puede computar la apuesta individual");
         return -1;
     }
     
     public void mostrarPremiosSegunApostado(){
-        log("Premios segun apuestas: " + ArrayUtils.toString(this.premiosSegunApostado()));
-        log("Nombres: " + ArrayUtils.toString(nombresDeFiguras));
+        //log(("Premios segun apuestas: " + ArrayUtils.toString(this.premiosSegunApostado()));
+        //log(("Nombres: " + ArrayUtils.toString(nombresDeFiguras));
     }
     
     public boolean liberarBolasExtra(int umbral){
@@ -581,7 +582,7 @@ public class Juego {
                 if (premiosPorSalir[i][j] > 0 && factoresDePago[j] >= umbral) {
                     result = true;
                     this.seLiberaronBolasExtra = true;
-                    log("Se deben liberar las bolas extra!");
+                    //log(("Se deben liberar las bolas extra!");
                     break;
                 }
             }
@@ -596,7 +597,7 @@ public class Juego {
                 if (premiosPorSalir[i][j] > 0) {
                     result = true;
                     this.seLiberaronBolasExtra = true;
-                    log("Se deben liberar las bolas extra!");
+                    //log(("Se deben liberar las bolas extra!");
                     break;
                 }
             }
@@ -612,7 +613,7 @@ public class Juego {
             return 0;
         }
         int costo = (int)(factorDeGananciaDelPremioMayor * porcentajeDelPremioMayorPorSalirParaBolaExtra);
-        log("Costo de la bola extra: " + costo);
+        //log(("Costo de la bola extra: " + costo);
         return costo;
     }
     
@@ -639,12 +640,12 @@ public class Juego {
                         premiosPorSalir[i][j] = premiosSegunApostado()[j]; //No, contabilizar ya que no importa el umbral
                     }
                     
-                    log("Premio por salir: " + nombresDeFiguras[j] + "(" + factoresDePago[j] + "). Umbral: " + umbralParaLiberarBolasExtra
-                    + "(utilzarUmbral = " + utilizarUmbral + ")");
+                    //log("Premio por salir: " + nombresDeFiguras[j] + "(" + factoresDePago[j] + "). Umbral: " + umbralParaLiberarBolasExtra
+                    //+ "(utilzarUmbral = " + utilizarUmbral + ")");
                 }
             }
         }
-        log("Se buscaron todos los cartones por salir");
+        //log(("Se buscaron todos los cartones por salir");
     }
     
     private void buscarPremios(int[] bolilleroVisible, int[][][] cartones){
@@ -669,8 +670,8 @@ public class Juego {
                         if (k != indiceDelMayor && premiosPagados[i][k] > 0 
                                 && Matematica.estaContenido(figurasDePago[k], figurasDePago[indiceDelMayor])) {
                             premiosPagados[i][k] = 0;
-//                            log("Se borra el premio " + nombresDeFiguras[k]);
-//                            log("Esta contenido en " + nombresDeFiguras[indiceDelMayor]);
+//                            //log(("Se borra el premio " + nombresDeFiguras[k]);
+//                            //log(("Esta contenido en " + nombresDeFiguras[indiceDelMayor]);
                         }
                     }
                 }
@@ -678,9 +679,9 @@ public class Juego {
         }
         
         //Mostrar premios, solo para debug
-        log("Premios obtenidos: ");
+        //log(("Premios obtenidos: ");
         for (int i = 0; i < CARTONES; i++) {
-            log(ArrayUtils.toString(this.premiosPagados[i]));
+            //log((ArrayUtils.toString(this.premiosPagados[i]));
         }
     }
     
@@ -699,10 +700,10 @@ public class Juego {
 //        for (int i = 0; i < this.premiosPagados[indiceCarton].length; i++) {
 //            if (premiosPagados[indiceCarton][i] > 0 && Matematica.estaContenido(figurasDePago[i], contenido)) {
 //                result = true;
-//                log("Figura premiada anteriormente: " + this.nombresDeFiguras[i]);
-//                log("No se debe pagar, casillas comparadas");
+//                //log(("Figura premiada anteriormente: " + this.nombresDeFiguras[i]);
+//                //log(("No se debe pagar, casillas comparadas");
 //                for (int j = 0; j < contenido.length; j++) {
-//                    log(ArrayUtils.toString(contenido[j]));
+//                    //log((ArrayUtils.toString(contenido[j]));
 //                }
 //                break;
 //            }
@@ -730,39 +731,39 @@ public class Juego {
 
     public void mostrarPremiosObtenidos() {
         int[][] premios = this.premiosPagados();
-        log("Premios obtenidos: ");
+        //log(("Premios obtenidos: ");
         for (int i = 0; i < premios.length; i++) {
-            log("Carton " + (i + 1) + ": " + ArrayUtils.toString(premios[i]));
+            //log(("Carton " + (i + 1) + ": " + ArrayUtils.toString(premios[i]));
         }
     }
     
     public void mostrarCartones(){
-        log("Cartones actuales");
+        //log(("Cartones actuales");
         for (int i = 0; i < cartones.length; i++) {
             for (int j = 0; j < cartones[0].length; j++) {
-                log(ArrayUtils.toString(cartones[i][j]));
+                //log((ArrayUtils.toString(cartones[i][j]));
             }
-            log("-----------------");
+            //log(("-----------------");
         }
     }
 
     public void mostrarGanado() {
-        log("Ganancias totales: " + ganancias());
-        log("Ganancias parciales: " + ArrayUtils.toString(this.ganado));
-        log("Ganancias en bonus: " + totalGanadoEnBonus);
+        //log(("Ganancias totales: " + ganancias());
+        //log(("Ganancias parciales: " + ArrayUtils.toString(this.ganado));
+        //log(("Ganancias en bonus: " + totalGanadoEnBonus);
     }
 
     public void mostrarCreditos() {
-        log("Creditos: " + this.creditos);
+        //log(("Creditos: " + this.creditos);
     }
 
     public void mostrarApuestas() {
         int apuestaBasica = this.apuestaTotal();
         
-        log("Apuesta básica: " + apuestaBasica);
-        log("Creditos apostados en bolas extra: " + this.creditosInvertidosEnBolasExtra);
-        log("Apuesta total: " + (apuestaBasica + this.creditosInvertidosEnBolasExtra));
-        log("Apuestas individuales: " + ArrayUtils.toString(this.apostado));
+        //log(("Apuesta básica: " + apuestaBasica);
+        //log(("Creditos apostados en bolas extra: " + this.creditosInvertidosEnBolasExtra);
+        //log(("Apuesta total: " + (apuestaBasica + this.creditosInvertidosEnBolasExtra));
+        //log(("Apuestas individuales: " + ArrayUtils.toString(this.apostado));
     }
 
     private int premioMayorPorSalir() {
@@ -776,7 +777,7 @@ public class Juego {
                 }
             }
         }
-        log("Premio mayor por salir: " + nombrePremio + "("+ premio + "), premiosPorSalir: " + ArrayUtils.toString(premiosPorSalir));
+        //log(("Premio mayor por salir: " + nombrePremio + "("+ premio + "), premiosPorSalir: " + ArrayUtils.toString(premiosPorSalir));
         return premio;
     }
 
@@ -1016,6 +1017,14 @@ public class Juego {
         return totalGanadoEnBonus;
     }
 
+    public int getCantidadDeVecesQueSeObtuvoElBonus() {
+        return cantidadDeVecesQueSeObtuvoElBonus;
+    }
+
+    public void setCantidadDeVecesQueSeObtuvoElBonus(int cantidadDeVecesQueSeObtuvoElBonus) {
+        this.cantidadDeVecesQueSeObtuvoElBonus = cantidadDeVecesQueSeObtuvoElBonus;
+    }
+
     public void setTotalGanadoEnBonus(int totalGanadoEnBonus) {
         this.totalGanadoEnBonus = totalGanadoEnBonus;
     }
@@ -1052,7 +1061,7 @@ public class Juego {
         mostrarBolillero();
         
         if (cartonesDeJuegoVacios()) {
-            log("Los cartones de juego no fueron colocados, juego abortado...");
+            //log(("Los cartones de juego no fueron colocados, juego abortado...");
             return;
         }
         
@@ -1106,10 +1115,7 @@ public class Juego {
         for (int i = 0; i < premiosPagados.length; i++) {
             for (int j = 0; j < premiosPagados[i].length; j++) {
                 if (premiosPagados[i][j] > 0 && figurasConBonus[j]) {
-                    if (inicioDelCicloDeJuego) {
-                        this.salioElBonusAlInicioDelJuego = true;
-                    }
-                    System.out.println("Premio con bonus: " + nombresDeFiguras[j]);
+                    System.out.println("Bonus en figura: " + nombresDeFiguras[j]);
                     return true;
                 }
             }
@@ -1137,8 +1143,10 @@ public class Juego {
         
         creditosInvertidosEnBolasExtra = 0;
         totalGanadoEnBonus = 0;
+        cantidadDeVecesQueSeObtuvoElBonus = 0;
         salioElBonusAlInicioDelJuego = false;
         inicioDelCicloDeJuego = false;
+        
     }
 
     private void borrarSeleccionDeBolasExtra() {
@@ -1147,11 +1155,11 @@ public class Juego {
 
     public void cicloDeBolasExtra() {
         if (perfilActual == null) {
-            log("No se ha cargado un perfil, saliendo del ciclo de bolas extra....");
+            //log(("No se ha cargado un perfil, saliendo del ciclo de bolas extra....");
             return;
         }
         if (cantidadDeBolasExtraPorComprar() == 0) {
-            log("No se pueden comprar bolas extra, ya no hay ninguna, saliendo del ciclo de bolas extra...");
+            //log(("No se pueden comprar bolas extra, ya no hay ninguna, saliendo del ciclo de bolas extra...");
             return;
         }
         while (cantidadDeBolasExtraPorComprar() > 0 && 
@@ -1160,18 +1168,18 @@ public class Juego {
             int indiceDeBolaExtraAComprar = seleccionarAleatoriamenteBolaExtraDisponible();
             int costoBolaSeleccionada = costoBolaExtra();
             
-            log("Indice de bola extra elegida: " + indiceDeBolaExtraAComprar);
-            log("Costo de la bola elegida: " + costoBolaSeleccionada);
-            log("Numero de bola: " + bolasExtra[indiceDeBolaExtraAComprar]);
+            //log(("Indice de bola extra elegida: " + indiceDeBolaExtraAComprar);
+            //log(("Costo de la bola elegida: " + costoBolaSeleccionada);
+            //log(("Numero de bola: " + bolasExtra[indiceDeBolaExtraAComprar]);
             
             //Verifico que tenga creditos disponibles para comprar
             if (creditos - costoBolaSeleccionada >= 0) {
                 //Tiene creditos, descontar 
-                log("Puede comprar la bola extra! Descontando el costo anterior del credito");
+                //log(("Puede comprar la bola extra! Descontando el costo anterior del credito");
                 bolasExtraSeleccionadas[indiceDeBolaExtraAComprar] = true; //Marco como seleccionada
                 creditos -= costoBolaSeleccionada; //Descuento
                 
-                log("Se descontaron creditos por la bolas extra, credito actual: " + creditos);
+                //log(("Se descontaron creditos por la bolas extra, credito actual: " + creditos);
                 
                 //Aumento el contador de credito gastado en bolas extra
                 creditosInvertidosEnBolasExtra += costoBolaSeleccionada;
@@ -1183,25 +1191,25 @@ public class Juego {
                 bolasVisibles[bolasVisibles.length - 1] = bolasExtra[indiceDeBolaExtraAComprar]; //agrego el numero de la bola extra nueva
                 buscarPremios();
                 
-                log("Compró la bola: " + indiceDeBolaExtraAComprar);
-                log("Costo: " + costoBolaSeleccionada);
+                //log(("Compró la bola: " + indiceDeBolaExtraAComprar);
+                //log(("Costo: " + costoBolaSeleccionada);
                 
                 //Verificar si se debe lanzar el bonus
                 if (salioUnNuevoBonus()) {
-                    log("Comenzó el ciclo de bonus gracias a la bola extra");
+                    //log(("Comenzó el ciclo de bonus gracias a la bola extra");
                     
                     cicloBonus();
                 }
                 
                 //Una vez que compró la bola extra se debe volver a buscar las nuevas figuras
                 //por salir, ya que la introducción de una bola nueva genera nuevas figuras por salir
-                log("Se buscaran nuevos premios por salir, ya que compró una bola extra nueva");
+                //log(("Se buscaran nuevos premios por salir, ya que compró una bola extra nueva");
                 buscarPremiosPorSalir(utilizarUmbralParaLiberarBolasExtra);
                 
             }
             else{
                 //No tiene creditos disponibles, salir del ciclo
-                log("No tiene creditos disponibles para comprar la bola extra!");
+                //log(("No tiene creditos disponibles para comprar la bola extra!");
                 break;
             }
         }
@@ -1231,7 +1239,7 @@ public class Juego {
     private void descontarApuestas() {
         this.creditos -= apuestaTotal();
         
-        log("Creditos luego de descontar: " + this.creditos);
+        //log(("Creditos luego de descontar: " + this.creditos);
         
         //Si el juego es comunitario sumar al pozo y descontar un porcentaje de la apuesta
         if (modoTournament) {
@@ -1243,7 +1251,7 @@ public class Juego {
                 creditos = 0;
             }
             
-            log("Creditos luego de descontar el tournament: " + this.creditos);
+            //log(("Creditos luego de descontar el tournament: " + this.creditos);
         }
     }
     
@@ -1253,20 +1261,20 @@ public class Juego {
      */
     public double cobrar(){
         
-        log("Creditos a cobrar: " + creditos);
-        log("Dinero antes del calculo: " + dinero);
+        //log(("Creditos a cobrar: " + creditos);
+        //log(("Dinero antes del calculo: " + dinero);
         
         //Sumo el dinero (si esta en modo Tournament el dinero tiene un valor
         //Negativo, debido al descuento de la apuesta del jugador)
         //Con los creditos en la denominacion elegida
         double dineroCobrado = dinero + creditos * denominacion.getValue();
         
-        log("Dinero a cobrar: " + dineroCobrado);
+        //log(("Dinero a cobrar: " + dineroCobrado);
         
         dineroCobrado = Matematica.redondear(dineroCobrado, 2);
         dinero = 0.0;
         
-        log("Dinero a cobrar(redondeado): " + dineroCobrado);
+        //log(("Dinero a cobrar(redondeado): " + dineroCobrado);
         
         return dineroCobrado;
     }
@@ -1287,7 +1295,10 @@ public class Juego {
         bonus = new Integer[cantidadTotalDePremiosEnBonus];
         premiosDelBonusSeleccionados = new boolean[cantidadTotalDePremiosEnBonus];
         
-        log("Comienzo del ciclo del bonus!");
+        //Computar la cantidad de veces que se ingresó al bonus
+        this.cantidadDeVecesQueSeObtuvoElBonus++;
+        
+        //log(("Comienzo del ciclo del bonus!");
         
         //Genero los premios en funcion de lo apostado
         int apuestaIndividual = this.apuestaIndividual();
@@ -1313,7 +1324,7 @@ public class Juego {
         }
         
         
-        log("Premios del bonus: " + ArrayUtils.toString(bonus));
+        //log(("Premios del bonus: " + ArrayUtils.toString(bonus));
         
         //Comienza la seleccion aleatoria
         int indice = RNG.getInstance().pickInt(bonus.length);
@@ -1321,16 +1332,16 @@ public class Juego {
             totalGanadoEnBonus += bonus[indice];
             premiosDelBonusSeleccionados[indice] = true;
             
-            log("Seleccionado: " + indice);
-            log("Premio bonus: " + bonus[indice]);
+            //log(("Seleccionado: " + indice);
+            //log(("Premio bonus: " + bonus[indice]);
             
             while(premiosDelBonusSeleccionados[indice] && quedanPremiosDelBonusDisponibles()){
                 indice = RNG.getInstance().pickInt(bonus.length);
             }
         }
         
-        log("Finalizó el bonus, indice = " + indice + ". Ganancia total: " + totalGanadoEnBonus);
-        log("Creditos: " + creditos);
+        //log(("Finalizó el bonus, indice = " + indice + ". Ganancia total: " + totalGanadoEnBonus);
+        //log(("Creditos: " + creditos);
     }
     
     public boolean quedanPremiosDelBonusDisponibles(){
@@ -1363,7 +1374,7 @@ public class Juego {
         int apuestaTotal = apuestaTotal();
         if (apuestaTotal > creditos) {
             
-            log("No hay creditos suficientes, se deshabilitaran los cartonas superiores");
+            //log(("No hay creditos suficientes, se deshabilitaran los cartonas superiores");
             
             apuestaTotal = apuestasNuevas;
             
@@ -1387,8 +1398,8 @@ public class Juego {
                 apostado[0] = 1;
             }
             
-            log("Cartones luego de deshabilitar: " + ArrayUtils.toString(cartonesHabilitados));
-            log("Apuestas luego de deshabilitar: ");
+            //log(("Cartones luego de deshabilitar: " + ArrayUtils.toString(cartonesHabilitados));
+            //log(("Apuestas luego de deshabilitar: ");
             mostrarApuestas();
         }
     }
@@ -1477,6 +1488,7 @@ public class Juego {
                     if (figurasConBonus[j]) {
                         //Es bonus
                         result = true;
+                        System.out.println("Salio un nuevo bonus: " + nombresDeFiguras[j]);
                         break;
                     }
                 }

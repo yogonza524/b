@@ -13,8 +13,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 
-
-<AnchorPane id="AnchorPane" fx:id="base" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.65" fx:controller="com.fx.controladores.TournamentController">
+<AnchorPane id="AnchorPane" fx:id="base" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.72" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fx.controladores.TournamentController">
    <children>
       <BorderPane layoutX="180.0" layoutY="100.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <bottom>
@@ -27,14 +26,17 @@
          <left>
             <VBox alignment="TOP_CENTER" prefHeight="360.0" prefWidth="187.0" BorderPane.alignment="CENTER">
                <children>
-                  <Label text="Tournament" />
+                  <Label text="Jackpot" />
                   <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@../img/tournament.png" />
+                        <Image url="@../img/jackpot.png" />
                      </image>
                   </ImageView>
-                  <Label text="Tournament representa el modo de juego colaborativo en el cual cada apostador compite por un pozo de crpeditos comunitario, ingresando un porcentaje de su credito " textAlignment="CENTER" wrapText="true" />
+                  <Label text="Jackpot representa el modo de juego colaborativo en el cual cada apostador compite por un pozo de creditos comunitarios, ingresando un porcentaje de su credito actual " textAlignment="CENTER" wrapText="true" />
                </children>
+               <padding>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </padding>
             </VBox>
          </left>
          <center>
@@ -46,8 +48,8 @@
                            <children>
                               <VBox layoutX="149.0" layoutY="78.0" prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                  <children>
-                                    <CheckBox fx:id="usarTournamentCheck" mnemonicParsing="false" text="Modo tournament" />
-                                    <Label text="Porcentaje de credito destinado a tournament">
+                                    <CheckBox fx:id="usarTournamentCheck" mnemonicParsing="false" text="Modo Jackpot" />
+                                    <Label text="Porcentaje de credito destinado a Jackpot">
                                        <VBox.margin>
                                           <Insets top="5.0" />
                                        </VBox.margin>

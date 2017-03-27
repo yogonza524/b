@@ -108,6 +108,12 @@
             <version>8.40.10</version>
             <type>jar</type>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.massisframework/j-text-utils -->
+        <dependency>
+            <groupId>com.massisframework</groupId>
+            <artifactId>j-text-utils</artifactId>
+            <version>0.3.4</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
         <dependency>
             <groupId>com.google.guava</groupId>

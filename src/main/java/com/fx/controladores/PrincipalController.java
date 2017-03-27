@@ -20,14 +20,18 @@ import com.guava.core.EventBusManager;
 import com.guava.core.Evento;
 import com.persistencia.ConfiguracionPersistencia;
 import com.persistencia.PersistenciaJson;
+import dnl.utils.text.table.TextTable;
 import eu.hansolo.medusa.Gauge;
 import eu.hansolo.medusa.GaugeDesign;
 import eu.hansolo.medusa.TickLabelOrientation;
 import eu.hansolo.medusa.skins.ModernSkin;
 import eu.hansolo.medusa.skins.QuarterSkin;
 import eu.hansolo.medusa.skins.SlimSkin;
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
@@ -124,6 +128,10 @@ public class PrincipalController implements Initializable{
     private BigInteger[] frecuenciaDePremiosObtenidosPorFigura;
     private double[] retribucionesParcialesAcumuladas;
     private BigInteger cantidadDeJuegosConBonus;
+    
+    private BigInteger[] pagadoSegunPerfil;
+    private BigInteger[] apostadoSegunPerfil;
+    private BigInteger[] frecuenciaDeFigurasObtenidas;
     
     //Computo de graficos
     private BigInteger[] ganaciasPorFigura;
@@ -765,6 +773,13 @@ public class PrincipalController implements Initializable{
                         if (porcentajeRetribucion != null) {
                             double retribuido = porcentajeRetribucion.doubleValue();
                             //Mostrar
+                            if (retribuido > 100.0) {
+                                porcentajeDeRetribucionGauge.setMaxValue(retribuido);
+                            }
+                            else{
+                                porcentajeDeRetribucionGauge.setMaxValue(100); 
+                            }
+                            
                             porcentajeDeRetribucionGauge.setValue(retribuido);
                         }
                         
@@ -787,7 +802,52 @@ public class PrincipalController implements Initializable{
                         double porcentajeDeJuegosConBonus = Matematica.porcentaje(cantidadDeJuegosConBonus, BigInteger.valueOf(cantidadDeSimulaciones)).doubleValue();
                         porcentajeDeBonusEnJuegosTotales.setValue(Matematica.redondear(porcentajeDeJuegosConBonus, 2));
                         
-                        System.out.println("Cantidad de bonus obtenidos: " + cantidadDeJuegosConBonus.intValue());
+                        //Mostrar porcentajes de retribucion segun perfil
+                        mostrarResultados("------------------------------------------" + "\n");
+                        mostrarResultados("Porcentajes de retribucion según perfiles " + "\n");
+                        try {
+                            mostrarResultados("Débil: " + (!apostadoSegunPerfil[0].equals(BigInteger.ZERO) ? Matematica.redondear(Matematica.porcentaje(pagadoSegunPerfil[0], apostadoSegunPerfil[0]).doubleValue(), 2) : BigInteger.ZERO.doubleValue()) + "%\n");
+                            mostrarResultados("medio: " + (!apostadoSegunPerfil[1].equals(BigInteger.ZERO) ? Matematica.redondear(Matematica.porcentaje(pagadoSegunPerfil[1], apostadoSegunPerfil[1]).doubleValue(), 2) : BigInteger.ZERO.doubleValue()) + "%\n");
+                            mostrarResultados("Fuerte: " + (!apostadoSegunPerfil[2].equals(BigInteger.ZERO) ? Matematica.redondear(Matematica.porcentaje(pagadoSegunPerfil[2], apostadoSegunPerfil[2]).doubleValue(), 2) : BigInteger.ZERO.doubleValue()) + "%\n");
+                        } catch (Exception e) {
+                            System.out.println(e.getMessage());
+                        }
+                        
+                        //Mostrar datos del bonus
+                        mostrarResultados("------------------------------------------" + "\n");
+                        mostrarResultados("Cantidad de juegos con bonus: " + cantidadDeJuegosConBonus.intValue() + "\n");
+                        
+                        //Mostrar datos de las bolas extra
+                        mostrarResultados("------------------------------------------" + "\n");
+                        mostrarResultados("Cantidad de juego con bolas extra: " + cantidadConBolasExtra + "\n");
+                        
+                        //Mostrar frecuencia de premios
+                        mostrarResultados("------------------------------------------" + "\n");
+                        mostrarResultados("Frecuencia de premios obtenidos" + "\n");
+                        
+                        BigInteger cantidadDePremiosObtenidos = BigInteger.ZERO;
+                        for (int i = 0; i < frecuenciaDeFigurasObtenidas.length; i++) {
+                            cantidadDePremiosObtenidos = cantidadDePremiosObtenidos.add(frecuenciaDeFigurasObtenidas[i]);
+                        }
+                        
+                        Object[][] data = new Object[frecuenciaDeFigurasObtenidas.length][3];
+                        
+                        for (int i = 0; i < frecuenciaDeFigurasObtenidas.length; i++) {
+//                            mostrarResultados(String.format("%-25s %-10s\n",comboFigurasPago.getItems().get(i).getNombre(),Matematica.porcentaje(frecuenciaDeFigurasObtenidas[i], cantidadDePremiosObtenidos)));
+                            data[i][0] = comboFigurasPago.getItems().get(i).getNombre();
+                            data[i][1] = Matematica.porcentaje(frecuenciaDeFigurasObtenidas[i], cantidadDePremiosObtenidos);
+                            data[i][2] = frecuenciaDeFigurasObtenidas[i];
+                        }
+                        
+                        TextTable tt = new TextTable(new String[]{"Nombre", "Frecuencia (%)", "Frecuencia total"}, data);
+                        try {
+                            tt.printTable(new PrintStream("frecuencia.txt"), 0);
+                            mostrarResultados(read("frecuencia.txt"));
+                        } catch (FileNotFoundException ex) {
+                            Logger.getLogger(PrincipalController.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IOException ex) {
+                            Logger.getLogger(PrincipalController.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                         
                         //Graficar retribuciones parciales
                         graficarPorcentajesDeRetribucionParciales(retribucionesParcialesAcumuladas);
@@ -810,6 +870,24 @@ public class PrincipalController implements Initializable{
         });
     }
 
+    private String read(String fileName) throws FileNotFoundException, IOException{
+        BufferedReader br = new BufferedReader(new FileReader(fileName));
+        try {
+            StringBuilder sb = new StringBuilder();
+            String line = br.readLine();
+
+            while (line != null) {
+                sb.append(line);
+                sb.append(System.lineSeparator());
+                line = br.readLine();
+            }
+            String result = sb.toString();
+            return result;
+        } finally {
+            br.close();
+        }
+    }
+    
     private void initMenu() {
         
         jugadorMenuItem.setOnAction(e -> {
@@ -825,7 +903,7 @@ public class PrincipalController implements Initializable{
         });
         
         tournamentMenuItem.setOnAction(e -> {
-            ventana("/fxml/Tournament.fxml", "Tournament");
+            ventana("/fxml/Tournament.fxml", "Jackpot");
         });
     }
 
@@ -884,8 +962,8 @@ public class PrincipalController implements Initializable{
         temperatura.setTitle(titulo);  
         temperatura.setUnit(unidades);  
         temperatura.setDecimals(0); 
-        temperatura.setPrefWidth(panel != null? panel.getPrefWidth() : 200.0);
-        temperatura.setPrefHeight(panel != null? panel.getPrefHeight(): 200.0);
+        temperatura.setPrefWidth(panel != null? panel.getPrefWidth() : 70.0);
+        temperatura.setPrefHeight(panel != null? panel.getPrefHeight(): 100.0);
         temperatura.setValueColor(Color.BLACK);  
         temperatura.setTitleColor(Color.BLACK);  
         temperatura.setUnitColor(Color.BLACK);
@@ -936,6 +1014,11 @@ public class PrincipalController implements Initializable{
         this.utilizarPremiosVariablesBonus = config.isUtilizarPremiosVariablesBonus();
         this.cantidadDePremiosBonus = config.getCantidadDePremiosEnBonus();
         
+        //Totalizador de perfiles
+        this.pagadoSegunPerfil = new BigInteger[3];
+        this.apostadoSegunPerfil = new BigInteger[3];
+        
+        System.out.println("Indice de configuracion de perfiles: " + config.getIndiceConfiguracionJugadores());
         mostrarPorPantalla("Porcentaje del premio mayor (initConfig): " + this.porcentajeDeCostoDeBolaExtraSegunPremioMayor);
     }
     
@@ -949,6 +1032,12 @@ public class PrincipalController implements Initializable{
         this.cantidadDeJuegosGanados = BigInteger.ZERO; //Coloco en cero el contador de juegos ganados
         this.juegosConBolasExtra = BigInteger.ZERO; //Coloco en cero el contador de juegos ganados
         this.cantidadDeJuegosConBonus = BigInteger.ZERO;
+        this.frecuenciaDeFigurasObtenidas = new BigInteger[figuras.length];
+        
+        //Inicializar frecuencia de figuras obtenidas
+        for (int i = 0; i < figuras.length; i++) {
+            this.frecuenciaDeFigurasObtenidas[i] = BigInteger.ZERO;
+        }
         
         ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
         
@@ -981,6 +1070,12 @@ public class PrincipalController implements Initializable{
         
         //Creo los perfiles segun la configuracion
         Perfil[] perfiles = crearPerfiles(config);
+        
+        //Inicializo los acumuladores de total de apuestas y ganado por perfil
+        for (int i = 0; i < 3; i++) {
+            this.pagadoSegunPerfil[i] = BigInteger.ZERO;
+            this.apostadoSegunPerfil[i] = BigInteger.ZERO;
+        }
         
         //Indice de muestra de resultados
         int l = 1;
@@ -1031,10 +1126,7 @@ public class PrincipalController implements Initializable{
             int apuestaTotal = apuestasBasicas + invertidoEnBolasExtra;
             int gano = bingo.ganancias();
             int conBolasExtra = bingo.isSeLiberaronBolasExtra() ? 1 : 0;
-            if (bingo.huboBonus()) {
-                System.out.println("Salio el bonus");
-            }
-            cantidadDeJuegosConBonus = cantidadDeJuegosConBonus.add(bingo.huboBonus() ? BigInteger.ONE : BigInteger.ZERO);
+            cantidadDeJuegosConBonus = cantidadDeJuegosConBonus.add(BigInteger.valueOf(bingo.getCantidadDeVecesQueSeObtuvoElBonus()));
             
             
             if (invertidoEnBolasExtra > 0) {
@@ -1048,6 +1140,17 @@ public class PrincipalController implements Initializable{
             this.retribuciones[i] = bingo.apuestaTotal() > 0 ? Matematica.porcentaje(gano, apuestaTotal).doubleValue() : 0.0;
             this.cantidadDeJuegosGanados = bingo.ganancias() > 0 ? this.cantidadDeJuegosGanados.add(BigInteger.valueOf(1)) : this.cantidadDeJuegosGanados;
             
+            //Contabilizar totales por perfil
+            int indicePerfilActual = 0;
+            String nombrePerfil = bingo.getPerfilActual().getNombre();
+            switch(nombrePerfil){
+                case "Medio": indicePerfilActual = 1; break;
+                case "Fuerte": indicePerfilActual = 2; break;
+            }
+            
+            this.pagadoSegunPerfil[indicePerfilActual] = this.pagadoSegunPerfil[indicePerfilActual].add(BigInteger.valueOf(gano));
+            this.apostadoSegunPerfil[indicePerfilActual] = this.apostadoSegunPerfil[indicePerfilActual].add(BigInteger.valueOf(apuestaTotal));
+            
             //Porcentaje de retribucion parcial hasta el momento
             BigDecimal retribuidoParcial = Matematica.porcentaje(pagado, apostado);
             
@@ -1055,6 +1158,7 @@ public class PrincipalController implements Initializable{
             for (int j = 0; j < Juego.getCantidadDeCartones(); j++) {
                 for (int k = 0; k < figuras.length; k++) {
                     frecuenciaDePremiosObtenidosPorFigura[k] = frecuenciaDePremiosObtenidosPorFigura[k].add(BigInteger.valueOf(bingo.getPremiosPagados()[j][k]));
+                    frecuenciaDeFigurasObtenidas[k] = frecuenciaDeFigurasObtenidas[k].add(bingo.getPremiosPagados()[j][k] > 0 ? BigInteger.ONE : BigInteger.ZERO);
                 }
             }
             
@@ -1106,7 +1210,7 @@ public class PrincipalController implements Initializable{
             ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
             
             if (indiceConfiguracion == 0) {
-                double porcentajeDeAvance = iteracionActual / totalDeSimulaciones;
+                double porcentajeDeAvance = iteracionActual / (double)totalDeSimulaciones;
                 mostrarPorPantalla("Configuracion 0 de jugadores!");
                 mostrarPorPantalla("Porcentaje de avance: " + porcentajeDeAvance);
                 if (porcentajeDeAvance <= .3) {
@@ -1123,14 +1227,14 @@ public class PrincipalController implements Initializable{
             }
             
             if (indiceConfiguracion == 1) {
-                double porcentajeDeAvance = iteracionActual / totalDeSimulaciones;
+                double porcentajeDeAvance = iteracionActual / (double)totalDeSimulaciones;
                 mostrarPorPantalla("Configuracion 1 de jugadores!");
                 mostrarPorPantalla("Porcentaje de avance: " + porcentajeDeAvance);
                 if (porcentajeDeAvance <= .4) {
                     return perfiles[0]; //Debil
                 }
                 else{
-                    if (porcentajeDeAvance > .4 && porcentajeDeAvance <= 7) {
+                    if (porcentajeDeAvance > .4 && porcentajeDeAvance <= .7) {
                         return perfiles[1]; //Medio
                     }
                     else{
