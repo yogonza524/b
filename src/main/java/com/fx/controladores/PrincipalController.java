@@ -685,7 +685,7 @@ public class PrincipalController implements Initializable{
             int indiceTablero = comboTablaPagos.getSelectionModel().getSelectedIndex();
             int indiceFigura = comboFigurasPago.getSelectionModel().getSelectedIndex();
             
-            if (indiceFigura > -1 && indiceTablero > -1) {
+            if (indiceTablero > -1) {
                 FiguraPago nueva = new FiguraPago.FiguraPagoBuilder()
                         .nombre("figura-" + comboFigurasPago.getItems().size())
                         .numero(mayorNumero(tabla.get(indiceTablero)))
@@ -722,7 +722,9 @@ public class PrincipalController implements Initializable{
                         
                         System.out.println("Tablero elegido: " + comboTablaPagos.getSelectionModel().getSelectedIndex());
                         
-                        resultadosTxt.setText("Tablero: " + tableroElegido(comboTablaPagos.getSelectionModel().getSelectedItem()));
+                        resultadosTxt.setText("");
+                        
+                        mostrarResultados("Tablero: " + tableroElegido(comboTablaPagos.getSelectionModel().getSelectedItem()) + "\n" );
                         
                         //Inhabilitar el boton de simulacion
                         simularBtn.setDisable(true);
@@ -965,10 +967,14 @@ public class PrincipalController implements Initializable{
         //Creo los perfiles segun la configuracion
         Perfil[] perfiles = crearPerfiles(config);
         
+        //Indice de muestra de resultados
+        int l = 1;
         
-        for (int i = 0; i < n; i++) {
+        int total = n;
+        int avance = total / 10;
+        
+        for (int i = 0; i < n; i++) { 
             
-            mostrarResultados("\n----------------Iteracion: " + (i + 1) + "---------------\n"); 
             System.out.println("Iteracion: " + i);
             
             bingo = new Juego();
@@ -1019,6 +1025,9 @@ public class PrincipalController implements Initializable{
             this.retribuciones[i] = bingo.apuestaTotal() > 0 ? Matematica.porcentaje(gano, apuestaTotal).doubleValue() : 0.0;
             this.cantidadDeJuegosGanados = bingo.ganancias() > 0 ? this.cantidadDeJuegosGanados.add(BigInteger.valueOf(1)) : this.cantidadDeJuegosGanados;
             
+            //Porcentaje de retribucion parcial hasta el momento
+            BigDecimal retribuidoParcial = Matematica.porcentaje(pagado, apostado);
+            
             //Computar la frecuencia de premios por cada figura
             for (int j = 0; j < Juego.getCantidadDeCartones(); j++) {
                 for (int k = 0; k < figuras.length; k++) {
@@ -1026,7 +1035,12 @@ public class PrincipalController implements Initializable{
                 }
             }
             
-            mostrarResultados(bingo.getResultados());
+            if (i == (avance * l)) {
+                mostrarResultados("Simulación " + i + ". Porcentaje de retribución: " + Matematica.redondear(retribuidoParcial.doubleValue(), 2) +"%\n");
+                l++;
+            }
+            
+            //mostrarResultados(bingo.getResultados());
         }
     }
 
@@ -1205,7 +1219,7 @@ public class PrincipalController implements Initializable{
             frecuenciaDeTablero.getData().clear();
             
             XYChart.Series dataSeries1 = new XYChart.Series();
-            dataSeries1.setName("Frecuencia de figuras");
+            dataSeries1.setName("Porcentaje de retribución según figuras");
             
             //Calculo el total de creditos obtenidos
             BigInteger totalCreditosGanados = BigInteger.ZERO;
@@ -1218,9 +1232,10 @@ public class PrincipalController implements Initializable{
                 String nombreFigura = comboFigurasPago.getItems().get(i).getNombre();
                 System.out.println(nombreFigura);
                 BigDecimal porcentaje = Matematica.porcentaje(frecuenciaDeFiguras[i], totalCreditosGanados);
-                dataSeries1.getData().add(new XYChart.Data(nombreFigura + "(" + porcentaje.intValue() + ")", porcentaje));
+                dataSeries1.getData().add(new XYChart.Data(nombreFigura + "(" + porcentaje.intValue() + "%)", porcentaje));
             }
-
+            
+            
             frecuenciaDeTablero.getData().add(dataSeries1);
             frecuenciaDeTablero.setLegendSide(Side.TOP);
         }
