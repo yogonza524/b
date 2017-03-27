@@ -37,7 +37,7 @@ public class FiguraPagoFactoria {
         //Creo la primer linea
         FiguraPago linea1 = new FiguraPago.FiguraPagoBuilder()
                 .factorDeGanancia(factorGanancia)
-                .nombre(name)
+                .nombre(name + "1")
                 .casilla(0, 0)
                 .casilla(0, 1)
                 .casilla(0, 2)
@@ -48,7 +48,7 @@ public class FiguraPagoFactoria {
         //Creo la primer linea
         FiguraPago linea2 = new FiguraPago.FiguraPagoBuilder()
                 .factorDeGanancia(factorGanancia)
-                .nombre(name)
+                .nombre(name + "2")
                 .casilla(1, 0)
                 .casilla(1, 1)
                 .casilla(1, 2)
@@ -59,7 +59,7 @@ public class FiguraPagoFactoria {
         //Creo la primer linea
         FiguraPago linea3 = new FiguraPago.FiguraPagoBuilder()
                 .factorDeGanancia(factorGanancia)
-                .nombre(name)
+                .nombre(name + "3")
                 .casilla(2, 0)
                 .casilla(2, 1)
                 .casilla(2, 2)
@@ -83,7 +83,7 @@ public class FiguraPagoFactoria {
         
         FiguraPago configuracion1 = new FiguraPago.FiguraPagoBuilder()
                 .factorDeGanancia(factorGanancia)
-                .nombre(name)
+                .nombre(name + "1")
                 .casilla(0, 0)
                 .casilla(0, 1)
                 .casilla(0, 2)
@@ -98,7 +98,7 @@ public class FiguraPagoFactoria {
         
         FiguraPago configuracion2 = new FiguraPago.FiguraPagoBuilder()
                 .factorDeGanancia(factorGanancia)
-                .nombre(name)
+                .nombre(name + "2")
                 .casilla(0, 0)
                 .casilla(0, 1)
                 .casilla(0, 2)
@@ -113,7 +113,7 @@ public class FiguraPagoFactoria {
         
         FiguraPago configuracion3 = new FiguraPago.FiguraPagoBuilder()
                 .factorDeGanancia(factorGanancia)
-                .nombre(name)
+                .nombre(name + "3")
                 .casilla(1, 0)
                 .casilla(1, 1)
                 .casilla(1, 2)

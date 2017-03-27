@@ -1244,7 +1244,7 @@ public class PrincipalController implements Initializable{
                 String nombreFigura = comboFigurasPago.getItems().get(i).getNombre();
                 mostrarPorPantalla(nombreFigura);
                 BigDecimal porcentaje = Matematica.porcentaje(frecuenciaDeFiguras[i], totalCreditosGanados);
-                dataSeries1.getData().add(new XYChart.Data(nombreFigura + "(" + porcentaje.intValue() + "%)", porcentaje));
+                dataSeries1.getData().add(new XYChart.Data(nombreFigura + "(" + Matematica.redondear(porcentaje.doubleValue(), 2) + "%)", porcentaje));
             }
             
             
