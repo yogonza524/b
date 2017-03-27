@@ -173,7 +173,7 @@ public class BonusController implements Initializable{
                 return;
             }
             
-            int creditos = Integer.valueOf(creditosVariablesTxt.getText());
+            int creditos = Integer.valueOf(creditosFijosTxt.getText());
             boolean existe = false;
             
             for (int i = 0; i < listaFija.getItems().size(); i++) {
