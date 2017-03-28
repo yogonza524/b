@@ -824,8 +824,10 @@ public class PrincipalController implements Initializable{
                         mostrarResultados("Frecuencia de premios obtenidos" + "\n");
                         
                         BigInteger cantidadDePremiosObtenidos = BigInteger.ZERO;
+                        BigInteger ganado = BigInteger.ZERO;
                         for (int i = 0; i < frecuenciaDeFigurasObtenidas.length; i++) {
                             cantidadDePremiosObtenidos = cantidadDePremiosObtenidos.add(frecuenciaDeFigurasObtenidas[i]);
+                            ganado = ganado.add(frecuenciaDePremiosObtenidosPorFigura[i]);
                         }
                         
                         Object[][] data = new Object[frecuenciaDeFigurasObtenidas.length][3];
@@ -834,7 +836,7 @@ public class PrincipalController implements Initializable{
 //                            mostrarResultados(String.format("%-25s %-10s\n",comboFigurasPago.getItems().get(i).getNombre(),Matematica.porcentaje(frecuenciaDeFigurasObtenidas[i], cantidadDePremiosObtenidos)));
                             if (!cantidadDePremiosObtenidos.equals(BigInteger.ZERO)) {
                                 data[i][0] = comboFigurasPago.getItems().get(i).getNombre();
-                                data[i][1] = Matematica.porcentaje(frecuenciaDeFigurasObtenidas[i], cantidadDePremiosObtenidos);
+                                data[i][1] = Matematica.porcentaje(frecuenciaDePremiosObtenidosPorFigura[i], ganado) + "%";
                                 data[i][2] = frecuenciaDeFigurasObtenidas[i];
                             }
                         }

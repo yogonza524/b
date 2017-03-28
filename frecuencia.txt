@@ -2,20 +2,20 @@ _________________________________________________
 | Nombre       | Frecuencia (%)| Frecuencia total|
 |================================================|
 | tresLineas   | 0.00          | 0               |
-| cuadrado     | 0.02          | 1               |
-| h            | 0.13          | 8               |
-| gamma        | 0.12          | 7               |
-| tt           | 0.02          | 1               |
-| dosLineas2   | 0.02          | 1               |
-| dosLineas1   | 0.03          | 2               |
-| dosLineas3   | 0.08          | 5               |
-| grilla       | 0.50          | 30              |
-| y            | 0.53          | 32              |
-| piramideComun| 0.57          | 34              |
-| vInvertida   | 7.26          | 436             |
-| v            | 6.38          | 383             |
-| linea1       | 7.66          | 460             |
-| linea2       | 7.73          | 464             |
-| linea3       | 8.18          | 491             |
-| consuelo2    | 29.02         | 1743            |
-| consuelo1    | 31.77         | 1908            |
+| cuadrado     | 0.00          | 0               |
+| h            | 0.00          | 0               |
+| gamma        | 0.00          | 0               |
+| tt           | 0.00          | 0               |
+| dosLineas2   | 0.00          | 0               |
+| dosLineas1   | 0.00          | 0               |
+| dosLineas3   | 0.00          | 0               |
+| grilla       | 2.87          | 1               |
+| y            | 3.44          | 1               |
+| piramideComun| 2.53          | 9               |
+| vInvertida   | 12.18         | 23              |
+| v            | 18.00         | 23              |
+| linea1       | 11.65         | 34              |
+| linea2       | 8.35          | 30              |
+| linea3       | 8.67          | 23              |
+| consuelo2    | 15.37         | 102             |
+| consuelo1    | 16.93         | 80              |
