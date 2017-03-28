@@ -832,9 +832,11 @@ public class PrincipalController implements Initializable{
                         
                         for (int i = 0; i < frecuenciaDeFigurasObtenidas.length; i++) {
 //                            mostrarResultados(String.format("%-25s %-10s\n",comboFigurasPago.getItems().get(i).getNombre(),Matematica.porcentaje(frecuenciaDeFigurasObtenidas[i], cantidadDePremiosObtenidos)));
-                            data[i][0] = comboFigurasPago.getItems().get(i).getNombre();
-                            data[i][1] = Matematica.porcentaje(frecuenciaDeFigurasObtenidas[i], cantidadDePremiosObtenidos);
-                            data[i][2] = frecuenciaDeFigurasObtenidas[i];
+                            if (!cantidadDePremiosObtenidos.equals(BigInteger.ZERO)) {
+                                data[i][0] = comboFigurasPago.getItems().get(i).getNombre();
+                                data[i][1] = Matematica.porcentaje(frecuenciaDeFigurasObtenidas[i], cantidadDePremiosObtenidos);
+                                data[i][2] = frecuenciaDeFigurasObtenidas[i];
+                            }
                         }
                         
                         TextTable tt = new TextTable(new String[]{"Nombre", "Frecuencia (%)", "Frecuencia total"}, data);
@@ -1156,8 +1158,12 @@ public class PrincipalController implements Initializable{
             for (int j = 0; j < Juego.getCantidadDeCartones(); j++) {
                 for (int k = 0; k < figuras.length; k++) {
                     frecuenciaDePremiosObtenidosPorFigura[k] = frecuenciaDePremiosObtenidosPorFigura[k].add(BigInteger.valueOf(bingo.getPremiosPagados()[j][k]));
-                    frecuenciaDeFigurasObtenidas[k] = frecuenciaDeFigurasObtenidas[k].add(bingo.getPremiosPagados()[j][k] > 0 ? BigInteger.ONE : BigInteger.ZERO);
+//                    frecuenciaDeFigurasObtenidas[k] = frecuenciaDeFigurasObtenidas[k].add(BigInteger.valueOf(bingo.getFrecuenciaFiguras()[k]));
                 }
+            }
+            
+            for (int j = 0; j < figuras.length; j++) {
+                frecuenciaDeFigurasObtenidas[j] = frecuenciaDeFigurasObtenidas[j].add(BigInteger.valueOf(bingo.getFrecuenciaFiguras()[j]));
             }
             
             if (i == (avance * l)) {
@@ -1363,8 +1369,11 @@ public class PrincipalController implements Initializable{
             for (int i = 0; i < frecuenciaDeFiguras.length; i++) {
                 String nombreFigura = comboFigurasPago.getItems().get(i).getNombre();
                 mostrarPorPantalla(nombreFigura);
-                BigDecimal porcentaje = Matematica.porcentaje(frecuenciaDeFiguras[i], totalCreditosGanados);
-                dataSeries1.getData().add(new XYChart.Data(nombreFigura + "(" + Matematica.redondear(porcentaje.doubleValue(), 2) + "%)", porcentaje));
+                try {
+                    BigDecimal porcentaje = Matematica.porcentaje(frecuenciaDeFiguras[i], totalCreditosGanados);
+                    dataSeries1.getData().add(new XYChart.Data(nombreFigura + "(" + Matematica.redondear(porcentaje.doubleValue(), 2) + "%)", porcentaje));
+                } catch (Exception e) {
+                }
             }
             
             

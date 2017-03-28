@@ -8,6 +8,7 @@ package com.core.bingosimulador;
 
 import com.bingo.entidades.FiguraPago;
 import com.bingo.enumeraciones.Denominacion;
+import com.bingo.enumeraciones.FaseDeBusqueda;
 import com.bingo.fabricas.FiguraPagoFactoria;
 import com.bingo.perfilesJugador.Perfil;
 import com.bingo.rng.RNG;
@@ -96,6 +97,9 @@ public class Juego {
     private int[][] premiosPagados;
     private int[][] premiosPorSalir;
     private int[][] premiosPagadosEnCicloDeBolasExtra;
+    private int[] frecuenciaFiguras; 
+    private int[] frecuenciaFigurasPrimeraFase;
+    private int[] frecuenciaFigurasSegundaFase;
     
     //Premios
     private int[][][] figurasDePago;
@@ -175,6 +179,10 @@ public class Juego {
         factoresDePago = new int[cantidadDeFigurasDePago];
         nombresDeFiguras = new String[cantidadDeFigurasDePago];
         figurasConBonus = new boolean[cantidadDeFigurasDePago];
+        frecuenciaFiguras = new int[cantidadDeFigurasDePago];
+        frecuenciaFigurasPrimeraFase = new int[cantidadDeFigurasDePago];
+        frecuenciaFigurasSegundaFase = new int[cantidadDeFigurasDePago];
+        
         cartonesHabilitados = new boolean[CARTONES];
         apostado = new int[CARTONES];
         ganado = new int[CARTONES];
@@ -660,13 +668,21 @@ public class Juego {
         //log(("Se buscaron todos los cartones por salir");
     }
     
-    private void buscarPremios(int[] bolilleroVisible, int[][][] cartones){
+    private void buscarPremios(int[] bolilleroVisible, int[][][] cartones, FaseDeBusqueda fase){
         for (int i = 0; i < cartones.length; i++) {
             int[][] casillasConPremios = casillasGanadoras(cartones[i], bolilleroVisible);
             for (int j = 0; j < figurasDePago.length; j++) {
                 if (cartonesHabilitados[i] && Matematica.estaContenido(figurasDePago[j],casillasConPremios)) {
                     //Premio encontrado
                     this.premiosPagados[i][j] = factoresDePago[j] * apuestaIndividual();
+                    if (fase.equals(FaseDeBusqueda.PRIMERA)) {
+                        this.frecuenciaFigurasPrimeraFase[j]++;
+                    }
+                    else{
+                        if (fase.equals(FaseDeBusqueda.SEGUNDA)) {
+                           this.frecuenciaFigurasSegundaFase[j]++; 
+                        }
+                    }
                 }
             }
         }
@@ -682,6 +698,14 @@ public class Juego {
                         if (k != indiceDelMayor && premiosPagados[i][k] > 0 
                                 && Matematica.estaContenido(figurasDePago[k], figurasDePago[indiceDelMayor])) {
                             premiosPagados[i][k] = 0;
+                            if (fase.equals(FaseDeBusqueda.PRIMERA)) {
+                                this.frecuenciaFigurasPrimeraFase[k]--;
+                            }
+                            else{
+                                if (fase.equals(FaseDeBusqueda.SEGUNDA)) {
+                                   this.frecuenciaFigurasSegundaFase[k]--; 
+                                }
+                            }
 //                            //log(("Se borra el premio " + nombresDeFiguras[k]);
 //                            //log(("Esta contenido en " + nombresDeFiguras[indiceDelMayor]);
                         }
@@ -689,12 +713,19 @@ public class Juego {
                 }
             }
         }
+    }
+    
+    private void computarFrecuencias(){
         
-        //Mostrar premios, solo para debug
-        //log(("Premios obtenidos: ");
-        for (int i = 0; i < CARTONES; i++) {
-            //log((ArrayUtils.toString(this.premiosPagados[i]));
+        System.out.println(ArrayUtils.toString(frecuenciaFigurasPrimeraFase));
+        System.out.println(ArrayUtils.toString(frecuenciaFigurasSegundaFase));
+        
+        for (int i = 0; i < figurasDePago.length; i++) {
+            int mayor = frecuenciaFigurasPrimeraFase[i] > frecuenciaFigurasSegundaFase[i] ? frecuenciaFigurasPrimeraFase[i] : frecuenciaFigurasSegundaFase[i];
+            frecuenciaFiguras[i] = mayor;
         }
+        
+        System.out.println();
     }
     
     public void computarGanancias(){
@@ -723,8 +754,8 @@ public class Juego {
 //        return result;
 //    }
     
-    public void buscarPremios(){
-        this.buscarPremios(bolasVisibles, cartones);
+    public void buscarPremios(FaseDeBusqueda fase){
+        this.buscarPremios(bolasVisibles, cartones, fase);
     }
     
     private int[][] casillasGanadoras(int[][] casillasDelCarton, int[] bolasVisibles){
@@ -1082,16 +1113,13 @@ public class Juego {
         
         this.descontarApuestas();
         
-        this.buscarPremios(); //Busco premios comunmente
+        this.buscarPremios(FaseDeBusqueda.PRIMERA); //Busco premios comunmente
         this.buscarPremiosPorSalir(utilizarUmbralParaLiberarBolasExtra); //Busco premios por salir
         
         if (modoSimulacion) {
             if (modoBonus && huboBonus()) { //Si el bonus esta habilitado y ademas hay premios con bonus
                 //Iniciar ciclo de bonus
                 cicloBonus();
-
-                //Computar la ganancia del bonus
-                totalGanadoEnBonus += totalGanadoEnBonus;
             }
 
             if (liberarBolasExtra()) {
@@ -1100,6 +1128,8 @@ public class Juego {
                 cicloDeBolasExtra();
             }
         }
+        
+        computarFrecuencias();
         
         computarGanancias();
         
@@ -1127,7 +1157,7 @@ public class Juego {
         for (int i = 0; i < premiosPagados.length; i++) {
             for (int j = 0; j < premiosPagados[i].length; j++) {
                 if (premiosPagados[i][j] > 0 && figurasConBonus[j]) {
-//                    System.out.println("Bonus en figura: " + nombresDeFiguras[j]);Bonus en figura
+                    System.out.println("Bonus en figura: " + nombresDeFiguras[j]);
                     return true;
                 }
             }
@@ -1201,7 +1231,7 @@ public class Juego {
                 
                 bolasVisibles  = Arrays.copyOf(bolasVisibles, bolasVisibles.length + 1); //Genero una nueva ranura para la bola extra en las visibles
                 bolasVisibles[bolasVisibles.length - 1] = bolasExtra[indiceDeBolaExtraAComprar]; //agrego el numero de la bola extra nueva
-                buscarPremios();
+                buscarPremios(FaseDeBusqueda.SEGUNDA);
                 
                 //log(("Compró la bola: " + indiceDeBolaExtraAComprar);
                 //log(("Costo: " + costoBolaSeleccionada);
@@ -1372,6 +1402,14 @@ public class Juego {
     public boolean huboBolasExtraElegidas(){
         return this.bolasVisibles.length > CANTIDADDEBOLASVISIBLES;
     }
+
+    public int[] getFrecuenciaFiguras() {
+        return frecuenciaFiguras;
+    }
+
+    public void setFrecuenciaFiguras(int[] frecuenciaFiguras) {
+        this.frecuenciaFiguras = frecuenciaFiguras;
+    }
     
     public boolean huboBolasExtraLiberadas(){
         return iniciado && this.liberarBolasExtra(umbralParaLiberarBolasExtra);
@@ -1500,7 +1538,7 @@ public class Juego {
                     if (figurasConBonus[j]) {
                         //Es bonus
                         result = true;
-//                        System.out.println("Salio un nuevo bonus: " + nombresDeFiguras[j]);
+                        System.out.println("Salio un nuevo bonus: " + nombresDeFiguras[j]);
                         break;
                     }
                 }
