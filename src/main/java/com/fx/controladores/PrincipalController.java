@@ -1193,10 +1193,6 @@ public class PrincipalController implements Initializable{
             creditosApostadosEnBolasExtra += invertidoEnBolasExtra;
             cantidadDeBolasExtraSeleccionadas += bingo.getCantidadDeBolasExtraSeleccionadas();
             
-            if (invertidoEnBolasExtra > 0) {
-                System.out.println(invertidoEnBolasExtra);
-            }
-            
 //            if (invertidoEnBolasExtra > 0) {
 //                mostrarPorPantalla("Invirtió en bolas extra: " + invertidoEnBolasExtra);
 //            }
