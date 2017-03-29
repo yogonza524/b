@@ -78,6 +78,7 @@ public class Juego {
     private int[] bolasVisibles;
     private int[] bolasExtra;
     private boolean[] bolasExtraSeleccionadas;
+    private boolean utilizarBolasExtraGratis;
     private int creditosInvertidosEnBolasExtra;
     
     //Creditos
@@ -191,6 +192,7 @@ public class Juego {
         premiosPagadosEnCicloDeBolasExtra = new int[CARTONES][cantidadDeFigurasDePago];
         creditosInvertidosEnBolasExtra = 0;
         iniciado = false;
+        utilizarBolasExtraGratis = false;
         borrarSeleccionDeBolasExtra();
         
         //Bonus
@@ -347,6 +349,14 @@ public class Juego {
 
     public void setPorcentajeDeDescuentoParaTournament(double porcentajeDeDescuentoParaTournament) {
         this.porcentajeDeDescuentoParaTournament = porcentajeDeDescuentoParaTournament;
+    }
+
+    public boolean isUtilizarBolasExtraGratis() {
+        return utilizarBolasExtraGratis;
+    }
+
+    public void setUtilizarBolasExtraGratis(boolean utilizarBolasExtraGratis) {
+        this.utilizarBolasExtraGratis = utilizarBolasExtraGratis;
     }
     
     public int[] factoresDePago(){
@@ -629,7 +639,7 @@ public class Juego {
     public int costoBolaExtra(){
         int factorDeGananciaDelPremioMayor = premioMayorPorSalir();
         
-        if (factorDeGananciaDelPremioMayor >= limiteInferiorParaBolaExtraGratis 
+        if (utilizarBolasExtraGratis && factorDeGananciaDelPremioMayor >= limiteInferiorParaBolaExtraGratis 
                 && factorDeGananciaDelPremioMayor <= limiteSuperiorParaBolaExtraGratis) {
             return 0;
         }
@@ -1084,12 +1094,12 @@ public class Juego {
     
     public void jugar(boolean generarNuevoBolillero){
         
-        mostrarCreditos();
-        mostrarApuestas();
+//        mostrarCreditos();
+//        mostrarApuestas();
         
-        mostrarCartones();
+//        mostrarCartones();
         
-        mostrarParametros();
+//        mostrarParametros();
         
         if (generarNuevoBolillero) {
             this.generarBolillero();
@@ -1103,7 +1113,7 @@ public class Juego {
         
         borrarJuegoAnterior();
         
-        mostrarBolillero();
+//        mostrarBolillero();
         
         if (cartonesDeJuegoVacios()) {
             //log(("Los cartones de juego no fueron colocados, juego abortado...");
