@@ -79,6 +79,7 @@ public class BolasExtraController implements Initializable {
     private void initConfig() throws IOException {
         
         ConfiguracionPersistencia config = PersistenciaJson.getInstancia().configuracion();
+        bolaGratisCheck.setSelected(config.isUtilizarBolasExtraGratis());
         utilizarUmbral = config.isUtilizarUmbral();
         umbralParaLiberarBolasExtra = config.getUmbralParaLiberarBolasExtra();
         limiteMinimoGratis = config.getLimiteMinimoGratis();
@@ -263,22 +264,19 @@ public class BolasExtraController implements Initializable {
                         limiteMaximoGratis = Integer.valueOf(limiteMaximoBolaGratis.getText());
                     }
                 }
-                else{
-                    limiteMinimoGratis = 0;
-                    limiteMaximoGratis = 0;
-                }
                 
                 //Avisar al oyente principal
                 Map<String,Object> parametros = new HashMap<>();
                 parametros.put("limiteMinimoGratis", limiteMinimoGratis);
                 parametros.put("limiteMaximoGratis", limiteMaximoGratis);
+                parametros.put("utilizarBolasExtraGratis", bolaGratisCheck.isSelected());
                 
                 EventBusManager.getInstancia().getBus()
                         .post(new Evento(CodigoEvento.BOLASEXTRA.getValue(),parametros));
                 
                 //Debug
-                System.out.println("Minimo: " + limiteMinimoGratis);
-                System.out.println("Maximo: " + limiteMaximoGratis);
+//                System.out.println("Minimo: " + limiteMinimoGratis);
+//                System.out.println("Maximo: " + limiteMaximoGratis);
             }
             
         });

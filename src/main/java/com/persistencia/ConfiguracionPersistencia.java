@@ -28,6 +28,7 @@ public class ConfiguracionPersistencia implements Serializable{
     private double porcentajeParaTournament;
     private int indicePorcentajeTournamentCombo;
     private int indiceConfiguracionCostoBolaExtra;
+    private boolean utilizarBolasExtraGratis;
     
     private boolean utilizarPremiosFijosBonus;
     private boolean utilizarPremiosVariablesBonus;
@@ -43,6 +44,14 @@ public class ConfiguracionPersistencia implements Serializable{
 
     public Map<Integer, Integer> getPremiosFijosBonus() {
         return premiosFijosBonus;
+    }
+
+    public boolean isUtilizarBolasExtraGratis() {
+        return utilizarBolasExtraGratis;
+    }
+
+    public void setUtilizarBolasExtraGratis(boolean utilizarBolasExtraGratis) {
+        this.utilizarBolasExtraGratis = utilizarBolasExtraGratis;
     }
 
     public void setPremiosFijosBonus(Map<Integer, Integer> premiosFijosBonus) {

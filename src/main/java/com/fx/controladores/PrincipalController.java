@@ -108,6 +108,7 @@ public class PrincipalController implements Initializable{
     private Map<Integer,Integer> premiosVariablesBonus;
     private boolean utilizarPremiosFijosBonus;
     private boolean utilizarPremiosVariablesBonus;
+    private boolean utilizarBolasExtraGratis;
     private int cantidadDePremiosBonusFijo;
     private int cantidadDePremiosBonusVariable;
     private boolean modoDebug;
@@ -128,6 +129,7 @@ public class PrincipalController implements Initializable{
     private Integer[] frecuenciaDePremiosObtenidosPorFigura;
     private double[] retribucionesParcialesAcumuladas;
     private BigInteger cantidadDeJuegosConBonus;
+    private BigInteger cantidadGanadoEnBonus;
     
     private BigInteger[] pagadoSegunPerfil;
     private BigInteger[] apostadoSegunPerfil;
@@ -345,10 +347,14 @@ public class PrincipalController implements Initializable{
             if (e.getParametros() != null && e.getParametros().get("indiceConfiguracionCostoBolaExtra") != null) {
                 this.indiceConfiguracionCostoBolaExtra = Integer.valueOf(e.getParametros().get("indiceConfiguracionCostoBolaExtra").toString());
             }
+            if (e.getParametros() != null && e.getParametros().get("utilizarBolasExtraGratis") != null) {
+                this.utilizarBolasExtraGratis = Boolean.valueOf(e.getParametros().get("utilizarBolasExtraGratis").toString());
+            }
             
             //Cargar los datos a la configuracion
             ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
             config.setUtilizarUmbral(usarUmbralParaLiberarBolasExtra);
+            config.setUtilizarBolasExtraGratis(utilizarBolasExtraGratis);
             config.setUmbralParaLiberarBolasExtra(umbralParaLiberarBolasExtra);
             config.setLimiteMinimoGratis(limiteMinimoGratis);
             config.setLimiteMaximoGratis(limiteMaximoGratis);
@@ -813,9 +819,20 @@ public class PrincipalController implements Initializable{
                             System.out.println(e.getMessage());
                         }
                         
+                        //Mostrar ganancias
+                        mostrarResultados("------------------------------------------" + "\n");
+                        mostrarResultados("Apostado: " + apostado + " creditos\n");
+                        mostrarResultados("Ganado: " + pagado + " creditos\n");
+                        
                         //Mostrar datos del bonus
                         mostrarResultados("------------------------------------------" + "\n");
                         mostrarResultados("Cantidad de juegos con bonus: " + cantidadDeJuegosConBonus.intValue() + "\n");
+                        mostrarResultados("Ganancia total en bonus: " + cantidadGanadoEnBonus.intValue() + "\n");
+                        
+                        if (pagado.intValue() > 0) {
+                            mostrarResultados("Porcentaje de ganancia total del bonus: " + Matematica.porcentaje(cantidadGanadoEnBonus, pagado) + "%\n");
+                        }
+                        
                         
                         //Mostrar datos de las bolas extra
                         mostrarResultados("------------------------------------------" + "\n");
@@ -901,7 +918,7 @@ public class PrincipalController implements Initializable{
         });
         
         bonusMenuItem.setOnAction(e -> {
-            ventana("/fxml/Bonus.fxml", "Bonus");
+            ventana("/fxml/Bonus1.fxml", "Bonus");
         });
         
         bolasExtraMenuItem.setOnAction(e -> {
@@ -1017,6 +1034,7 @@ public class PrincipalController implements Initializable{
         this.premiosFijosBonus = config.getPremiosFijosBonus();
         this.premiosVariablesBonus = config.getPremiosVariablesBonus();
         this.utilizarPremiosFijosBonus = config.isUtilizarPremiosFijosBonus();
+        this.utilizarBolasExtraGratis = config.isUtilizarBolasExtraGratis();
         this.utilizarPremiosVariablesBonus = config.isUtilizarPremiosVariablesBonus();
         this.cantidadDePremiosBonus = config.getCantidadDePremiosEnBonus();
         
@@ -1041,6 +1059,7 @@ public class PrincipalController implements Initializable{
         this.frecuenciaDeFigurasObtenidas = new Integer[figuras.length];
         this.apostado = BigInteger.ZERO;
         this.pagado = BigInteger.ZERO;
+        this.cantidadGanadoEnBonus = BigInteger.ZERO;
         
         creditosApostadosPorFigura = new Integer[figuras.length];
         
@@ -1127,8 +1146,8 @@ public class PrincipalController implements Initializable{
             bingo.setCreditos(bingo.getPerfilActual().getCreditosMaximos());
             int factorDeApuesta = bingo.getPerfilActual().getFactorDeApuesta();
             int creditosMaximos = bingo.getPerfilActual().getCreditosMaximos();
-            System.out.println("Factor de apuesta " + factorDeApuesta);
-            System.out.println("Creditos maximos " + creditosMaximos);
+//            System.out.println("Factor de apuesta " + factorDeApuesta);
+//            System.out.println("Creditos maximos " + creditosMaximos);
             bingo.apostarEquitativamente(RNG.getInstance().pickInt(factorDeApuesta), 4);
             bingo.habilitarTodos();
             
@@ -1142,7 +1161,7 @@ public class PrincipalController implements Initializable{
             int gano = bingo.ganancias();
             int conBolasExtra = bingo.isSeLiberaronBolasExtra() ? 1 : 0;
             cantidadDeJuegosConBonus = cantidadDeJuegosConBonus.add(BigInteger.valueOf(bingo.getCantidadDeVecesQueSeObtuvoElBonus()));
-            
+            cantidadGanadoEnBonus = cantidadGanadoEnBonus.add(BigInteger.valueOf(bingo.getTotalGanadoEnBonus()));
             
             if (invertidoEnBolasExtra > 0) {
                 mostrarPorPantalla("Invirtió en bolas extra: " + invertidoEnBolasExtra);
@@ -1188,7 +1207,7 @@ public class PrincipalController implements Initializable{
                     int factor = bingo.getFactoresDePago()[k];
                     int ocurrencia =  premio / (apuestaInd * factor);
                     
-                    System.out.println("Apuesta individual: " + apuestaInd);
+//                    System.out.println("Apuesta individual: " + apuestaInd);
 //                    if (ocurrencia == 1) { 
 //                        System.out.println("\nAparecio una vez: " + bingo.getNombresDeFiguras()[k]);
 //                    }
@@ -1200,12 +1219,12 @@ public class PrincipalController implements Initializable{
                         this.frecuenciaDeFigurasObtenidas[k] += 1;
                         creditosApostadosPorFigura[k] += apuestaInd;
                         //Mostrar
-                        System.out.println("Ocurrencias: " + ArrayUtils.toString(frecuenciaDeFigurasObtenidas));
-                        System.out.println("Creditos ganados por figura: " + ArrayUtils.toString(frecuenciaDePremiosObtenidosPorFigura));
-                        System.out.println("Apostado por figura: " + ArrayUtils.toString(creditosApostadosPorFigura));
+//                        System.out.println("Ocurrencias: " + ArrayUtils.toString(frecuenciaDeFigurasObtenidas));
+//                        System.out.println("Creditos ganados por figura: " + ArrayUtils.toString(frecuenciaDePremiosObtenidosPorFigura));
+//                        System.out.println("Apostado por figura: " + ArrayUtils.toString(creditosApostadosPorFigura));
                         
                         
-                        System.out.println();
+//                        System.out.println();
                     }
                 }
             }

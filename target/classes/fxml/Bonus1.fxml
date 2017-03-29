@@ -6,6 +6,8 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.ToolBar?>
@@ -67,78 +69,156 @@
                      <children>
                         <TitledPane collapsible="false" layoutX="85.0" layoutY="132.0" prefHeight="200.0" prefWidth="200.0" text="Configuracion" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <content>
-                              <VBox prefHeight="200.0" prefWidth="100.0">
-                                 <children>
-                                    <HBox prefHeight="33.0" prefWidth="368.0">
-                                       <children>
-                                          <CheckBox fx:id="utilizarPremiosFijosCheck" mnemonicParsing="false" text="Utilizar premios fijos" />
-                                          <CheckBox fx:id="utilizarPremiosVariablesCheck" mnemonicParsing="false" text="Utilizar premios variables">
-                                             <HBox.margin>
-                                                <Insets left="5.0" />
-                                             </HBox.margin>
-                                          </CheckBox>
-                                       </children>
-                                    </HBox>
-                                    <VBox prefHeight="344.0" prefWidth="368.0">
-                                       <children>
-                                          <VBox fx:id="bonusFijoPane" prefHeight="253.0" prefWidth="368.0">
+                              <TabPane fx:id="tabConfig" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE">
+                                <tabs>
+                                  <Tab fx:id="tabFijos" text="Premios fijos">
+                                    <content>
+                                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                              <children>
-                                                <Label text="Creditos de premio (creditos de premio - frecuencia)" textAlignment="CENTER" />
-                                                <HBox prefHeight="29.0" prefWidth="368.0">
+                                                <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                                    <children>
-                                                      <TextField fx:id="creditosFijosTxt" maxWidth="150.0" prefHeight="26.0" prefWidth="123.0" promptText="Creditos" />
-                                                      <TextField fx:id="frecuenciaFijosTxt" layoutX="10.0" layoutY="10.0" maxWidth="150.0" prefHeight="26.0" prefWidth="123.0" promptText="Frecuencia" />
-                                                      <Button fx:id="agregarFijoBtn" mnemonicParsing="false" prefHeight="26.0" prefWidth="88.0" text="Agregar">
-                                                         <HBox.margin>
-                                                            <Insets left="5.0" />
-                                                         </HBox.margin>
-                                                      </Button>
-                                                      <Button fx:id="eliminarFijo" mnemonicParsing="false" prefHeight="26.0" prefWidth="94.0" text="Eliminar">
-                                                         <HBox.margin>
-                                                            <Insets left="5.0" />
-                                                         </HBox.margin>
-                                                      </Button>
+                                                      <HBox prefHeight="30.0" prefWidth="448.0">
+                                                         <children>
+                                                            <CheckBox fx:id="utilizarPremiosFijosCheck" mnemonicParsing="false" text="Utilizar premios fijos" />
+                                                         </children>
+                                                         <padding>
+                                                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                         </padding>
+                                                      </HBox>
+                                                      <VBox prefHeight="111.0" prefWidth="448.0">
+                                                         <children>
+                                                            <HBox prefHeight="38.0" prefWidth="448.0">
+                                                               <children>
+                                                                  <Label maxHeight="26.0" prefWidth="131.0" text="Creditos" />
+                                                                  <TextField fx:id="creditosFijosTxt" promptText="Creditos">
+                                                                     <HBox.margin>
+                                                                        <Insets left="5.0" />
+                                                                     </HBox.margin>
+                                                                  </TextField>
+                                                               </children>
+                                                               <VBox.margin>
+                                                                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                               </VBox.margin>
+                                                            </HBox>
+                                                            <HBox layoutX="15.0" layoutY="15.0" prefHeight="38.0" prefWidth="448.0">
+                                                               <children>
+                                                                  <Label maxHeight="26.0" prefWidth="131.0" text="Ocurrencias" wrapText="true" />
+                                                                  <TextField fx:id="frecuenciaFijosTxt" promptText="Ocurrencias">
+                                                                     <HBox.margin>
+                                                                        <Insets left="5.0" />
+                                                                     </HBox.margin>
+                                                                  </TextField>
+                                                                  <Button fx:id="agregarFijoBtn" mnemonicParsing="false" text="Agregar">
+                                                                     <HBox.margin>
+                                                                        <Insets left="5.0" />
+                                                                     </HBox.margin>
+                                                                  </Button>
+                                                               </children>
+                                                               <VBox.margin>
+                                                                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                               </VBox.margin>
+                                                            </HBox>
+                                                         </children>
+                                                      </VBox>
+                                                      <ListView fx:id="listaFija" prefHeight="167.0" prefWidth="448.0">
+                                                         <VBox.margin>
+                                                            <Insets left="5.0" right="5.0" />
+                                                         </VBox.margin>
+                                                      </ListView>
+                                                      <HBox prefHeight="38.0" prefWidth="448.0">
+                                                         <children>
+                                                            <Button fx:id="eliminarFijo" mnemonicParsing="false" text="Eliminar" />
+                                                            <Button fx:id="eliminarTodoFijo" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="Eliminar todos">
+                                                               <HBox.margin>
+                                                                  <Insets left="5.0" />
+                                                               </HBox.margin>
+                                                            </Button>
+                                                         </children>
+                                                         <VBox.margin>
+                                                            <Insets left="5.0" top="5.0" />
+                                                         </VBox.margin>
+                                                      </HBox>
                                                    </children>
-                                                </HBox>
-                                                <ListView fx:id="listaFija" prefHeight="101.0" prefWidth="368.0">
-                                                   <VBox.margin>
-                                                      <Insets top="5.0" />
-                                                   </VBox.margin>
-                                                </ListView>
-                                                <Label prefHeight="100.0" prefWidth="368.0" text="Los premios fijos son premios en creditos que se otorgan sin importar las apuestas del jugador. Se prefijan de antemano" wrapText="true" />
+                                                </VBox>
                                              </children>
-                                          </VBox>
-                                          <VBox fx:id="bonusVariablePane" prefHeight="253.0" prefWidth="368.0">
+                                          </AnchorPane>
+                                    </content>
+                                  </Tab>
+                                  <Tab fx:id="tabVariables" text="Premios variables">
+                                    <content>
+                                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                              <children>
-                                                <Label text="Factor de pago (factor de premio - frecuencia)" textAlignment="CENTER" />
-                                                <HBox prefHeight="29.0" prefWidth="368.0">
+                                                <VBox layoutX="156.0" layoutY="55.0" prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                                    <children>
-                                                      <TextField fx:id="creditosVariablesTxt" maxWidth="150.0" prefHeight="26.0" prefWidth="123.0" promptText="Creditos" />
-                                                      <TextField fx:id="frecuenciaVariablesTxt" layoutX="10.0" layoutY="10.0" maxWidth="150.0" prefHeight="26.0" prefWidth="123.0" promptText="Frecuencia" />
-                                                      <Button fx:id="agregarVariableBtn" mnemonicParsing="false" prefHeight="26.0" prefWidth="86.0" text="Agregar">
-                                                         <HBox.margin>
-                                                            <Insets left="5.0" />
-                                                         </HBox.margin>
-                                                      </Button>
-                                                      <Button fx:id="eliminarVariable" mnemonicParsing="false" prefHeight="26.0" prefWidth="91.0" text="Eliminar">
-                                                         <HBox.margin>
-                                                            <Insets left="5.0" />
-                                                         </HBox.margin>
-                                                      </Button>
+                                                      <HBox prefHeight="30.0" prefWidth="448.0">
+                                                         <children>
+                                                            <CheckBox fx:id="utilizarPremiosVariablesCheck" mnemonicParsing="false" text="Utilizar premios variables" />
+                                                         </children>
+                                                         <padding>
+                                                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                         </padding>
+                                                      </HBox>
+                                                      <VBox prefHeight="111.0" prefWidth="448.0">
+                                                         <children>
+                                                            <HBox prefHeight="38.0" prefWidth="448.0">
+                                                               <children>
+                                                                  <Label maxHeight="26.0" text="Factor multiplicador" />
+                                                                  <TextField fx:id="creditosVariablesTxt" promptText="Factor de creditos">
+                                                                     <HBox.margin>
+                                                                        <Insets left="5.0" />
+                                                                     </HBox.margin>
+                                                                  </TextField>
+                                                               </children>
+                                                               <VBox.margin>
+                                                                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                               </VBox.margin>
+                                                            </HBox>
+                                                            <HBox layoutX="15.0" layoutY="15.0" prefHeight="38.0" prefWidth="448.0">
+                                                               <children>
+                                                                  <Label maxHeight="26.0" prefWidth="131.0" text="Ocurrencias" wrapText="true" />
+                                                                  <TextField fx:id="frecuenciaVariablesTxt" promptText="Ocurrencias">
+                                                                     <HBox.margin>
+                                                                        <Insets left="5.0" />
+                                                                     </HBox.margin>
+                                                                  </TextField>
+                                                                  <Button fx:id="agregarVariableBtn" mnemonicParsing="false" text="Agregar">
+                                                                     <HBox.margin>
+                                                                        <Insets left="5.0" />
+                                                                     </HBox.margin>
+                                                                  </Button>
+                                                               </children>
+                                                               <VBox.margin>
+                                                                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                               </VBox.margin>
+                                                            </HBox>
+                                                         </children>
+                                                      </VBox>
+                                                      <ListView fx:id="listaVariable" prefHeight="167.0" prefWidth="448.0">
+                                                         <VBox.margin>
+                                                            <Insets left="5.0" right="5.0" />
+                                                         </VBox.margin>
+                                                      </ListView>
+                                                      <HBox prefHeight="38.0" prefWidth="448.0">
+                                                         <children>
+                                                            <Button fx:id="eliminarVariable" mnemonicParsing="false" text="Eliminar" />
+                                                            <Button fx:id="eliminarTodoVariable" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="Eliminar todos">
+                                                               <HBox.margin>
+                                                                  <Insets left="5.0" />
+                                                               </HBox.margin>
+                                                            </Button>
+                                                         </children>
+                                                         <VBox.margin>
+                                                            <Insets left="5.0" top="5.0" />
+                                                         </VBox.margin>
+                                                      </HBox>
                                                    </children>
-                                                </HBox>
-                                                <ListView fx:id="listaVariable" prefHeight="101.0" prefWidth="368.0">
-                                                   <VBox.margin>
-                                                      <Insets top="5.0" />
-                                                   </VBox.margin>
-                                                </ListView>
-                                                <Label prefHeight="122.0" prefWidth="427.0" text="Los premios variables se calcular multiplicando el factor de pago (en creditos) por la cantidad de creditos apostados por el jugador sobre 100" wrapText="true" />
+                                                </VBox>
                                              </children>
-                                          </VBox>
-                                       </children>
-                                    </VBox>
-                                 </children>
-                              </VBox>
+                                          </AnchorPane>
+                                    </content>
+                                  </Tab>
+                                </tabs>
+                              </TabPane>
                            </content>
                         </TitledPane>
                      </children>

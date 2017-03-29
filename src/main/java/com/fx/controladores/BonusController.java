@@ -27,6 +27,9 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SingleSelectionModel;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -43,8 +46,6 @@ import javafx.stage.Stage;
 public class BonusController implements Initializable{
 
     @FXML private AnchorPane bonus_pane;
-    @FXML private VBox bonusFijoPane;
-    @FXML private VBox bonusVariablePane;
     @FXML private CheckBox utilizarPremiosFijosCheck;
     @FXML private CheckBox utilizarPremiosVariablesCheck;
     @FXML private TextField cantidadDePremiosTxt;
@@ -54,11 +55,16 @@ public class BonusController implements Initializable{
     @FXML private TextField frecuenciaVariablesTxt;
     @FXML private Button cerrarBtn;
     @FXML private Button eliminarFijo;
+    @FXML private Button eliminarTodoFijo;
     @FXML private Button eliminarVariable;
+    @FXML private Button eliminarTodoVariable;
     @FXML private Button agregarFijoBtn;
     @FXML private Button agregarVariableBtn;
     @FXML private ListView listaFija;
     @FXML private ListView listaVariable;
+    @FXML private TabPane tabConfig;
+    @FXML private Tab tabFijos;
+    @FXML private Tab tabVariables;
     
     private boolean premiosFijos;
     private boolean premiosVariables;
@@ -87,36 +93,36 @@ public class BonusController implements Initializable{
         utilizarPremiosFijosCheck.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                bonusFijoPane.setVisible(newValue);
-                bonusVariablePane.setVisible(!newValue);
-                utilizarPremiosVariablesCheck.setSelected(!newValue);
-                bonusFijoPane.setManaged(true);
-                bonusVariablePane.setManaged(false);
                 
-                Map<String,Object> params = new HashMap<>();
-                params.put("utilizarPremiosFijos", newValue);
-                params.put("utilizarPremiosVariables", !newValue);
+                if (utilizarPremiosFijosCheck.isFocused()) {
+                    utilizarPremiosVariablesCheck.setSelected(!newValue);
                 
-                EventBusManager.getInstancia().getBus()
-                        .post(new Evento(CodigoEvento.BONUS.getValue(), params));
+                    Map<String,Object> params = new HashMap<>();
+                    params.put("utilizarPremiosFijos", newValue);
+                    params.put("utilizarPremiosVariables", !newValue);
+
+                    EventBusManager.getInstancia().getBus()
+                            .post(new Evento(CodigoEvento.BONUS.getValue(), params));
+                }
             }
         });
         
         utilizarPremiosVariablesCheck.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                bonusFijoPane.setVisible(!newValue);
-                bonusVariablePane.setVisible(newValue);
                 
-                utilizarPremiosFijosCheck.setSelected(!newValue);
-                bonusVariablePane.setManaged(true);
-                bonusFijoPane.setManaged(false);
-                
-                Map<String,Object> params = new HashMap<>();
-                params.put("utilizarPremiosVariables", newValue);
-                
-                EventBusManager.getInstancia().getBus()
-                        .post(new Evento(CodigoEvento.BONUS.getValue(), params));
+                if (utilizarPremiosVariablesCheck.isFocused()) {
+                    
+                    utilizarPremiosFijosCheck.setSelected(!newValue);
+
+
+                    Map<String,Object> params = new HashMap<>();
+                    params.put("utilizarPremiosVariables", newValue);
+                    params.put("utilizarPremiosFijos", !newValue);
+
+                    EventBusManager.getInstancia().getBus()
+                            .post(new Evento(CodigoEvento.BONUS.getValue(), params));
+                }
             }
         });
     }
@@ -127,8 +133,6 @@ public class BonusController implements Initializable{
         premiosFijos = config.isUtilizarPremiosFijosBonus();
         premiosVariables = config.isUtilizarPremiosVariablesBonus();
         
-        bonusFijoPane.setVisible(premiosFijos);
-        bonusVariablePane.setVisible(premiosVariables);
         utilizarPremiosFijosCheck.setSelected(premiosFijos);
         utilizarPremiosVariablesCheck.setSelected(premiosVariables);
         
@@ -147,6 +151,15 @@ public class BonusController implements Initializable{
         
         for(Map.Entry<Integer,Integer> premio : premiosVariablesMap.entrySet()){
             listaVariable.getItems().add(premio.getKey() + "(frecuencia = " + premio.getValue() + ")");
+        }
+        
+        //Seleccionar el tab habilitado
+        SingleSelectionModel<Tab> selectionModel = tabConfig.getSelectionModel();
+        if (premiosFijos) {
+            selectionModel.select(tabFijos);
+        }
+        else{
+            selectionModel.select(tabVariables);
         }
         
         bonus_pane.setOnKeyReleased(new EventHandler<KeyEvent>() {
@@ -250,7 +263,7 @@ public class BonusController implements Initializable{
             premiosVariablesMap.put(creditos, frecuencia);
             
             Map<String,Object> params = new HashMap<>();
-            params.put("premiosFijos", premiosVariablesMap);
+            params.put("premiosVariables", premiosVariablesMap);
 
             EventBusManager.getInstancia().getBus()
                     .post(new Evento(CodigoEvento.BONUS.getValue(), params));
@@ -293,6 +306,28 @@ public class BonusController implements Initializable{
                 EventBusManager.getInstancia().getBus()
                         .post(new Evento(CodigoEvento.BONUS.getValue(), params));
             }
+        });
+        
+        eliminarTodoVariable.setOnAction(e -> {
+            premiosVariablesMap = new HashMap<>();
+            listaVariable.getItems().clear();
+
+            Map<String,Object> params = new HashMap<>();
+            params.put("premiosVariables", premiosVariablesMap);
+
+            EventBusManager.getInstancia().getBus()
+                    .post(new Evento(CodigoEvento.BONUS.getValue(), params));
+        });
+        
+        eliminarTodoFijo.setOnAction(e -> {
+            premiosFijosMap = new HashMap<>();
+            listaFija.getItems().clear();
+
+            Map<String,Object> params = new HashMap<>();
+            params.put("premiosFijos", premiosFijosMap);
+
+            EventBusManager.getInstancia().getBus()
+                    .post(new Evento(CodigoEvento.BONUS.getValue(), params));
         });
     }
 

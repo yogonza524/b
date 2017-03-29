@@ -1131,7 +1131,7 @@ public class Juego {
             }
         }
         
-        computarFrecuencias();
+//        computarFrecuencias();
         
         computarGanancias();
         
@@ -1159,7 +1159,7 @@ public class Juego {
         for (int i = 0; i < premiosPagados.length; i++) {
             for (int j = 0; j < premiosPagados[i].length; j++) {
                 if (premiosPagados[i][j] > 0 && figurasConBonus[j]) {
-                    System.out.println("Bonus en figura: " + nombresDeFiguras[j]);
+//                    System.out.println("Bonus en figura: " + nombresDeFiguras[j]);
                     return true;
                 }
             }
@@ -1557,7 +1557,8 @@ public class Juego {
                     if (figurasConBonus[j]) {
                         //Es bonus
                         result = true;
-                        System.out.println("Salio un nuevo bonus: " + nombresDeFiguras[j]);
+//                        System.out.println("Salio un nuevo bonus: " + nombresDeFiguras[j]);
+                        this.cantidadDeVecesQueSeObtuvoElBonus--;
                         break;
                     }
                 }
