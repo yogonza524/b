@@ -1,21 +1,21 @@
-_________________________________________________
-| Nombre       | Frecuencia (%)| Frecuencia total|
-|================================================|
-| tresLineas   | 0.00          | 0               |
-| cuadrado     | 0.00          | 0               |
-| h            | 0.00          | 0               |
-| gamma        | 0.00          | 0               |
-| tt           | 0.00          | 0               |
-| dosLineas2   | 0.00          | 0               |
-| dosLineas1   | 0.00          | 0               |
-| dosLineas3   | 0.00          | 0               |
-| grilla       | 2.87          | 1               |
-| y            | 3.44          | 1               |
-| piramideComun| 2.53          | 9               |
-| vInvertida   | 12.18         | 23              |
-| v            | 18.00         | 23              |
-| linea1       | 11.65         | 34              |
-| linea2       | 8.35          | 30              |
-| linea3       | 8.67          | 23              |
-| consuelo2    | 15.37         | 102             |
-| consuelo1    | 16.93         | 80              |
+__________________________________________________________________________________________________
+| Nombre       | Porcentaje de retribución (%)| Ocurrencia| Creditos obtenidos| Creditos apostados|
+|=================================================================================================|
+| tresLineas   | 0.00%                        | 0 veces   | 0 creditos        | 0 apostado        |
+| cuadrado     | 0.00%                        | 0 veces   | 0 creditos        | 0 apostado        |
+| h            | 28.23%                       | 1 veces   | 1100 creditos     | 11 apostado       |
+| gamma        | 0.00%                        | 0 veces   | 0 creditos        | 0 apostado        |
+| tt           | 0.00%                        | 0 veces   | 0 creditos        | 0 apostado        |
+| dosLineas2   | 0.00%                        | 0 veces   | 0 creditos        | 0 apostado        |
+| dosLineas1   | 0.00%                        | 0 veces   | 0 creditos        | 0 apostado        |
+| dosLineas3   | 0.00%                        | 0 veces   | 0 creditos        | 0 apostado        |
+| grilla       | 7.70%                        | 1 veces   | 300 creditos      | 12 apostado       |
+| y            | 7.19%                        | 2 veces   | 280 creditos      | 35 apostado       |
+| piramideComun| 0.00%                        | 0 veces   | 0 creditos        | 0 apostado        |
+| vInvertida   | 6.70%                        | 10 veces  | 261 creditos      | 87 apostado       |
+| v            | 8.01%                        | 9 veces   | 312 creditos      | 104 apostado      |
+| linea1       | 11.91%                       | 18 veces  | 464 creditos      | 232 apostado      |
+| linea2       | 6.72%                        | 12 veces  | 262 creditos      | 131 apostado      |
+| linea3       | 2.98%                        | 5 veces   | 116 creditos      | 58 apostado       |
+| consuelo2    | 8.34%                        | 28 veces  | 325 creditos      | 325 apostado      |
+| consuelo1    | 12.22%                       | 36 veces  | 476 creditos      | 476 apostado      |

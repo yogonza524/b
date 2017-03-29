@@ -27,6 +27,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.stage.Stage;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * FXML Controller class
@@ -173,7 +174,7 @@ public class JugadorController implements Initializable {
                 return;
             }
             try {
-                this.creditosMaximosPorPerfil[1] = Integer.valueOf(creditosMaximosDebil.getText());
+                this.creditosMaximosPorPerfil[0] = Integer.valueOf(creditosMaximosDebil.getText());
             } catch (Exception e) {
             }
             cargarPerfiles();
@@ -242,8 +243,6 @@ public class JugadorController implements Initializable {
         else{
             parametros.put("indiceConfiguracionJugadores", configuracionJugadoresComboBox.getSelectionModel().getSelectedIndex());
         }
-        
-        System.out.println("Indice de configuracion: " + parametros.get("indiceConfiguracionJugadores"));
         
         EventBusManager.getInstancia().getBus()
                 .post(new Evento(CodigoEvento.CARGARPERFILES.getValue(),parametros));

@@ -284,6 +284,7 @@ public class Juego {
                 result += apostado[i];
             }
         }
+        
         return result;
     }
     
@@ -582,7 +583,7 @@ public class Juego {
         return result;
     }
 
-    private int apuestaIndividual() {
+    public int apuestaIndividual() {
         if (habilitados() > 0) {
             return this.apuestaTotal() / habilitados();
         }
@@ -717,8 +718,9 @@ public class Juego {
     
     private void computarFrecuencias(){
         
-        System.out.println(ArrayUtils.toString(frecuenciaFigurasPrimeraFase));
-        System.out.println(ArrayUtils.toString(frecuenciaFigurasSegundaFase));
+        for (int i = 0; i < CARTONES; i++) {
+            ArrayUtils.toString(this.premiosPagados[i]);
+        }
         
         for (int i = 0; i < figurasDePago.length; i++) {
             int mayor = frecuenciaFigurasPrimeraFase[i] > frecuenciaFigurasSegundaFase[i] ? frecuenciaFigurasPrimeraFase[i] : frecuenciaFigurasSegundaFase[i];
@@ -1496,6 +1498,23 @@ public class Juego {
     public void apostar(int apuestaTotal) {
         int habilitados = habilitados();
         int apuestaIndividual = habilitados > 0 ? apuestaTotal : 0;
+        
+        if (apuestaIndividual == 0) {
+            apuestaIndividual = 1;
+        }
+        
+        if (apuestaIndividual > 30) {
+            apuestaIndividual = 30;
+        }
+        
+        for (int i = 0; i < habilitados; i++) {
+            this.apostado[i] = apuestaIndividual;
+        }
+    }
+    
+    public void apostarEquitativamente(int apuesta, int cantidadDeCartonesHabilitados) {
+        int habilitados = cantidadDeCartonesHabilitados > 0 ? cantidadDeCartonesHabilitados : 1;
+        int apuestaIndividual = habilitados > 0 ? apuesta : 0;
         
         if (apuestaIndividual == 0) {
             apuestaIndividual = 1;

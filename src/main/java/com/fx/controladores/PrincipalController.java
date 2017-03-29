@@ -125,13 +125,14 @@ public class PrincipalController implements Initializable{
     private int limiteMinimoGratis;
     private int limiteMaximoGratis;
     private double[] retribuciones; //Retribuciones parciales, para cada juego
-    private BigInteger[] frecuenciaDePremiosObtenidosPorFigura;
+    private Integer[] frecuenciaDePremiosObtenidosPorFigura;
     private double[] retribucionesParcialesAcumuladas;
     private BigInteger cantidadDeJuegosConBonus;
     
     private BigInteger[] pagadoSegunPerfil;
     private BigInteger[] apostadoSegunPerfil;
-    private BigInteger[] frecuenciaDeFigurasObtenidas;
+    private Integer[] frecuenciaDeFigurasObtenidas;
+    private Integer[] creditosApostadosPorFigura;
     
     //Computo de graficos
     private BigInteger[] ganaciasPorFigura;
@@ -758,6 +759,7 @@ public class PrincipalController implements Initializable{
                     }
                 };
                 task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+                    
                     @Override
                     public void handle(WorkerStateEvent t) {
                         //Terminó el proceso de simulación
@@ -826,22 +828,24 @@ public class PrincipalController implements Initializable{
                         BigInteger cantidadDePremiosObtenidos = BigInteger.ZERO;
                         BigInteger ganado = BigInteger.ZERO;
                         for (int i = 0; i < frecuenciaDeFigurasObtenidas.length; i++) {
-                            cantidadDePremiosObtenidos = cantidadDePremiosObtenidos.add(frecuenciaDeFigurasObtenidas[i]);
-                            ganado = ganado.add(frecuenciaDePremiosObtenidosPorFigura[i]);
+                            cantidadDePremiosObtenidos = cantidadDePremiosObtenidos.add(BigInteger.valueOf(frecuenciaDeFigurasObtenidas[i]));
+                            ganado = ganado.add(BigInteger.valueOf(frecuenciaDePremiosObtenidosPorFigura[i]));
                         }
                         
-                        Object[][] data = new Object[frecuenciaDeFigurasObtenidas.length][3];
+                        Object[][] data = new Object[frecuenciaDeFigurasObtenidas.length][5];
                         
                         for (int i = 0; i < frecuenciaDeFigurasObtenidas.length; i++) {
 //                            mostrarResultados(String.format("%-25s %-10s\n",comboFigurasPago.getItems().get(i).getNombre(),Matematica.porcentaje(frecuenciaDeFigurasObtenidas[i], cantidadDePremiosObtenidos)));
                             if (!cantidadDePremiosObtenidos.equals(BigInteger.ZERO)) {
                                 data[i][0] = comboFigurasPago.getItems().get(i).getNombre();
-                                data[i][1] = Matematica.porcentaje(frecuenciaDePremiosObtenidosPorFigura[i], ganado) + "%";
-                                data[i][2] = frecuenciaDeFigurasObtenidas[i];
+                                data[i][1] = Matematica.porcentaje(BigInteger.valueOf(frecuenciaDePremiosObtenidosPorFigura[i]), ganado) + "%";
+                                data[i][2] = frecuenciaDeFigurasObtenidas[i] + " ocurrencias";
+                                data[i][3] = frecuenciaDePremiosObtenidosPorFigura[i] + " creditos obtenidos";
+                                data[i][4] = creditosApostadosPorFigura[i] + " creditos apostados";
                             }
                         }
                         
-                        TextTable tt = new TextTable(new String[]{"Nombre", "Frecuencia (%)", "Frecuencia total"}, data);
+                        TextTable tt = new TextTable(new String[]{"Nombre", "Porcentaje de retribución (%)", "Ocurrencia", "Creditos obtenidos", "Creditos apostados"}, data);
                         try {
                             tt.printTable(new PrintStream("frecuencia.txt"), 0);
                             mostrarResultados(read("frecuencia.txt"));
@@ -1034,20 +1038,25 @@ public class PrincipalController implements Initializable{
         this.cantidadDeJuegosGanados = BigInteger.ZERO; //Coloco en cero el contador de juegos ganados
         this.juegosConBolasExtra = BigInteger.ZERO; //Coloco en cero el contador de juegos ganados
         this.cantidadDeJuegosConBonus = BigInteger.ZERO;
-        this.frecuenciaDeFigurasObtenidas = new BigInteger[figuras.length];
+        this.frecuenciaDeFigurasObtenidas = new Integer[figuras.length];
+        this.apostado = BigInteger.ZERO;
+        this.pagado = BigInteger.ZERO;
         
-        //Inicializar frecuencia de figuras obtenidas
+        creditosApostadosPorFigura = new Integer[figuras.length];
+        
+        //Inicializar frecuencia de figuras obtenidas y los creditos apostados
         for (int i = 0; i < figuras.length; i++) {
-            this.frecuenciaDeFigurasObtenidas[i] = BigInteger.ZERO;
+            this.frecuenciaDeFigurasObtenidas[i] = 0;
+            this.creditosApostadosPorFigura[i] = 0;
         }
         
         ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
         
         //Frecuencia de premios obtenidos por figura
-        frecuenciaDePremiosObtenidosPorFigura = new BigInteger[figuras.length];
+        frecuenciaDePremiosObtenidosPorFigura = new Integer[figuras.length];
         
         for (int i = 0; i < figuras.length; i++) {
-            frecuenciaDePremiosObtenidosPorFigura[i] = BigInteger.ZERO;
+            frecuenciaDePremiosObtenidosPorFigura[i] = 0;
         }
         
         porcentajeDeCostoDeBolaExtraSegunPremioMayor = config.getFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor();
@@ -1116,7 +1125,11 @@ public class PrincipalController implements Initializable{
                     this.cantidadDePremiosBonus);
             bingo.setPerfilActual(seleccionarPerfil(config.getIndiceConfiguracionJugadores(), i, cantidadDeSimulaciones, perfiles));
             bingo.setCreditos(bingo.getPerfilActual().getCreditosMaximos());
-            bingo.apostar(RNG.getInstance().pickInt(bingo.getPerfilActual().getFactorDeApuesta()));
+            int factorDeApuesta = bingo.getPerfilActual().getFactorDeApuesta();
+            int creditosMaximos = bingo.getPerfilActual().getCreditosMaximos();
+            System.out.println("Factor de apuesta " + factorDeApuesta);
+            System.out.println("Creditos maximos " + creditosMaximos);
+            bingo.apostarEquitativamente(RNG.getInstance().pickInt(factorDeApuesta), 4);
             bingo.habilitarTodos();
             
             //Jugar
@@ -1140,7 +1153,7 @@ public class PrincipalController implements Initializable{
             juegosConBolasExtra = juegosConBolasExtra.add(BigInteger.valueOf(conBolasExtra));
             
             this.retribuciones[i] = bingo.apuestaTotal() > 0 ? Matematica.porcentaje(gano, apuestaTotal).doubleValue() : 0.0;
-            this.cantidadDeJuegosGanados = bingo.ganancias() > 0 ? this.cantidadDeJuegosGanados.add(BigInteger.valueOf(1)) : this.cantidadDeJuegosGanados;
+            this.cantidadDeJuegosGanados = gano > 0 ? this.cantidadDeJuegosGanados.add(BigInteger.valueOf(1)) : this.cantidadDeJuegosGanados;
             
             //Contabilizar totales por perfil
             int indicePerfilActual = 0;
@@ -1155,17 +1168,46 @@ public class PrincipalController implements Initializable{
             
             //Porcentaje de retribucion parcial hasta el momento
             BigDecimal retribuidoParcial = Matematica.porcentaje(pagado, apostado);
+            int apuestaInd = bingo.apuestaIndividual();
             
             //Computar la frecuencia de premios por cada figura
             for (int j = 0; j < Juego.getCantidadDeCartones(); j++) {
                 for (int k = 0; k < figuras.length; k++) {
-                    frecuenciaDePremiosObtenidosPorFigura[k] = frecuenciaDePremiosObtenidosPorFigura[k].add(BigInteger.valueOf(bingo.getPremiosPagados()[j][k]));
-//                    frecuenciaDeFigurasObtenidas[k] = frecuenciaDeFigurasObtenidas[k].add(BigInteger.valueOf(bingo.getFrecuenciaFiguras()[k]));
+                    
+                    frecuenciaDePremiosObtenidosPorFigura[k] += bingo.getPremiosPagados()[j][k];
+                    
+//                    System.out.println("Frecuencia de figura: " + frecuenciaDePremiosObtenidosPorFigura[k]);
+//                    System.out.println("Apuesta individual " + bingo.apuestaIndividual());
+//                    System.out.println("Premio: " + bingo.getNombresDeFiguras()[k]);
+//                    
+//                    for (int h = 0; h < Juego.getCantidadDeCartones(); h++) {
+//                        System.out.println(ArrayUtils.toString(bingo.getPremiosPagados()[h]));
+//                    }
+                    int premio = bingo.getPremiosPagados()[j][k];
+                    
+                    int factor = bingo.getFactoresDePago()[k];
+                    int ocurrencia =  premio / (apuestaInd * factor);
+                    
+                    System.out.println("Apuesta individual: " + apuestaInd);
+//                    if (ocurrencia == 1) { 
+//                        System.out.println("\nAparecio una vez: " + bingo.getNombresDeFiguras()[k]);
+//                    }
+//                    if (ocurrencia > 1) {
+//                        System.out.println("Aparecio: " + ocurrencia + "el " + bingo.getNombresDeFiguras()[k]);
+//                    }
+//                    System.out.println("Ocurrencia: " + ocurrencia);
+                    if (ocurrencia > 0) {
+                        this.frecuenciaDeFigurasObtenidas[k] += 1;
+                        creditosApostadosPorFigura[k] += apuestaInd;
+                        //Mostrar
+                        System.out.println("Ocurrencias: " + ArrayUtils.toString(frecuenciaDeFigurasObtenidas));
+                        System.out.println("Creditos ganados por figura: " + ArrayUtils.toString(frecuenciaDePremiosObtenidosPorFigura));
+                        System.out.println("Apostado por figura: " + ArrayUtils.toString(creditosApostadosPorFigura));
+                        
+                        
+                        System.out.println();
+                    }
                 }
-            }
-            
-            for (int j = 0; j < figuras.length; j++) {
-                frecuenciaDeFigurasObtenidas[j] = frecuenciaDeFigurasObtenidas[j].add(BigInteger.valueOf(bingo.getFrecuenciaFiguras()[j]));
             }
             
             if (i == (avance * l)) {
@@ -1386,6 +1428,53 @@ public class PrincipalController implements Initializable{
         
     }
     
+    private void graficarFrecuenciasDeFiguras(Integer[] frecuenciaDeFiguras){
+        //Cargo las frecuencias
+        if (frecuenciaDeFiguras != null) {
+            //TODO: rellenar con datos de las frecuencias por figura,
+            //frecuenciaDeFiguras.length = cantidad de figuras del tablero
+            
+            
+            if (frecuenciaDeTablero == null) {
+                CategoryAxis xAxis    = new CategoryAxis();
+                xAxis.setLabel("Figuras");
+
+                NumberAxis yAxis = new NumberAxis();
+                yAxis.setLabel("Frecuencia");
+
+                frecuenciaDeTablero = new BarChart(xAxis, yAxis);
+            }
+            
+            frecuenciaDeTablero.getData().clear();
+            
+            XYChart.Series dataSeries1 = new XYChart.Series();
+            dataSeries1.setName("Porcentaje de creditos ganados según figuras");
+            
+            //Calculo el total de creditos obtenidos
+            BigInteger totalCreditosGanados = BigInteger.ZERO;
+            
+            for (int i = 0; i < frecuenciaDeFiguras.length; i++) {
+                totalCreditosGanados = totalCreditosGanados.add(BigInteger.valueOf(frecuenciaDeFiguras[i]));
+            }
+            
+            for (int i = 0; i < frecuenciaDeFiguras.length; i++) {
+                String nombreFigura = comboFigurasPago.getItems().get(i).getNombre();
+                mostrarPorPantalla(nombreFigura);
+                try {
+                    BigDecimal porcentaje = Matematica.porcentaje(BigInteger.valueOf(frecuenciaDeFiguras[i]), totalCreditosGanados);
+                    dataSeries1.getData().add(new XYChart.Data(nombreFigura + "(" + Matematica.redondear(porcentaje.doubleValue(), 2) + "%)", porcentaje));
+                } catch (Exception e) {
+                }
+            }
+            
+            
+            frecuenciaDeTablero.getData().add(dataSeries1);
+            frecuenciaDeTablero.setLegendSide(Side.TOP);
+        }
+        
+        
+    }
+    
     private void mostrarResultados(String val) {
         Platform.runLater(() -> {
             resultadosTxt.appendText(val);
@@ -1402,6 +1491,14 @@ public class PrincipalController implements Initializable{
         result[0].setNombre("Debil");
         result[0].setFactorDeApuesta((int)(config.getProbabilidadDeApostarPorPerfil()[0] * config.getCreditosMaximosPorPerfil()[0]));
         
+        if (result[0].getCreditosMaximos() <= 0) {
+            result[0].setCreditosMaximos(50);
+        }
+        
+        if (result[0].getFactorDeApuesta() * 4 > result[0].getCreditosMaximos()) {
+            result[0].setFactorDeApuesta((int)(result[0].getCreditosMaximos() / 4));
+        }
+        
         //Medio
         result[1] = new Perfil();
         result[1].setCreditosMaximos(config.getCreditosMaximosPorPerfil()[1]);
@@ -1409,12 +1506,31 @@ public class PrincipalController implements Initializable{
         result[1].setNombre("Medio");
         result[1].setFactorDeApuesta((int)(config.getProbabilidadDeApostarPorPerfil()[1] * config.getCreditosMaximosPorPerfil()[1]));
         
+        if (result[1].getCreditosMaximos() <= 0) {
+            result[1].setCreditosMaximos(100);
+        }
+        
+        if (result[1].getFactorDeApuesta() * 4 > result[1].getCreditosMaximos()) {
+            result[1].setFactorDeApuesta((int)(result[1].getCreditosMaximos() / 4));
+        }
+        
         //Fuerte
         result[2] = new Perfil();
         result[2].setCreditosMaximos(config.getCreditosMaximosPorPerfil()[2]);
         result[2].setProbabilidadDeComprarBolasExtra(config.getProbabilidadDeComprarBolasExtra()[2]);
         result[2].setNombre("Fuerte");
         result[2].setFactorDeApuesta((int)(config.getProbabilidadDeApostarPorPerfil()[2] * config.getCreditosMaximosPorPerfil()[2]));
+        
+        if (result[2].getCreditosMaximos() <= 0) {
+            result[2].setCreditosMaximos(200);
+        }
+        
+        //Si la la apuesta (por ejemplo 7, creditos maximos 20) al habilitar todos los cartones
+        //supera al credito (28 > 20) entonces coloco todos los creditos equitativamente 
+        //en cada carton
+        if (result[2].getFactorDeApuesta() * 4 > result[2].getCreditosMaximos()) {
+            result[2].setFactorDeApuesta((int)(result[2].getCreditosMaximos() / 4));
+        }
         
         return result;
     }
