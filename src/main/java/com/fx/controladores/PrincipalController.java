@@ -136,6 +136,11 @@ public class PrincipalController implements Initializable{
     private Integer[] frecuenciaDeFigurasObtenidas;
     private Integer[] creditosApostadosPorFigura;
     
+    //Bolas extra
+    private Integer creditosGanadosGraciasABolasExtra;
+    private Integer creditosApostadosEnBolasExtra;
+    private Integer cantidadDeBolasExtraSeleccionadas;
+    
     //Computo de graficos
     private BigInteger[] ganaciasPorFigura;
     
@@ -823,7 +828,7 @@ public class PrincipalController implements Initializable{
                         
                         //Mostrar ganancias
                         mostrarResultados("------------------------------------------" + "\n");
-                        mostrarResultados("Apostado: " + apostado + " creditos\n");
+                        mostrarResultados("Apostado: " + apostado + " creditos (Apuesta básica: " + (apostado.intValue() - creditosApostadosEnBolasExtra) + " - Apuesta en compra de bolas extra:" + creditosApostadosEnBolasExtra + ")\n");
                         mostrarResultados("Ganado: " + pagado + " creditos\n");
                         
                         //Mostrar datos del bonus
@@ -832,13 +837,28 @@ public class PrincipalController implements Initializable{
                         mostrarResultados("Ganancia total en bonus: " + cantidadGanadoEnBonus.intValue() + "\n");
                         
                         if (pagado.intValue() > 0) {
-                            mostrarResultados("Porcentaje de ganancia total del bonus: " + Matematica.porcentaje(cantidadGanadoEnBonus, pagado) + "%\n");
+                            mostrarResultados("Porcentaje de lo ganado en Bonus con respecto a la ganancia total: " + Matematica.porcentaje(cantidadGanadoEnBonus, pagado) + "%\n");
                         }
                         
                         
                         //Mostrar datos de las bolas extra
                         mostrarResultados("------------------------------------------" + "\n");
-                        mostrarResultados("Cantidad de juego con bolas extra: " + cantidadConBolasExtra + "\n");
+                        mostrarResultados("Cantidad de juegos con bolas extras: " + cantidadConBolasExtra + "\n");
+                        mostrarResultados("Cantidad de bolas extras seleccionadas: " + cantidadDeBolasExtraSeleccionadas + "\n");
+                        mostrarResultados("Ganado en ciclos de bolas extras: " + creditosGanadosGraciasABolasExtra + "\n");
+                        mostrarResultados("Apostado en ciclos de bolas extras: " + creditosApostadosEnBolasExtra + "\n");
+                        if (creditosApostadosEnBolasExtra > 0) {
+                            mostrarResultados("Porcentaje de retribución de bolas extra: " + Matematica.porcentaje(creditosGanadosGraciasABolasExtra, creditosApostadosEnBolasExtra) + "%\n");
+                        }
+                        else{
+                            if (creditosGanadosGraciasABolasExtra > 0 && creditosApostadosEnBolasExtra == 0) {
+                                mostrarResultados("Porcentaje de retribución de bolas extra: Infinito\n");
+                            }
+                            if (creditosApostadosEnBolasExtra == 0) {
+                                mostrarResultados("Porcentaje de retribución de bolas extra: 0%\n");
+                            }
+                        }
+                        
                         
                         //Mostrar frecuencia de premios
                         mostrarResultados("------------------------------------------" + "\n");
@@ -1079,6 +1099,11 @@ public class PrincipalController implements Initializable{
         porcentajeDeCostoDeBolaExtraSegunPremioMayor = config.getFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor();
         cantidadDePremiosBonus = config.getCantidadDePremiosEnBonus();
         
+        //Totalizadores de bolas extra
+        creditosGanadosGraciasABolasExtra = 0;
+        creditosApostadosEnBolasExtra = 0;
+        cantidadDeBolasExtraSeleccionadas = 0;
+    
         //Debug
 //        mostrarPorPantalla("Utilizar umbral: " + usarUmbralParaLiberarBolasExtra);
 //        mostrarPorPantalla("Umbral: " + this.umbralParaLiberarBolasExtra);
@@ -1118,7 +1143,6 @@ public class PrincipalController implements Initializable{
         
         for (int i = 0; i < n; i++) { 
             
-//            mostrarPorPantalla("Iteracion: " + i);
             
             bingo = new Juego();
             bingo.setCrearFigurasDePago(false);
@@ -1163,6 +1187,15 @@ public class PrincipalController implements Initializable{
             int conBolasExtra = bingo.isSeLiberaronBolasExtra() ? 1 : 0;
             cantidadDeJuegosConBonus = cantidadDeJuegosConBonus.add(BigInteger.valueOf(bingo.getCantidadDeVecesQueSeObtuvoElBonus()));
             cantidadGanadoEnBonus = cantidadGanadoEnBonus.add(BigInteger.valueOf(bingo.getTotalGanadoEnBonus()));
+            
+            //Bolas extra
+            creditosGanadosGraciasABolasExtra += bingo.getGanadoEnBolasExtra();
+            creditosApostadosEnBolasExtra += invertidoEnBolasExtra;
+            cantidadDeBolasExtraSeleccionadas += bingo.getCantidadDeBolasExtraSeleccionadas();
+            
+            if (invertidoEnBolasExtra > 0) {
+                System.out.println(invertidoEnBolasExtra);
+            }
             
 //            if (invertidoEnBolasExtra > 0) {
 //                mostrarPorPantalla("Invirtió en bolas extra: " + invertidoEnBolasExtra);
@@ -1234,6 +1267,10 @@ public class PrincipalController implements Initializable{
                 mostrarResultados("Simulación " + i + ". Porcentaje de retribución: " + Matematica.redondear(retribuidoParcial.doubleValue(), 2) +"%\n");
                 retribucionesParcialesAcumuladas[l] = Matematica.redondear(retribuidoParcial.doubleValue(), 2);
                 l++;
+            }
+            
+            if (i + 1 == n) {
+                mostrarResultados("Simulación " + (i + 1) + ". Porcentaje de retribución: " + Matematica.redondear(retribuidoParcial.doubleValue(), 2) +"%\n");
             }
             
             //mostrarResultados(bingo.getResultados());

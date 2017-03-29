@@ -10,5 +10,5 @@ package com.bingo.enumeraciones;
  * @author gonza
  */
 public enum FaseDeBusqueda {
-    PRIMERA, SEGUNDA
+    PRIMERA, SEGUNDA, BOLAEXTRA
 }

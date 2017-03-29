@@ -80,6 +80,7 @@ public class Juego {
     private boolean[] bolasExtraSeleccionadas;
     private boolean utilizarBolasExtraGratis;
     private int creditosInvertidosEnBolasExtra;
+    private int ganadoEnBolasExtra;
     
     //Creditos
     private int creditos;
@@ -193,6 +194,7 @@ public class Juego {
         creditosInvertidosEnBolasExtra = 0;
         iniciado = false;
         utilizarBolasExtraGratis = false;
+        ganadoEnBolasExtra = 0;
         borrarSeleccionDeBolasExtra();
         
         //Bonus
@@ -349,6 +351,14 @@ public class Juego {
 
     public void setPorcentajeDeDescuentoParaTournament(double porcentajeDeDescuentoParaTournament) {
         this.porcentajeDeDescuentoParaTournament = porcentajeDeDescuentoParaTournament;
+    }
+
+    public int getGanadoEnBolasExtra() {
+        return ganadoEnBolasExtra;
+    }
+
+    public void setGanadoEnBolasExtra(int ganadoEnBolasExtra) {
+        this.ganadoEnBolasExtra = ganadoEnBolasExtra;
     }
 
     public boolean isUtilizarBolasExtraGratis() {
@@ -643,7 +653,7 @@ public class Juego {
                 && factorDeGananciaDelPremioMayor <= limiteSuperiorParaBolaExtraGratis) {
             return 0;
         }
-        int costo = (int)(factorDeGananciaDelPremioMayor * porcentajeDelPremioMayorPorSalirParaBolaExtra);
+        int costo = (int)(factorDeGananciaDelPremioMayor * this.apuestaIndividual() * porcentajeDelPremioMayorPorSalirParaBolaExtra);
         //log(("Costo de la bola extra: " + costo);
         return costo;
     }
@@ -686,17 +696,18 @@ public class Juego {
                 if (cartonesHabilitados[i] && Matematica.estaContenido(figurasDePago[j],casillasConPremios)) {
                     //Premio encontrado
                     this.premiosPagados[i][j] = factoresDePago[j] * apuestaIndividual();
-                    if (fase.equals(FaseDeBusqueda.PRIMERA)) {
-                        this.frecuenciaFigurasPrimeraFase[j]++;
-                    }
-                    else{
-                        if (fase.equals(FaseDeBusqueda.SEGUNDA)) {
-                           this.frecuenciaFigurasSegundaFase[j]++; 
+                    
+                    if (fase.equals(FaseDeBusqueda.BOLAEXTRA)) {
+                        
+                        boolean premioGraciasABolaExtra = premiosPorSalir[i][j] > 0 && premiosPagados[i][j] > 0;
+                        if (premioGraciasABolaExtra) {
+                            this.ganadoEnBolasExtra += factoresDePago[j] * apuestaIndividual();
                         }
                     }
                 }
             }
         }
+        
         //Borrar los premios contenidos en otros de menor jerarquia segun los factores de pago
         //La norma es: dar solo el premio mayor
         int indiceDelMayor;
@@ -708,13 +719,11 @@ public class Juego {
                     for (int k = indiceDelMayor; k < premiosPagados[0].length; k++) {
                         if (k != indiceDelMayor && premiosPagados[i][k] > 0 
                                 && Matematica.estaContenido(figurasDePago[k], figurasDePago[indiceDelMayor])) {
-                            premiosPagados[i][k] = 0;
-                            if (fase.equals(FaseDeBusqueda.PRIMERA)) {
-                                this.frecuenciaFigurasPrimeraFase[k]--;
-                            }
-                            else{
-                                if (fase.equals(FaseDeBusqueda.SEGUNDA)) {
-                                   this.frecuenciaFigurasSegundaFase[k]--; 
+                            premiosPagados[i][k] -= factoresDePago[k] * apuestaIndividual();
+                            if (fase.equals(FaseDeBusqueda.BOLAEXTRA)) {
+                                int creditosPagadosAEliminar = factoresDePago[k] * apuestaIndividual();
+                                if (this.ganadoEnBolasExtra > 0 && this.ganadoEnBolasExtra - creditosPagadosAEliminar > 0) {
+                                    this.ganadoEnBolasExtra -= factoresDePago[k] * apuestaIndividual();
                                 }
                             }
 //                            //log(("Se borra el premio " + nombresDeFiguras[k]);
@@ -827,7 +836,7 @@ public class Juego {
         for (int i = 0; i < CARTONES; i++) {
             for (int j = 0; j < premiosPorSalir[i].length; j++) {
                 if (cartonesHabilitados[i] && premiosPorSalir[i][j] > premio) {
-                    premio = premiosPorSalir[i][j];
+                    premio = factoresDePago[j];
                     nombrePremio = nombresDeFiguras[j];
                 }
             }
@@ -1094,13 +1103,6 @@ public class Juego {
     
     public void jugar(boolean generarNuevoBolillero){
         
-//        mostrarCreditos();
-//        mostrarApuestas();
-        
-//        mostrarCartones();
-        
-//        mostrarParametros();
-        
         if (generarNuevoBolillero) {
             this.generarBolillero();
         }
@@ -1243,7 +1245,7 @@ public class Juego {
                 
                 bolasVisibles  = Arrays.copyOf(bolasVisibles, bolasVisibles.length + 1); //Genero una nueva ranura para la bola extra en las visibles
                 bolasVisibles[bolasVisibles.length - 1] = bolasExtra[indiceDeBolaExtraAComprar]; //agrego el numero de la bola extra nueva
-                buscarPremios(FaseDeBusqueda.SEGUNDA);
+                buscarPremios(FaseDeBusqueda.BOLAEXTRA);
                 
                 //log(("Compró la bola: " + indiceDeBolaExtraAComprar);
                 //log(("Costo: " + costoBolaSeleccionada);
@@ -1355,13 +1357,13 @@ public class Juego {
         //log(("Comienzo del ciclo del bonus!");
         
         //Genero los premios en funcion de lo apostado
-        int apuestaIndividual = this.apuestaIndividual();
+        int apuesta = this.apuestaTotal();
         
         //Cargo los valores aleatorios
         if (utilizarPremiosVariablesBonus) {
             Integer[] variables = Matematica.crearArregloAleatorioConCeros(premiosVariablesBonus, cantidadTotalDePremiosEnBonus);
             for (int i = 0; i < cantidadTotalDePremiosEnBonus; i++) {
-                bonus[i] = apuestaIndividual * variables[i];   
+                bonus[i] = apuesta * variables[i];   
             }
 //            System.out.println("Premios del bonus: " + ArrayUtils.toString(bonus));
         }
