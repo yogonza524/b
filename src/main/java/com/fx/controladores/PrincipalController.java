@@ -1152,8 +1152,6 @@ public class PrincipalController implements Initializable{
             bingo.apostarEquitativamente(RNG.getInstance().pickInt(factorDeApuesta), 4);
             bingo.habilitarTodos();
             
-            System.out.println("Utilizar umbral: " + bingo.isUtilizarBolasExtraGratis());
-            
             //Jugar
             bingo.jugar(generarNuevoBolillero);
             
