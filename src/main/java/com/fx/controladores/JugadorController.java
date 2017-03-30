@@ -184,7 +184,9 @@ public class JugadorController implements Initializable {
                 apuestaMedio.setText(newValue.replaceAll("[^\\d]", ""));
                 return;
             }
-            this.probabilidadDeApostarPorPerfil[1] = Integer.valueOf(apuestaMedio.getText()) * 0.01;
+            if (!apuestaMedio.getText().isEmpty()) {
+                this.probabilidadDeApostarPorPerfil[1] = Integer.valueOf(apuestaMedio.getText()) * 0.01;
+            }
             cargarPerfiles();
         });
         bolasExtraMedio.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -192,7 +194,9 @@ public class JugadorController implements Initializable {
                 bolasExtraMedio.setText(newValue.replaceAll("[^\\d]", ""));
                 return;
             }
-            this.probabilidadDeComprarBolasExtra[1] = Integer.valueOf(bolasExtraMedio.getText()) * 0.01;
+            if (!bolasExtraMedio.getText().isEmpty()) {
+                this.probabilidadDeComprarBolasExtra[1] = Integer.valueOf(bolasExtraMedio.getText()) * 0.01;
+            }
             cargarPerfiles();
         });
         creditosMaximosMedio.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -200,7 +204,9 @@ public class JugadorController implements Initializable {
                 creditosMaximosMedio.setText(newValue.replaceAll("[^\\d]", ""));
                 return;
             }
-            this.creditosMaximosPorPerfil[1] = Integer.valueOf(creditosMaximosMedio.getText());
+            if (!creditosMaximosMedio.getText().isEmpty()) {
+                this.creditosMaximosPorPerfil[1] = Integer.valueOf(creditosMaximosMedio.getText());
+            }
             cargarPerfiles();
         });
         apuestaFuerte.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -208,7 +214,9 @@ public class JugadorController implements Initializable {
                 apuestaFuerte.setText(newValue.replaceAll("[^\\d]", ""));
                 return;
             }
-            this.probabilidadDeApostarPorPerfil[2] = Integer.valueOf(apuestaFuerte.getText()) * 0.01;
+            if (!apuestaFuerte.getText().isEmpty()) {
+                this.probabilidadDeApostarPorPerfil[2] = Integer.valueOf(apuestaFuerte.getText()) * 0.01;
+            }
             cargarPerfiles();
         });
         bolasExtraFuerte.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -216,7 +224,9 @@ public class JugadorController implements Initializable {
                 bolasExtraFuerte.setText(newValue.replaceAll("[^\\d]", ""));
                 return;
             }
-            this.probabilidadDeComprarBolasExtra[2] = Integer.valueOf(bolasExtraFuerte.getText()) * 0.01;
+            if (!bolasExtraFuerte.getText().isEmpty()) {
+                this.probabilidadDeComprarBolasExtra[2] = Integer.valueOf(bolasExtraFuerte.getText()) * 0.01;
+            }
             cargarPerfiles();
         });
         creditosMaximosFuerte.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -224,7 +234,9 @@ public class JugadorController implements Initializable {
                 creditosMaximosFuerte.setText(newValue.replaceAll("[^\\d]", ""));
                 return;
             }
-            this.creditosMaximosPorPerfil[2] = Integer.valueOf(creditosMaximosFuerte.getText());
+            if (!creditosMaximosFuerte.getText().isEmpty()) {
+                this.creditosMaximosPorPerfil[2] = Integer.valueOf(creditosMaximosFuerte.getText());
+            }
             cargarPerfiles();
         });
     }

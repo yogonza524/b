@@ -144,7 +144,7 @@ public class TournamentController implements Initializable {
                         .post(new Evento(CodigoEvento.TOURNAMENT.getValue(), param));
                 
                 //Debug
-                System.out.println("Porcentaje elegido: " + porcentajeParaTournament);
+//                System.out.println("Porcentaje elegido: " + porcentajeParaTournament);
             }
         });
     }

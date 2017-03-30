@@ -745,13 +745,54 @@ public class PrincipalController implements Initializable{
                 Task<Void> task = new Task<Void>() {
                     @Override protected Void call() throws Exception {
                         
-                        //Comenzar la simulacion
+                        //Comenzar la simulacion                        
                         
-                        mostrarPorPantalla("Tablero elegido: " + comboTablaPagos.getSelectionModel().getSelectedIndex() + "\n");
+                        ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
                         
                         resultadosTxt.setText("");
                         
+                        mostrarResultados("Configuración \n\n");
+                        mostrarResultados("Simulaciones: " + cantidadDeSimulaciones + "\n");
                         mostrarResultados("Tablero: " + tableroElegido(comboTablaPagos.getSelectionModel().getSelectedItem()) + "\n" );
+                        
+                        String figuraBonus = "";
+                        for(FiguraPago figura : comboTablaPagos.getSelectionModel().getSelectedItem().getFiguras()){
+                            figuraBonus += figura.isEsBonus()? figura.getNombre() + ",": "";
+                        }
+                        
+                        mostrarResultados("Con bonus: " + figuraBonus.substring(0, figuraBonus.length() - 1) + "\n\n");
+                        
+                        mostrarResultados("Perfiles\n");
+                        
+                        for (int i = 0; i < 3; i++) {
+                            switch(i){
+                                case 0: mostrarResultados("Debil\n"); break;
+                                case 1: mostrarResultados("Medio\n"); break;
+                                case 2: mostrarResultados("Fuerte\n"); break;
+                            }
+                            mostrarResultados("Porcentaje del credito maximo a apostar: " + Matematica.redondear(config.getProbabilidadDeApostarPorPerfil()[i] * 100, 2) + "%\n");
+                            mostrarResultados("Probabilidad de comprar bolas extra: " + Matematica.redondear(config.getProbabilidadDeComprarBolasExtra()[i] * 100, 2) + "%\n");
+                            mostrarResultados("Creditos máximos: " + config.getCreditosMaximosPorPerfil()[i] + "\n");
+                            mostrarResultados("------------------------------------------" + "\n");
+                        }
+                        
+                        mostrarResultados("Jackpot: " + (config.isTournament()? "Si" : "No") + "\n");
+                        mostrarResultados("Porcentaje de descuento de apuesta: " + Matematica.redondear(config.getPorcentajeParaTournament() * 100, 2) + "% de lo apostado\n");
+                        mostrarResultados("------------------------------------------" + "\n");
+                        
+                        mostrarResultados((config.isUtilizarPremiosFijosBonus()? "Utilizar bonus con premios fijos" : "Utilizar bonus con premios variables") + "\n");
+                        mostrarResultados("Cantidad de premios totales en Bonus: " + config.getCantidadDePremiosEnBonus() + "\n");
+//                        mostrarResultados("");
+                        
+                        mostrarResultados("------------------------------------------" + "\n");
+                        
+                        mostrarResultados("Lanzar bolas extras gratis: " + (config.isUtilizarBolasExtraGratis()? "Si" : "No") + "\n");
+                        mostrarResultados("Costo de la bola extra en función de la figura mayor por salir: " + Matematica.redondear(config.getFactorDePorcentajeDeCostoDeBolaExtraSegunElPremioMayor() * 100, 2) + "% del premio mayor\n");
+                        mostrarResultados("Creditos mínimos de premio por salir para dar bola extra gratis: " + config.getLimiteMinimoGratis() + "\n");
+                        mostrarResultados("Creditos máximos de premio por salir para dar bola extra gratis: " + config.getLimiteMaximoGratis() + "\n");
+                        mostrarResultados("Utilizar umbral para liberar bolas extra: " + (config.isUtilizarUmbral()? "Si" : "No (Cualquier figura por salir califica para liberar bolas extra)") + "\n");
+                        mostrarResultados("Umbral de créditos de figura por salir para liberar bolas extra: " + config.getUmbralParaLiberarBolasExtra() + "\n");
+                        mostrarResultados("------------------------------------------" + "\n");
                         
                         //Inhabilitar el boton de simulacion
                         simularBtn.setDisable(true);
