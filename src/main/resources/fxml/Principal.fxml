@@ -33,7 +33,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" fx:id="base" prefHeight="507.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.72" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fx.controladores.PrincipalController">
+<AnchorPane id="AnchorPane" fx:id="base" prefHeight="507.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fx.controladores.PrincipalController">
     <stylesheets>
         <URL value="@/styles/principal.css" />
     </stylesheets>
@@ -155,6 +155,7 @@
                            <items>
                               <TextField fx:id="simulacionesTxt" prefHeight="26.0" prefWidth="105.0" promptText="Simulaciones" />
                               <Button fx:id="simularBtn" mnemonicParsing="false" text="Simular" />
+                              <Button fx:id="detenerBtn" mnemonicParsing="false" text="Detener" />
                               <ProgressBar fx:id="progress" prefWidth="100.0" progress="0.0" />
                            </items>
                         </ToolBar>

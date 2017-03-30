@@ -90,6 +90,8 @@ public class BolasExtraController implements Initializable {
         umbralText.setText(umbralParaLiberarBolasExtra + "");
         limiteMinimoBolaGratis.setText(limiteMinimoGratis + "");
         limiteMaximoBolaGratis.setText(limiteMaximoGratis + "");
+        
+        comboCosto.getSelectionModel().select(config.getIndiceConfiguracionCostoBolaExtra());
     }
 
     private void initButtons() {

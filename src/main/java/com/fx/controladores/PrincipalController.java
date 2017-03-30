@@ -146,8 +146,8 @@ public class PrincipalController implements Initializable{
     
     //Simular boton
     @FXML private ProgressBar progress;
-    
-    
+    private Thread simulacionThread;
+    private Task<Void> task;
     
     //Sensores
     private Gauge porcentajeDeRetribucionGauge;
@@ -208,6 +208,7 @@ public class PrincipalController implements Initializable{
     
     @FXML private TextField simulacionesTxt;
     @FXML private Button simularBtn;
+    @FXML private Button detenerBtn;
     
     //Graficos
     @FXML private LineChart linearChart;
@@ -742,8 +743,11 @@ public class PrincipalController implements Initializable{
                 this.pagado = BigInteger.ZERO;
                 this.apostado = BigInteger.ZERO;
                 
-                Task<Void> task = new Task<Void>() {
+                task = new Task<Void>() {
                     @Override protected Void call() throws Exception {
+                        
+                        //Habilitar el boton de detencion
+                        detenerBtn.setDisable(false);
                         
                         //Comenzar la simulacion                        
                         
@@ -820,7 +824,7 @@ public class PrincipalController implements Initializable{
                         
                         progress.setVisible(false); //Ocultar la barra de progreso
                         simularBtn.setDisable(false); //Habilito el boton de simular
-                        
+                        detenerBtn.setDisable(true); //Deshabilito el boton de detener
                         
                         //Mostrar resultados
                         BigDecimal porcentajeRetribucion = Matematica.porcentaje(pagado.intValueExact(), apostado.intValueExact());
@@ -950,8 +954,21 @@ public class PrincipalController implements Initializable{
                     }
                 });
 
-                Thread th = new Thread(task);
-                th.start(); 
+                simulacionThread = new Thread(task);
+                simulacionThread.start();
+            }
+        });
+        
+        detenerBtn.setOnAction(e -> {
+            if (simulacionThread != null && simulacionThread.isAlive()) {
+                simulacionThread.interrupt(); //Detener simulacion
+                detenerBtn.setDisable(true); //Deshabilitar boton de detener
+                simularBtn.setDisable(false); //Habilitar boton de simular
+                progress.setVisible(false); //Esconder la barra de progreso
+                
+                task.cancel(true);
+                
+                simulacionThread = null;
             }
         });
     }
@@ -1068,7 +1085,7 @@ public class PrincipalController implements Initializable{
 
     private void initConfig() throws IOException {
         progress.setVisible(false);
-        
+        detenerBtn.setDisable(true);
         //Tournament
         tournament = false;
         porcentajeParaTournament = .01;
@@ -1184,6 +1201,10 @@ public class PrincipalController implements Initializable{
         
         for (int i = 0; i < n; i++) { 
             
+            //Preguntar si se debe continuar
+            if (task.isCancelled()) {
+                break;
+            }
             
             bingo = new Juego();
             bingo.setCrearFigurasDePago(false);
