@@ -205,8 +205,8 @@ public class BolasExtraController implements Initializable {
             }
         });
         
-        for (int i = 0; i < 9; i++) {
-            comboCosto.getItems().add((i + 1) * 10);
+        for (int i = 0; i < 100; i++) {
+            comboCosto.getItems().add((i + 1));
         }
         
         comboCosto.setOnAction(e -> {

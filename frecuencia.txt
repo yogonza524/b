@@ -3,18 +3,18 @@ ________________________________________________________________________________
 |==============================================================================================================|
 | tresLineas   | 0.00%                        | 0 ocurrencias | 0 creditos obtenidos   | 0 creditos apostados  |
 | cuadrado     | 0.00%                        | 0 ocurrencias | 0 creditos obtenidos   | 0 creditos apostados  |
-| h            | 24.87%                       | 2 ocurrencias | 1500 creditos obtenidos| 15 creditos apostados |
-| gamma        | 0.00%                        | 0 ocurrencias | 0 creditos obtenidos   | 0 creditos apostados  |
-| tt           | 15.92%                       | 1 ocurrencias | 960 creditos obtenidos | 12 creditos apostados |
-| dosLineas2   | 0.00%                        | 0 ocurrencias | 0 creditos obtenidos   | 0 creditos apostados  |
-| dosLineas1   | 0.00%                        | 0 ocurrencias | 0 creditos obtenidos   | 0 creditos apostados  |
-| dosLineas3   | 13.43%                       | 2 ocurrencias | 810 creditos obtenidos | 27 creditos apostados |
-| grilla       | 0.00%                        | 0 ocurrencias | 0 creditos obtenidos   | 0 creditos apostados  |
-| y            | 7.03%                        | 6 ocurrencias | 424 creditos obtenidos | 53 creditos apostados |
-| piramideComun| 12.20%                       | 5 ocurrencias | 736 creditos obtenidos | 92 creditos apostados |
-| vInvertida   | 6.07%                        | 11 ocurrencias| 366 creditos obtenidos | 122 creditos apostados|
-| v            | 5.97%                        | 9 ocurrencias | 360 creditos obtenidos | 120 creditos apostados|
-| linea1       | 4.77%                        | 15 ocurrencias| 288 creditos obtenidos | 144 creditos apostados|
-| linea2       | 3.81%                        | 12 ocurrencias| 230 creditos obtenidos | 115 creditos apostados|
-| linea3       | 2.06%                        | 9 ocurrencias | 124 creditos obtenidos | 62 creditos apostados |
-| puntitos     | 3.88%                        | 24 ocurrencias| 234 creditos obtenidos | 234 creditos apostados|
+| h            | 0.00%                        | 0 ocurrencias | 0 creditos obtenidos   | 0 creditos apostados  |
+| gamma        | 12.49%                       | 1 ocurrencias | 900 creditos obtenidos | 9 creditos apostados  |
+| tt           | 27.75%                       | 1 ocurrencias | 2000 creditos obtenidos| 25 creditos apostados |
+| dosLineas2   | 7.08%                        | 1 ocurrencias | 510 creditos obtenidos | 17 creditos apostados |
+| dosLineas1   | 16.65%                       | 3 ocurrencias | 1200 creditos obtenidos| 40 creditos apostados |
+| dosLineas3   | 4.16%                        | 2 ocurrencias | 300 creditos obtenidos | 10 creditos apostados |
+| grilla       | 3.82%                        | 2 ocurrencias | 275 creditos obtenidos | 11 creditos apostados |
+| y            | 4.88%                        | 3 ocurrencias | 352 creditos obtenidos | 44 creditos apostados |
+| piramideComun| 1.11%                        | 2 ocurrencias | 80 creditos obtenidos  | 10 creditos apostados |
+| vInvertida   | 6.12%                        | 9 ocurrencias | 441 creditos obtenidos | 147 creditos apostados|
+| v            | 4.37%                        | 8 ocurrencias | 315 creditos obtenidos | 105 creditos apostados|
+| linea1       | 3.44%                        | 11 ocurrencias| 248 creditos obtenidos | 124 creditos apostados|
+| linea2       | 3.94%                        | 13 ocurrencias| 284 creditos obtenidos | 142 creditos apostados|
+| linea3       | 2.19%                        | 9 ocurrencias | 158 creditos obtenidos | 79 creditos apostados |
+| puntitos     | 2.01%                        | 14 ocurrencias| 145 creditos obtenidos | 145 creditos apostados|

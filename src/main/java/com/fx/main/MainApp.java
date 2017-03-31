@@ -72,14 +72,14 @@ public class MainApp extends Application{
     @Subscribe
     private void splash(Evento e) throws IOException, InterruptedException{
         if (e.getCodigo() == 1) {
-            mostrarSplash("Bingo Simulador 1.0.22");
+            mostrarSplash("Bingo Simulador 1.0.23");
         }
     }
     
     @Subscribe
     private void principal(Evento e) throws IOException{
         if (e.getCodigo() == 2) {
-            mostrarPrincipal("BingoBot Simulador 1.0.22");
+            mostrarPrincipal("BingoBot Simulador 1.0.23");
         }
     }
 

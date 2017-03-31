@@ -81,6 +81,7 @@ public class Juego {
     private boolean utilizarBolasExtraGratis;
     private int creditosInvertidosEnBolasExtra;
     private int ganadoEnBolasExtra;
+    private int apuestaCompleta;
     
     //Creditos
     private int creditos;
@@ -196,6 +197,7 @@ public class Juego {
         utilizarBolasExtraGratis = false;
         ganadoEnBolasExtra = 0;
         borrarSeleccionDeBolasExtra();
+        apuestaCompleta = 0;
         
         //Bonus
         utilizarPremiosFijosBonus = true;
@@ -635,11 +637,23 @@ public class Juego {
         boolean result = false;
         for (int i = 0; i < premiosPorSalir.length; i++) {
             for (int j = 0; j < premiosPorSalir[0].length; j++) {
-                if (premiosPorSalir[i][j] > 0) {
-                    result = true;
-                    this.seLiberaronBolasExtra = true;
-                    //log(("Se deben liberar las bolas extra!");
-                    break;
+                int creditosDelPremioPorSalir = premiosPorSalir[i][j] / this.apuestaIndividual();
+                if (creditosDelPremioPorSalir > 0) {
+                    if (!utilizarUmbralParaLiberarBolasExtra) {
+                        result = true;
+                        this.seLiberaronBolasExtra = true;
+                        //log(("Se deben liberar las bolas extra!");
+                        break;
+                    }
+                    else{
+                        //Tener en cuenta el umbral
+                        if (creditosDelPremioPorSalir > 0 && creditosDelPremioPorSalir > umbralParaLiberarBolasExtra) {
+                            result = true;
+                            this.seLiberaronBolasExtra = true;
+                            //log(("Se deben liberar las bolas extra!");
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -653,8 +667,12 @@ public class Juego {
                 && factorDeGananciaDelPremioMayor <= limiteSuperiorParaBolaExtraGratis) {
             return 0;
         }
-        int costo = (int)(factorDeGananciaDelPremioMayor * this.apuestaIndividual() * porcentajeDelPremioMayorPorSalirParaBolaExtra);
+        int apuestaInd = this.apuestaIndividual();
+        int costo = (int)(factorDeGananciaDelPremioMayor * apuestaInd * porcentajeDelPremioMayorPorSalirParaBolaExtra);
         //log(("Costo de la bola extra: " + costo);
+//        System.out.println("Apuesta individual: " + apuestaInd + 
+//                ". Porcentaje de descuento: " + porcentajeDelPremioMayorPorSalirParaBolaExtra + ". Costo: " + costo);
+//        System.out.println("------------------------------------");
         return costo;
     }
     
@@ -835,13 +853,19 @@ public class Juego {
         String nombrePremio = "";
         for (int i = 0; i < CARTONES; i++) {
             for (int j = 0; j < premiosPorSalir[i].length; j++) {
-                if (cartonesHabilitados[i] && premiosPorSalir[i][j] > premio) {
-                    premio = factoresDePago[j];
+                if (cartonesHabilitados[i] && premiosPorSalir[i][j] / apuestaIndividual() > premio) {
+                    premio = premiosPorSalir[i][j] / apuestaIndividual();
                     nombrePremio = nombresDeFiguras[j];
+//                    System.out.println("Mayor actual: " + nombrePremio + "(" + premio + ")");
                 }
             }
         }
-        //log(("Premio mayor por salir: " + nombrePremio + "("+ premio + "), premiosPorSalir: " + ArrayUtils.toString(premiosPorSalir));
+//        System.out.println("Premio mayor por salir: " + nombrePremio + "(" + premio + "). Apuesta: " + this.apostado[0]);
+//        //log(("Premio mayor por salir: " + nombrePremio + "("+ premio + "), premiosPorSalir: " + ArrayUtils.toString(premiosPorSalir));
+//        for (int i = 0; i < CARTONES; i++) {
+//            System.out.println(ArrayUtils.toString(premiosPorSalir[i]));
+//        }
+        
         return premio;
     }
 
@@ -1218,11 +1242,14 @@ public class Juego {
             //log(("No se pueden comprar bolas extra, ya no hay ninguna, saliendo del ciclo de bolas extra...");
             return;
         }
+        int costoBolaSeleccionada = costoBolaExtra();
+        boolean puedeComprar = cantidadDeBolasExtraPorComprar() > 0 || costoBolaSeleccionada == 0;
         while (cantidadDeBolasExtraPorComprar() > 0 && 
-                RNG.getInstance().pick() <= perfilActual.getProbabilidadDeComprarBolasExtra()) {
+                RNG.getInstance().pick() <= perfilActual.getProbabilidadDeComprarBolasExtra()
+                && puedeComprar) {
             
             int indiceDeBolaExtraAComprar = seleccionarAleatoriamenteBolaExtraDisponible();
-            int costoBolaSeleccionada = costoBolaExtra();
+            costoBolaSeleccionada = costoBolaExtra();
             
             //log(("Indice de bola extra elegida: " + indiceDeBolaExtraAComprar);
             //log(("Costo de la bola elegida: " + costoBolaSeleccionada);
@@ -1238,7 +1265,9 @@ public class Juego {
                 //log(("Se descontaron creditos por la bolas extra, credito actual: " + creditos);
                 
                 //Aumento el contador de credito gastado en bolas extra
+//                creditosInvertidosEnBolasExtra += costoBolaSeleccionada; //Solo computa lo invertido en bolas extra, no la apuesta basica
                 creditosInvertidosEnBolasExtra += costoBolaSeleccionada;
+                apuestaCompleta += costoBolaSeleccionada;
                 
                 //Aumento el contador de veces que se compraron bolas extra
                 cantidadDeBolasExtraSeleccionadas++;
@@ -1269,6 +1298,10 @@ public class Juego {
                 break;
             }
         }
+        //Le sumo la apuesta total ya que me interesa saber cuantos creditos
+        //Se inviertieron desde que se inició el ciclo (con la apuesta basica)
+        //mas lo invertido comprando bolas extra
+        apuestaCompleta += apuestaTotal();
     }
     
     public void buscarPremiosConBolasExtra(){
@@ -1428,6 +1461,14 @@ public class Juego {
     public boolean huboBolasExtraLiberadas(){
         return iniciado && this.liberarBolasExtra(umbralParaLiberarBolasExtra);
     }
+
+    public int getApuestaCompleta() {
+        return apuestaCompleta;
+    }
+
+    public void setApuestaCompleta(int apuestaCompleta) {
+        this.apuestaCompleta = apuestaCompleta;
+    }
     
     public boolean huboPremiosPorSalir(){
         return premioMayorPorSalir() > 0;
@@ -1570,7 +1611,7 @@ public class Juego {
                         //Es bonus
                         result = true;
 //                        System.out.println("Salio un nuevo bonus: " + nombresDeFiguras[j]);
-                        this.cantidadDeVecesQueSeObtuvoElBonus--;
+//                        this.cantidadDeVecesQueSeObtuvoElBonus--;
                         break;
                     }
                 }

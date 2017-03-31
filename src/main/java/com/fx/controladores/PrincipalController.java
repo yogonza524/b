@@ -140,6 +140,7 @@ public class PrincipalController implements Initializable{
     private Integer creditosGanadosGraciasABolasExtra;
     private Integer creditosApostadosEnBolasExtra;
     private Integer cantidadDeBolasExtraSeleccionadas;
+    private BigInteger apuestaCompleta;
     
     //Computo de graficos
     private BigInteger[] ganaciasPorFigura;
@@ -385,22 +386,23 @@ public class PrincipalController implements Initializable{
     @Subscribe
     private void persistirTournament(Evento e) throws IOException{
         if (e != null && e.getCodigo() == CodigoEvento.TOURNAMENT.getValue()) {
-            int indicePorcentajeTournamentCombo = 0;
+            
+            ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
+            
+            int indicePorcentajeTournamentCombo = config.getIndicePorcentajeTournamentCombo();
             
             if (e.getParametros() != null && e.getParametros().get("tournament") != null) {
                 this.tournament = Boolean.valueOf(e.getParametros().get("tournament").toString());
+                config.setTournament(tournament);
             }
             if (e.getParametros() != null && e.getParametros().get("porcentajeParaTournament") != null) {
                 this.porcentajeParaTournament = Double.valueOf(e.getParametros().get("porcentajeParaTournament").toString()) ;
+                config.setPorcentajeParaTournament(porcentajeParaTournament);
             }
             if (e.getParametros() != null && e.getParametros().get("indicePorcentajeTournamentCombo") != null) {
                 indicePorcentajeTournamentCombo = Integer.valueOf(e.getParametros().get("indicePorcentajeTournamentCombo").toString());
+                config.setIndicePorcentajeTournamentCombo(indicePorcentajeTournamentCombo);
             }
-            
-            ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
-            config.setTournament(tournament);
-            config.setPorcentajeParaTournament(porcentajeParaTournament);
-            config.setIndicePorcentajeTournamentCombo(indicePorcentajeTournamentCombo);
             
             PersistenciaJson.getInstancia().persistirConfiguracion();
         }
@@ -781,7 +783,8 @@ public class PrincipalController implements Initializable{
                         }
                         
                         mostrarResultados("Jackpot: " + (config.isTournament()? "Si" : "No") + "\n");
-                        mostrarResultados("Porcentaje de descuento de apuesta: " + Matematica.redondear(config.getPorcentajeParaTournament() * 100, 2) + "% de lo apostado\n");
+                        double porcentajeDeJackpot = config.getPorcentajeParaTournament();
+                        mostrarResultados("Porcentaje de descuento de apuesta: " + Matematica.redondear(porcentajeDeJackpot * 100, 2) + "% de lo apostado\n");
                         mostrarResultados("------------------------------------------" + "\n");
                         
                         mostrarResultados((config.isUtilizarPremiosFijosBonus()? "Utilizar bonus con premios fijos" : "Utilizar bonus con premios variables") + "\n");
@@ -873,7 +876,8 @@ public class PrincipalController implements Initializable{
                         
                         //Mostrar ganancias
                         mostrarResultados("------------------------------------------" + "\n");
-                        mostrarResultados("Apostado: " + apostado + " creditos (Apuesta básica: " + (apostado.intValue() - creditosApostadosEnBolasExtra) + " - Apuesta en compra de bolas extra:" + creditosApostadosEnBolasExtra + ")\n");
+                        int apBasica = (apostado.intValue() - creditosApostadosEnBolasExtra > 0 ? apostado.intValue() - creditosApostadosEnBolasExtra : apostado.intValue());
+                        mostrarResultados("Apostado: " + apBasica + " creditos (Apuesta básica: " + apostado + " - Apuesta en compra de bolas extra:" + creditosApostadosEnBolasExtra + ")\n");
                         mostrarResultados("Ganado: " + pagado + " creditos\n");
                         
                         //Mostrar datos del bonus
@@ -1140,6 +1144,7 @@ public class PrincipalController implements Initializable{
         this.apostado = BigInteger.ZERO;
         this.pagado = BigInteger.ZERO;
         this.cantidadGanadoEnBonus = BigInteger.ZERO;
+        this.apuestaCompleta = BigInteger.ZERO;
         //Frecuencia de premios obtenidos por figura
         frecuenciaDePremiosObtenidosPorFigura = new Integer[figuras.length];
         
@@ -1243,8 +1248,8 @@ public class PrincipalController implements Initializable{
             
             //Computar resultados;
             int apuestasBasicas = bingo.apuestaTotal();
-            int invertidoEnBolasExtra = bingo.getCreditosInvertidosEnBolasExtra();
-            int apuestaTotal = apuestasBasicas + invertidoEnBolasExtra;
+            int apuestaCompleta = bingo.getApuestaCompleta();
+            int apuestaTotal = apuestasBasicas;
             int gano = bingo.ganancias();
             int conBolasExtra = bingo.isSeLiberaronBolasExtra() ? 1 : 0;
             cantidadDeJuegosConBonus = cantidadDeJuegosConBonus.add(BigInteger.valueOf(bingo.getCantidadDeVecesQueSeObtuvoElBonus()));
@@ -1252,7 +1257,7 @@ public class PrincipalController implements Initializable{
             
             //Bolas extra
             creditosGanadosGraciasABolasExtra += bingo.getGanadoEnBolasExtra();
-            creditosApostadosEnBolasExtra += invertidoEnBolasExtra;
+            creditosApostadosEnBolasExtra += bingo.getCreditosInvertidosEnBolasExtra();
             cantidadDeBolasExtraSeleccionadas += bingo.getCantidadDeBolasExtraSeleccionadas();
             
 //            if (invertidoEnBolasExtra > 0) {
