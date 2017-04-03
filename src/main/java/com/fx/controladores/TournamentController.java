@@ -77,16 +77,16 @@ public class TournamentController implements Initializable {
                         comboTorunament.getSelectionModel().selectFirst();
                     }
 
-                    Double porcentajeParaTournament = comboTorunament.getSelectionModel().getSelectedItem();
+//                    Double porcentajeParaTournament = comboTorunament.getSelectionModel().getSelectedItem();
 
                     Map<String,Object> param = new  HashMap<>();
                     
                     param.put("tournament", newValue);
                     
-                    if (newValue) {
-                        param.put("porcentajeParaTournament", porcentajeParaTournament);
-                        param.put("indicePorcentajeTournamentCombo", comboTorunament.getSelectionModel().getSelectedIndex());
-                    }
+//                    if (newValue) {
+//                        param.put("porcentajeParaTournament", porcentajeParaTournament);
+//                        param.put("indicePorcentajeTournamentCombo", comboTorunament.getSelectionModel().getSelectedIndex());
+//                    }
 
                     EventBusManager.getInstancia().getBus()
                             .post(new Evento(CodigoEvento.TOURNAMENT.getValue(), param));

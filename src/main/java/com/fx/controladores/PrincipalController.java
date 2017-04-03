@@ -141,6 +141,7 @@ public class PrincipalController implements Initializable{
     private Integer creditosApostadosEnBolasExtra;
     private Integer cantidadDeBolasExtraSeleccionadas;
     private int apuestaCompleta;
+    private int apuestasEnBolasExtra;
     
     //Computo de graficos
     private BigInteger[] ganaciasPorFigura;
@@ -876,8 +877,8 @@ public class PrincipalController implements Initializable{
                         
                         //Mostrar ganancias
                         mostrarResultados("------------------------------------------" + "\n");
-                        int apBasica = (apostado.intValue() - creditosApostadosEnBolasExtra > 0 ? apostado.intValue() - creditosApostadosEnBolasExtra : apostado.intValue());
-                        mostrarResultados("Apostado: " + apostado + " creditos (Apuesta básica: " + apBasica + " - Apuesta en compra de bolas extra:" + creditosApostadosEnBolasExtra + ")\n");
+                        int apBasica = apostado.intValue() - creditosApostadosEnBolasExtra;
+                        mostrarResultados("Apostado: " + apostado + " creditos (Apuesta básica: " + apBasica + " - Apuesta en compra de bolas extra:" + apuestaCompleta + ")\n");
                         mostrarResultados("Ganado: " + pagado + " creditos\n");
                         
                         //Mostrar datos del bonus
@@ -895,9 +896,9 @@ public class PrincipalController implements Initializable{
                         mostrarResultados("Cantidad de juegos con bolas extras: " + cantidadConBolasExtra + "\n");
                         mostrarResultados("Cantidad de bolas extras seleccionadas: " + cantidadDeBolasExtraSeleccionadas + "\n");
                         mostrarResultados("Ganado en ciclos de bolas extras: " + creditosGanadosGraciasABolasExtra + "\n");
-                        mostrarResultados("Apostado en ciclos de bolas extras: " + creditosApostadosEnBolasExtra + "\n");
+                        mostrarResultados("Apostado en ciclos de bolas extras: " + apuestaCompleta + "(" + apuestasEnBolasExtra + " solo en compra de bolas extra)" +  "\n");
                         if (creditosApostadosEnBolasExtra > 0) {
-                            mostrarResultados("Porcentaje de retribución de bolas extra: " + Matematica.porcentaje(creditosGanadosGraciasABolasExtra, creditosApostadosEnBolasExtra) + "%\n");
+                            mostrarResultados("Porcentaje de retribución de bolas extra: " + Matematica.porcentaje(creditosGanadosGraciasABolasExtra, apuestaCompleta) + "%\n");
                         }
                         else{
                             if (creditosGanadosGraciasABolasExtra > 0 && creditosApostadosEnBolasExtra == 0) {
@@ -1145,6 +1146,7 @@ public class PrincipalController implements Initializable{
         this.pagado = BigInteger.ZERO;
         this.cantidadGanadoEnBonus = BigInteger.ZERO;
         this.apuestaCompleta = 0;
+        this.apuestasEnBolasExtra = 0;
         //Frecuencia de premios obtenidos por figura
         frecuenciaDePremiosObtenidosPorFigura = new Integer[figuras.length];
         
@@ -1248,7 +1250,8 @@ public class PrincipalController implements Initializable{
             
             //Computar resultados;
             int apuestasBasicas = bingo.apuestaTotal();
-            apuestaCompleta = bingo.getApuestaCompleta();
+            apuestaCompleta += bingo.getApuestaCompleta();
+            apuestasEnBolasExtra += bingo.getCreditosInvertidosEnBolasExtra();
             int gano = bingo.ganancias();
             int conBolasExtra = bingo.isSeLiberaronBolasExtra() ? 1 : 0;
             cantidadDeJuegosConBonus = cantidadDeJuegosConBonus.add(BigInteger.valueOf(bingo.getCantidadDeVecesQueSeObtuvoElBonus()));
@@ -1263,11 +1266,12 @@ public class PrincipalController implements Initializable{
 //                mostrarPorPantalla("Invirtió en bolas extra: " + invertidoEnBolasExtra);
 //            }
             
-            apostado = apostado.add(BigInteger.valueOf(apuestaCompleta));
+            apostado = apostado.add(BigInteger.valueOf(apuestasBasicas + bingo.getCreditosInvertidosEnBolasExtra()));
             pagado = pagado.add(BigInteger.valueOf(gano));
             juegosConBolasExtra = juegosConBolasExtra.add(BigInteger.valueOf(conBolasExtra));
             
-            this.retribuciones[i] = bingo.apuestaTotal() > 0 ? Matematica.porcentaje(gano, apuestasBasicas).doubleValue() : 0.0;
+//            this.retribuciones[i] = bingo.apuestaTotal() > 0 ? Matematica.porcentaje(gano, apuestasBasicas).doubleValue() : 0.0;
+            this.retribuciones[i] = bingo.apuestaTotal() > 0 ? Matematica.porcentaje(pagado, BigInteger.valueOf(apuestaCompleta)).doubleValue() : 0.0;
             this.cantidadDeJuegosGanados = gano > 0 ? this.cantidadDeJuegosGanados.add(BigInteger.valueOf(1)) : this.cantidadDeJuegosGanados;
             
             //Contabilizar totales por perfil
@@ -1279,7 +1283,7 @@ public class PrincipalController implements Initializable{
             }
             
             this.pagadoSegunPerfil[indicePerfilActual] = this.pagadoSegunPerfil[indicePerfilActual].add(BigInteger.valueOf(gano));
-            this.apostadoSegunPerfil[indicePerfilActual] = this.apostadoSegunPerfil[indicePerfilActual].add(BigInteger.valueOf(apuestaCompleta));
+            this.apostadoSegunPerfil[indicePerfilActual] = this.apostadoSegunPerfil[indicePerfilActual].add(BigInteger.valueOf(apuestasBasicas + bingo.getCreditosInvertidosEnBolasExtra()));
             
             //Porcentaje de retribucion parcial hasta el momento
             BigDecimal retribuidoParcial = Matematica.porcentaje(pagado, apostado);
@@ -1376,15 +1380,17 @@ public class PrincipalController implements Initializable{
             //Selecciono en funcion de la configuracion y el indice elegido
             ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
             
+            double numeroAleatorio = RNG.getInstance().pick();
+            
             if (indiceConfiguracion == 0) {
-                double porcentajeDeAvance = iteracionActual / (double)totalDeSimulaciones;
+//                double porcentajeDeAvance = iteracionActual / (double)totalDeSimulaciones;
 //                mostrarPorPantalla("Configuracion 0 de jugadores!");
 //                mostrarPorPantalla("Porcentaje de avance: " + porcentajeDeAvance);
-                if (porcentajeDeAvance <= .3) {
+                if (numeroAleatorio <= .3) {
                     return perfiles[0]; //Debil
                 }
                 else{
-                    if (porcentajeDeAvance > .3 && porcentajeDeAvance <= .6) {
+                    if (numeroAleatorio > .3 && numeroAleatorio <= .6) {
                         return perfiles[1]; //Medio
                     }
                     else{
@@ -1394,14 +1400,14 @@ public class PrincipalController implements Initializable{
             }
             
             if (indiceConfiguracion == 1) {
-                double porcentajeDeAvance = iteracionActual / (double)totalDeSimulaciones;
+//                double porcentajeDeAvance = iteracionActual / (double)totalDeSimulaciones;
 //                mostrarPorPantalla("Configuracion 1 de jugadores!");
 //                mostrarPorPantalla("Porcentaje de avance: " + porcentajeDeAvance);
-                if (porcentajeDeAvance <= .4) {
+                if (numeroAleatorio <= .4) {
                     return perfiles[0]; //Debil
                 }
                 else{
-                    if (porcentajeDeAvance > .4 && porcentajeDeAvance <= .7) {
+                    if (numeroAleatorio > .4 && numeroAleatorio <= .7) {
                         return perfiles[1]; //Medio
                     }
                     else{
@@ -1414,11 +1420,11 @@ public class PrincipalController implements Initializable{
                 double porcentajeDeAvance = iteracionActual / (double)totalDeSimulaciones;
 //                mostrarPorPantalla("Configuracion 2 de jugadores!");
 //                mostrarPorPantalla("Porcentaje de avance: " + porcentajeDeAvance);
-                if (porcentajeDeAvance <= .1) {
+                if (numeroAleatorio <= .1) {
                     return perfiles[0]; //Debil
                 }
                 else{
-                    if (porcentajeDeAvance > .1 && porcentajeDeAvance <= .55) {
+                    if (numeroAleatorio > .1 && numeroAleatorio <= .55) {
                         return perfiles[1]; //Medio
                     }
                     else{
