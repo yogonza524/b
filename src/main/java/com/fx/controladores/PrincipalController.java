@@ -140,7 +140,7 @@ public class PrincipalController implements Initializable{
     private Integer creditosGanadosGraciasABolasExtra;
     private Integer creditosApostadosEnBolasExtra;
     private Integer cantidadDeBolasExtraSeleccionadas;
-    private BigInteger apuestaCompleta;
+    private int apuestaCompleta;
     
     //Computo de graficos
     private BigInteger[] ganaciasPorFigura;
@@ -877,7 +877,7 @@ public class PrincipalController implements Initializable{
                         //Mostrar ganancias
                         mostrarResultados("------------------------------------------" + "\n");
                         int apBasica = (apostado.intValue() - creditosApostadosEnBolasExtra > 0 ? apostado.intValue() - creditosApostadosEnBolasExtra : apostado.intValue());
-                        mostrarResultados("Apostado: " + apBasica + " creditos (Apuesta básica: " + apostado + " - Apuesta en compra de bolas extra:" + creditosApostadosEnBolasExtra + ")\n");
+                        mostrarResultados("Apostado: " + apostado + " creditos (Apuesta básica: " + apBasica + " - Apuesta en compra de bolas extra:" + creditosApostadosEnBolasExtra + ")\n");
                         mostrarResultados("Ganado: " + pagado + " creditos\n");
                         
                         //Mostrar datos del bonus
@@ -1144,7 +1144,7 @@ public class PrincipalController implements Initializable{
         this.apostado = BigInteger.ZERO;
         this.pagado = BigInteger.ZERO;
         this.cantidadGanadoEnBonus = BigInteger.ZERO;
-        this.apuestaCompleta = BigInteger.ZERO;
+        this.apuestaCompleta = 0;
         //Frecuencia de premios obtenidos por figura
         frecuenciaDePremiosObtenidosPorFigura = new Integer[figuras.length];
         
@@ -1248,8 +1248,7 @@ public class PrincipalController implements Initializable{
             
             //Computar resultados;
             int apuestasBasicas = bingo.apuestaTotal();
-            int apuestaCompleta = bingo.getApuestaCompleta();
-            int apuestaTotal = apuestasBasicas;
+            apuestaCompleta = bingo.getApuestaCompleta();
             int gano = bingo.ganancias();
             int conBolasExtra = bingo.isSeLiberaronBolasExtra() ? 1 : 0;
             cantidadDeJuegosConBonus = cantidadDeJuegosConBonus.add(BigInteger.valueOf(bingo.getCantidadDeVecesQueSeObtuvoElBonus()));
@@ -1264,11 +1263,11 @@ public class PrincipalController implements Initializable{
 //                mostrarPorPantalla("Invirtió en bolas extra: " + invertidoEnBolasExtra);
 //            }
             
-            apostado = apostado.add(BigInteger.valueOf(apuestaTotal));
+            apostado = apostado.add(BigInteger.valueOf(apuestaCompleta));
             pagado = pagado.add(BigInteger.valueOf(gano));
             juegosConBolasExtra = juegosConBolasExtra.add(BigInteger.valueOf(conBolasExtra));
             
-            this.retribuciones[i] = bingo.apuestaTotal() > 0 ? Matematica.porcentaje(gano, apuestaTotal).doubleValue() : 0.0;
+            this.retribuciones[i] = bingo.apuestaTotal() > 0 ? Matematica.porcentaje(gano, apuestasBasicas).doubleValue() : 0.0;
             this.cantidadDeJuegosGanados = gano > 0 ? this.cantidadDeJuegosGanados.add(BigInteger.valueOf(1)) : this.cantidadDeJuegosGanados;
             
             //Contabilizar totales por perfil
@@ -1280,7 +1279,7 @@ public class PrincipalController implements Initializable{
             }
             
             this.pagadoSegunPerfil[indicePerfilActual] = this.pagadoSegunPerfil[indicePerfilActual].add(BigInteger.valueOf(gano));
-            this.apostadoSegunPerfil[indicePerfilActual] = this.apostadoSegunPerfil[indicePerfilActual].add(BigInteger.valueOf(apuestaTotal));
+            this.apostadoSegunPerfil[indicePerfilActual] = this.apostadoSegunPerfil[indicePerfilActual].add(BigInteger.valueOf(apuestaCompleta));
             
             //Porcentaje de retribucion parcial hasta el momento
             BigDecimal retribuidoParcial = Matematica.porcentaje(pagado, apostado);

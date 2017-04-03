@@ -1301,7 +1301,7 @@ public class Juego {
         //Le sumo la apuesta total ya que me interesa saber cuantos creditos
         //Se inviertieron desde que se inició el ciclo (con la apuesta basica)
         //mas lo invertido comprando bolas extra
-        apuestaCompleta += apuestaTotal();
+//        apuestaCompleta += apuestaTotal();
     }
     
     public void buscarPremiosConBolasExtra(){
@@ -1463,7 +1463,7 @@ public class Juego {
     }
 
     public int getApuestaCompleta() {
-        return apuestaCompleta;
+        return this.apuestaTotal() + this.creditosInvertidosEnBolasExtra;
     }
 
     public void setApuestaCompleta(int apuestaCompleta) {
