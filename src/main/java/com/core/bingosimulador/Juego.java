@@ -1619,4 +1619,14 @@ public class Juego {
         }
         return result;
     }
+    
+//    public Map<Integer, List<Integer>> verPremiosPorCarton(){
+//        Map
+//    }
+    
+    public static class B1{
+        
+        
+        
+    }
 }

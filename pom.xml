@@ -151,6 +151,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <mainClass>com.fx.main.MainApp</mainClass>
+        <!--<mainClass>com.fx.main.MainApp</mainClass>-->
+        <mainClass>com.protocol.b1.main.MainApp</mainClass>
     </properties>
 </project>
