@@ -9,18 +9,25 @@ package com.protocol.b1.servidor;
 import com.bv20.core.BV20;
 import com.core.bingosimulador.Juego;
 import com.google.gson.stream.MalformedJsonException;
+import com.protocol.b1.configuracion.ConfiguracionMain;
+import com.protocol.b1.enumeraciones.Idioma;
+import com.protocol.dao.Conexion;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.channels.ClosedChannelException;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.lwjgl.LWJGLException;
 import org.xsocket.MaxReadSizeExceededException;
 import org.xsocket.connection.IConnectHandler;
 import org.xsocket.connection.IDataHandler;
@@ -63,17 +70,16 @@ public class Servidor {
         bingo = new Juego();
     }
     //</editor-fold>
-
+    
     private void obtenerParametros(String[] args) {
         for(String param : args){
             String[] p = param.split(":");
             
             if (p != null && p.length > 0) {
-                
                 switch(p[0]){
                     case "-p" : 
-                        if (p[1].matches("")) {
-                            parametros.put("puerto", p[1]);
+                        if (p[1].matches("\\d+")) {
+                            parametros.put("puerto", Integer.valueOf(p[1]));
                         }
                         else{
                             parametros.put("puerto", 8890);
@@ -117,12 +123,22 @@ public class Servidor {
             Paquete response = null;
             
             switch(p.getCodigo()){
+                case 1: response = this.idMaquina(); break;
+                case 3: response = this.idiomasSoportados(); break;
+                case 4: response = this.idiomaActual(); break;
+                case 10: response = this.configuracionJuego(); break;
+                case 18: response = this.habilitarCarton(p); break;
+                case 22: response = this.denominacionActual(p); break;
+                case 25: response = this.colocarCreditos(p); break;
                 case 50 : response = this.jugar(); break;
                 default: response = noImplementadoAun();
             }
             
             System.out.println("Paquete recibido");
             System.out.println(p.aJSON());
+            
+            System.out.println("Paquete enviado");
+            System.out.println(response.aJSON());
             
             enviar(response.aJSON());
             
@@ -135,8 +151,15 @@ public class Servidor {
 
         @Override
         public boolean onConnect(INonBlockingConnection inbc) throws IOException, BufferUnderflowException, MaxReadSizeExceededException {
-            
-            return true;
+            boolean added = false;
+        try {
+            synchronized(SESSIONS){
+                added = SESSIONS.add(inbc);
+            }
+            } catch (BufferUnderflowException e) {
+                Logger.getLogger(XSocketDataHandler.class.getName()).log(Level.SEVERE, null, e);
+            }
+        return added;  
         }
 
         @Override
@@ -239,8 +262,200 @@ public class Servidor {
             enviar(p.aJSON());
             
             System.out.println(p.aJSON());
-            
             return p;
+        }
+
+        private Paquete idMaquina() throws IOException, SQLException {
+            //Buscar el ID en la Base de datos
+            List<HashMap<String,Object>> result = Conexion.getInstancia().consultar("select numero_maquina from configuracion");
+            
+            int id = 0;
+            if (result != null && !result.isEmpty()) {
+                id = (int)result.get(0).get("numero_maquina");
+            }
+            
+            Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(1)
+                    .estado("ok")
+                    .dato("ID", id)
+                    .crear();
+            
+//            enviar(response.aJSON());
+            return response;
+        }
+
+        private Paquete idiomasSoportados() throws SQLException {
+            //Buscar los idiomas soportados
+            List<HashMap<String,Object>> result = Conexion.getInstancia().consultar("SELECT * FROM idiomas");
+            
+            Map<String,String> idiomas = new HashMap<>();
+            if (result != null && !result.isEmpty()) {
+                for (int i = 0; i < result.size(); i++) {
+                    idiomas.put(result.get(i).get("numero").toString(), result.get(i).get("nombre").toString());
+                }
+            }
+            
+            //Crear el paquete
+            Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(3)
+                    .estado("ok")
+                    .dato("desc", "Idiomas soportados")
+                    .dato("idiomas", idiomas)
+                    .crear();
+            //Enviar el paquete
+            
+            //Retornar
+            return response;
+        }
+
+        private Paquete idiomaActual() throws SQLException {
+            //Buscar los idiomas soportados
+            List<HashMap<String,Object>> result = Conexion.getInstancia().consultar("SELECT idioma FROM configuracion");
+            
+            String idioma = "";
+            if (result != null && !result.isEmpty()) {
+                idioma = result.get(0).get("idioma").toString();
+            }
+            
+            //Crear el paquete
+            Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(4)
+                    .estado("ok")
+                    .dato("desc", "Idioma actual")
+                    .dato("idioma", idioma)
+                    .crear();
+            //Enviar el paquete
+            
+            //Retornar
+            return response;
+        }
+
+        private Paquete habilitarCarton(Paquete p) throws IOException {
+            if (p != null && p.getDatos() != null 
+                    && !p.getDatos().isEmpty() 
+                    && p.getDatos().get("numero") != null) {
+                
+                int numero = Integer.valueOf(p.getDatos().get("numero").toString());
+                
+                boolean success = bingo.habilitar(numero);
+                
+                Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(18)
+                    .estado("ok")
+                    .dato("desc", success ? "Habilitar carton " + p.getDatos().get("numero") + " habilitado" : "No se pudo habilitar")
+                    .crear();
+
+                enviar(response.aJSON());
+                return response;
+            }
+            return null;
+        }
+
+        private Paquete configuracionJuego() throws IOException, SQLException {
+            //Obtener la informacion del juego
+            List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT * FROM juego LIMIT 1");
+            if (query != null && !query.isEmpty()) {
+                int cred = Integer.valueOf(query.get(0).get("creditos").toString());
+                int apuesta = Integer.valueOf(query.get(0).get("apuesta_total").toString());
+                int cartones_habilitados = Integer.valueOf(query.get(0).get("cartones_habilitados").toString());
+                System.out.println(cred + " creditos");
+                bingo.setCreditos(cred);
+                int[] apuestas = new int[4];
+                for (int i = 0; i < cartones_habilitados; i++) {
+                    apuestas[i] = apuesta / cartones_habilitados;
+                }
+                bingo.setApostado(apuestas);
+                System.out.println("Encontrado");
+            }
+            
+            int[][][] cartones = bingo.getCartones();
+            
+            List<Map<String,Object>> c = new ArrayList<>();
+            Map<String,Map<String,Object>> data = new HashMap<>();
+            
+            for (int i = 0; i < cartones.length; i++) {
+                Integer[][] matriz = new Integer[3][5];
+                Map<String,Object> cartonCasilla = new HashMap<>();
+                for (int j = 0; j < 3; j++) {
+                    for (int k = 0; k < 5; k++) {
+                        matriz[j][k] = cartones[i][j][k];
+                    }
+                }
+                cartonCasilla.put("casillas", matriz);
+                c.add(cartonCasilla);
+            }
+            
+            System.out.println("Bingo creditos: " + bingo.getCreditos());
+            
+            Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(10)
+                    .estado("ok")
+                    .dato("creditos", bingo.getCreditos())
+                    .dato("apostado", bingo.apuestaTotal())
+                    .dato("cartones", c)
+                    .crear();
+            
+            enviar(response.aJSON());
+            return response;
+        }
+
+        private Paquete denominacionActual(Paquete p) throws SQLException {
+            
+            //Verificar si se deben colocar los datos del paquete
+            if (p != null && p.getDatos() != null && p.getDatos().get("codigo") != null) {
+                //Solicitud de colocacion de denominacion
+                int codigo = Integer.valueOf(p.getDatos().get("codigo").toString());
+                switch(codigo){
+                    case 10: 
+                        Conexion.getInstancia().actualizar("UPDATE configuracion SET denominacion_actual = 'DIEZ_CENTAVOS'")
+                        ; break; //10 centavos
+                    case 20: ;
+                        Conexion.getInstancia().actualizar("UPDATE configuracion SET denominacion_actual = 'CINCO_CENTAVOS'")
+                        ;break; //20 centavos
+                }
+            }
+            
+            //Obtener los datos
+            List<HashMap<String,Object>> result = Conexion.getInstancia()
+                    .consultar("SELECT configuracion.denominacion_actual, denominacion.valor FROM configuracion, denominacion WHERE denominacion.nombre = denominacion_actual");
+            
+            double valor = 0.0;
+            String nombre = "";
+            
+            if (result != null && !result.isEmpty()) {
+                valor = (double) result.get(0).get("valor");
+                nombre = (String) result.get(0).get("denominacion_actual");
+            }
+            
+            
+            Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(22)
+                    .estado("ok")
+                    .dato("desc", "Denominacion actual: " + nombre)
+                    .dato("valor", valor)
+                    .crear();
+            
+            return response;
+        }
+
+        private Paquete colocarCreditos(Paquete p) throws SQLException {
+            
+            if (p != null && p.getDatos() != null && p.getDatos().get("credito") != null) {
+                
+                int creditos = Integer.valueOf(p.getDatos().get("credito").toString());
+                bingo.agregarCreditos(creditos);
+                Conexion.getInstancia().actualizar("UPDATE juego SET creditos = creditos + " + creditos);
+                
+                Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(25)
+                    .estado("ok")
+                    .dato("creditos", creditos)
+                    .crear();
+                
+                return response;
+            }
+            
+            return null;
         }
         
     }
