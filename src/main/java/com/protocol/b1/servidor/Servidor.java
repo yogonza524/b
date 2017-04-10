@@ -164,7 +164,7 @@ public class Servidor {
 
         @Override
         public boolean onDisconnect(INonBlockingConnection inbc) throws IOException {
-            
+            System.out.println("Desconectado");
             return true;
         }
         
@@ -390,7 +390,7 @@ public class Servidor {
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(10)
                     .estado("ok")
-                    .dato("creditos", bingo.getCreditos())
+                    .dato("credito", bingo.getCreditos())
                     .dato("apostado", bingo.apuestaTotal())
                     .dato("cartones", c)
                     .crear();
