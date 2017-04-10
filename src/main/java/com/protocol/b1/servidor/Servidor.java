@@ -433,14 +433,13 @@ public class Servidor {
             boolean carton2_habilitado = false;
             boolean carton3_habilitado = false;
             boolean carton4_habilitado = false;
-                
             
             //Obtener la informacion del juego
             List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT * FROM juego LIMIT 1");
             if (query != null && !query.isEmpty()) {
                 int cred = Integer.valueOf(query.get(0).get("creditos").toString());
                 int apuesta = Integer.valueOf(query.get(0).get("apuesta_total").toString());
-                int cartones_habilitados = Integer.valueOf(query.get(0).get("cartones_habilitados").toString());
+                
                 
                 carton1_habilitado = Boolean.valueOf(query.get(0).get("carton1_habilitado").toString());
                 carton2_habilitado = Boolean.valueOf(query.get(0).get("carton2_habilitado").toString());
@@ -448,6 +447,12 @@ public class Servidor {
                 carton4_habilitado = Boolean.valueOf(query.get(0).get("carton4_habilitado").toString());
                 
                 boolean[] habilitados = new boolean[]{carton1_habilitado,carton2_habilitado,carton3_habilitado,carton4_habilitado};
+                
+                int cartones_habilitados = 0;
+                
+                for(boolean val : habilitados){
+                    cartones_habilitados += val? 1 : 0;
+                }
                 
                 bingo.setCreditos(cred);
                 int[] apuestas = new int[4];
