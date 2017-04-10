@@ -4,7 +4,7 @@
 
 -- Dumped from database version 9.4.11
 -- Dumped by pg_dump version 9.4.11
--- Started on 2017-04-10 06:14:06
+-- Started on 2017-04-10 14:04:40
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -22,7 +22,7 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- TOC entry 2034 (class 0 OID 0)
+-- TOC entry 2035 (class 0 OID 0)
 -- Dependencies: 1
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
 --
@@ -50,15 +50,14 @@ CREATE TABLE configuracion (
     codigo_pais integer,
     modo_mantenimiento boolean,
     sonido boolean,
-    bloqueada boolean,
-    denominacion_actual character varying(32)
+    bloqueada boolean
 );
 
 
 ALTER TABLE configuracion OWNER TO postgres;
 
 --
--- TOC entry 174 (class 1259 OID 16399)
+-- TOC entry 174 (class 1259 OID 16397)
 -- Name: contadores; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -84,7 +83,7 @@ CREATE TABLE contadores (
 ALTER TABLE contadores OWNER TO postgres;
 
 --
--- TOC entry 178 (class 1259 OID 24586)
+-- TOC entry 175 (class 1259 OID 16400)
 -- Name: denominacion; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -97,7 +96,7 @@ CREATE TABLE denominacion (
 ALTER TABLE denominacion OWNER TO postgres;
 
 --
--- TOC entry 176 (class 1259 OID 16412)
+-- TOC entry 176 (class 1259 OID 16403)
 -- Name: estadisticas; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -111,7 +110,7 @@ CREATE TABLE estadisticas (
 ALTER TABLE estadisticas OWNER TO postgres;
 
 --
--- TOC entry 177 (class 1259 OID 16417)
+-- TOC entry 177 (class 1259 OID 16406)
 -- Name: idiomas; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -124,7 +123,7 @@ CREATE TABLE idiomas (
 ALTER TABLE idiomas OWNER TO postgres;
 
 --
--- TOC entry 175 (class 1259 OID 16404)
+-- TOC entry 178 (class 1259 OID 16409)
 -- Name: juego; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -133,23 +132,33 @@ CREATE TABLE juego (
     creditos integer,
     apuesta_total integer,
     apuesta_en_bolas_extra integer,
-    cartones_habilitados integer
+    cartones_habilitados integer,
+    carton1_habilitado boolean,
+    carton2_habilitado boolean,
+    carton3_habilitado boolean,
+    carton4_habilitado boolean,
+    ganado integer,
+    dinero real DEFAULT 0.0,
+    denominacion_actual character varying(32),
+    denominacion_factor real DEFAULT 0.0,
+    comenzo character varying(64),
+    termino character varying(64)
 );
 
 
 ALTER TABLE juego OWNER TO postgres;
 
 --
--- TOC entry 2021 (class 0 OID 16394)
+-- TOC entry 2022 (class 0 OID 16394)
 -- Dependencies: 173
 -- Data for Name: configuracion; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO configuracion VALUES (0, 'ESSENTIT-X2017-NS', 1, true, 'ENGLISH', 1, false, false, false, 'CINCO_CENTAVOS');
+INSERT INTO configuracion VALUES (0, 'ESSENTIT-X2017-NS', 1, true, 'ENGLISH', 1, false, false, false);
 
 
 --
--- TOC entry 2022 (class 0 OID 16399)
+-- TOC entry 2023 (class 0 OID 16397)
 -- Dependencies: 174
 -- Data for Name: contadores; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -157,8 +166,8 @@ INSERT INTO configuracion VALUES (0, 'ESSENTIT-X2017-NS', 1, true, 'ENGLISH', 1,
 
 
 --
--- TOC entry 2026 (class 0 OID 24586)
--- Dependencies: 178
+-- TOC entry 2024 (class 0 OID 16400)
+-- Dependencies: 175
 -- Data for Name: denominacion; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -171,7 +180,7 @@ INSERT INTO denominacion VALUES ('VEINTICINCO_CENTAVOS', 0.25);
 
 
 --
--- TOC entry 2024 (class 0 OID 16412)
+-- TOC entry 2025 (class 0 OID 16403)
 -- Dependencies: 176
 -- Data for Name: estadisticas; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -179,7 +188,7 @@ INSERT INTO denominacion VALUES ('VEINTICINCO_CENTAVOS', 0.25);
 
 
 --
--- TOC entry 2025 (class 0 OID 16417)
+-- TOC entry 2026 (class 0 OID 16406)
 -- Dependencies: 177
 -- Data for Name: idiomas; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -190,16 +199,16 @@ INSERT INTO idiomas VALUES (2, 'PORTUGUESE');
 
 
 --
--- TOC entry 2023 (class 0 OID 16404)
--- Dependencies: 175
+-- TOC entry 2027 (class 0 OID 16409)
+-- Dependencies: 178
 -- Data for Name: juego; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO juego VALUES (0, 2400, 3, 0, 1);
+INSERT INTO juego VALUES (0, 10, 4, 0, 4, true, true, true, true, 3, 0, 'DIEZ_CENTAVOS', 10, '2017-04-10 13:43:42.174', '2017-04-10 13:43:42.364');
 
 
 --
--- TOC entry 1901 (class 2606 OID 16398)
+-- TOC entry 1902 (class 2606 OID 16413)
 -- Name: configuracion_pk; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -208,7 +217,7 @@ ALTER TABLE ONLY configuracion
 
 
 --
--- TOC entry 1903 (class 2606 OID 16403)
+-- TOC entry 1904 (class 2606 OID 16415)
 -- Name: contadores_pk; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -217,7 +226,7 @@ ALTER TABLE ONLY contadores
 
 
 --
--- TOC entry 1911 (class 2606 OID 24590)
+-- TOC entry 1906 (class 2606 OID 16417)
 -- Name: denominacion_pk; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -226,7 +235,7 @@ ALTER TABLE ONLY denominacion
 
 
 --
--- TOC entry 1907 (class 2606 OID 16416)
+-- TOC entry 1908 (class 2606 OID 16419)
 -- Name: estadisticas_pk; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -235,7 +244,7 @@ ALTER TABLE ONLY estadisticas
 
 
 --
--- TOC entry 1909 (class 2606 OID 16421)
+-- TOC entry 1910 (class 2606 OID 16421)
 -- Name: idiomas_pk; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -244,7 +253,7 @@ ALTER TABLE ONLY idiomas
 
 
 --
--- TOC entry 1905 (class 2606 OID 16411)
+-- TOC entry 1912 (class 2606 OID 16423)
 -- Name: juego_pk; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -253,8 +262,8 @@ ALTER TABLE ONLY juego
 
 
 --
--- TOC entry 2033 (class 0 OID 0)
--- Dependencies: 6
+-- TOC entry 2034 (class 0 OID 0)
+-- Dependencies: 7
 -- Name: public; Type: ACL; Schema: -; Owner: postgres
 --
 
@@ -264,7 +273,7 @@ GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2017-04-10 06:14:07
+-- Completed on 2017-04-10 14:04:41
 
 --
 -- PostgreSQL database dump complete
