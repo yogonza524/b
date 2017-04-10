@@ -173,7 +173,8 @@ public class Paquete implements Serializable{
      * @return cadena de caracteres en formato JSON
      */
     public String aJSON(){
-        return new GsonBuilder().setPrettyPrinting().create().toJson(this);
+        return new Gson().toJson(this);
+//        return new GsonBuilder().setPrettyPrinting().create().toJson(this);
     }
     
     /**

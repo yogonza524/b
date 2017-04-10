@@ -499,6 +499,14 @@ public class Juego {
                 apuestaTotal() + (apuestaTotal() / habilitados()) <= creditos) {
             apostado[i] = apuestaTotal() / habilitados();
             cartonesHabilitados[i] = true;
+            result = true;
+        }
+        else{
+            System.out.println("No se pudo habilitar");
+            System.out.println("Apostado: " + ArrayUtils.toString(apostado));
+            System.out.println("Habilitados: " + habilitados());
+            System.out.println("Creditos: " + creditos);
+            System.out.println("Cartones habilitados: " + ArrayUtils.toString(cartonesHabilitados));
         }
         return result;
     }

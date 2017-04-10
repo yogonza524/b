@@ -71,7 +71,7 @@ public class PostgreSQLTest {
     }
     
     @Test
-    //@Ignore
+    @Ignore
     public void anotherTest() throws SQLException {
         List<HashMap<String,Object>> result = Conexion.getInstancia()
                     .consultar("SELECT configuracion.denominacion_actual, denominacion.valor FROM configuracion, denominacion WHERE denominacion.nombre = denominacion_actual");
