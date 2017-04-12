@@ -44,7 +44,7 @@
     <property name="java.vm.specification.version" value="1.8"/>
     <property name="sun.arch.data.model" value="32"/>
     <property name="java.home" value="C:\Program Files\Java\jdk1.8.0_111\jre"/>
-    <property name="sun.java.command" value="org.codehaus.plexus.classworlds.launcher.Launcher -Dmaven.ext.class.path=C:\Program Files\NetBeans 8.1\java\maven-nblib\netbeans-eventspy.jar -Dfile.encoding=UTF-8 clean install"/>
+    <property name="sun.java.command" value="org.codehaus.plexus.classworlds.launcher.Launcher -Dmaven.ext.class.path=C:\Program Files\NetBeans 8.1\java\maven-nblib\netbeans-eventspy.jar -Dfile.encoding=UTF-8 install"/>
     <property name="java.specification.vendor" value="Oracle Corporation"/>
     <property name="user.language" value="en"/>
     <property name="awt.toolkit" value="sun.awt.windows.WToolkit"/>
@@ -61,25 +61,25 @@
     <property name="sun.desktop" value="windows"/>
     <property name="sun.cpu.isalist" value="pentium_pro+mmx pentium_pro pentium+mmx pentium i486 i386 i86"/>
   </properties>
-  <testcase classname="JuegoTest" name="saveJsonTest" time="0.05">
+  <testcase classname="JuegoTest" name="saveJsonTest" time="0.06">
     <skipped/>
   </testcase>
-  <testcase classname="JuegoTest" name="crearBonusTest" time="0.05">
+  <testcase classname="JuegoTest" name="crearBonusTest" time="0.06">
     <skipped/>
   </testcase>
-  <testcase classname="JuegoTest" name="bolilleroTest" time="0.05">
+  <testcase classname="JuegoTest" name="bolilleroTest" time="0.06">
     <skipped/>
   </testcase>
-  <testcase classname="JuegoTest" name="guavaTest" time="0.05">
+  <testcase classname="JuegoTest" name="guavaTest" time="0.06">
     <skipped/>
   </testcase>
-  <testcase classname="JuegoTest" name="randomTest" time="0.05">
+  <testcase classname="JuegoTest" name="randomTest" time="0.06">
     <skipped/>
   </testcase>
-  <testcase classname="JuegoTest" name="valoresTest" time="0.05">
+  <testcase classname="JuegoTest" name="valoresTest" time="0.06">
     <skipped/>
   </testcase>
-  <testcase classname="JuegoTest" name="readJsonFileTest" time="0.05">
+  <testcase classname="JuegoTest" name="readJsonFileTest" time="0.06">
     <skipped/>
   </testcase>
 </testsuite>

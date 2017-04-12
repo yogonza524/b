@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite tests="3" failures="0" name="PostgreSQLTest" time="0.16" errors="0" skipped="3">
+<testsuite tests="3" failures="0" name="PostgreSQLTest" time="0.23" errors="0" skipped="3">
   <properties>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk1.8.0_111\jre\bin"/>
@@ -44,7 +44,7 @@
     <property name="java.vm.specification.version" value="1.8"/>
     <property name="sun.arch.data.model" value="32"/>
     <property name="java.home" value="C:\Program Files\Java\jdk1.8.0_111\jre"/>
-    <property name="sun.java.command" value="org.codehaus.plexus.classworlds.launcher.Launcher -Dmaven.ext.class.path=C:\Program Files\NetBeans 8.1\java\maven-nblib\netbeans-eventspy.jar -Dfile.encoding=UTF-8 clean install"/>
+    <property name="sun.java.command" value="org.codehaus.plexus.classworlds.launcher.Launcher -Dmaven.ext.class.path=C:\Program Files\NetBeans 8.1\java\maven-nblib\netbeans-eventspy.jar -Dfile.encoding=UTF-8 install"/>
     <property name="java.specification.vendor" value="Oracle Corporation"/>
     <property name="user.language" value="en"/>
     <property name="awt.toolkit" value="sun.awt.windows.WToolkit"/>
@@ -64,10 +64,10 @@
   <testcase classname="PostgreSQLTest" name="anotherTest" time="0">
     <skipped/>
   </testcase>
-  <testcase classname="PostgreSQLTest" name="idMachineTest" time="0.02">
+  <testcase classname="PostgreSQLTest" name="idMachineTest" time="0.01">
     <skipped/>
   </testcase>
-  <testcase classname="PostgreSQLTest" name="connectionTest" time="0.02">
+  <testcase classname="PostgreSQLTest" name="connectionTest" time="0.01">
     <skipped/>
   </testcase>
 </testsuite>

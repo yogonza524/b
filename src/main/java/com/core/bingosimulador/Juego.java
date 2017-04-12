@@ -517,6 +517,7 @@ public class Juego {
                 apuestaTotal() - (apuestaTotal() / habilitados()) > 0) {
             apostado[i] = 0;
             cartonesHabilitados[i] = false;
+            result = true;
         }
         return result;
     }

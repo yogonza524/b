@@ -9,6 +9,7 @@ package com.protocol.b1.servidor;
 import com.bingo.enumeraciones.Denominacion;
 import com.bv20.core.BV20;
 import com.core.bingosimulador.Juego;
+import com.google.gson.GsonBuilder;
 import com.google.gson.stream.MalformedJsonException;
 import com.protocol.b1.configuracion.ConfiguracionMain;
 import com.protocol.b1.enumeraciones.Idioma;
@@ -123,9 +124,15 @@ public class Servidor {
                 boolean[] habilitados = new boolean[]{carton1Habilitado,carton2Habilitado,carton3Habilitado,carton4Habilitado};
                 
                 bingo.setCreditos(creditos);
-                bingo.apostar(apuestaTotal);
                 bingo.setCartonesHabilitados(habilitados);
+                
+                //el metodo apostar depende de los cartones habilitados
+                bingo.apostar(apuestaTotal);
             }
+            
+            System.out.println("Configuracion inicial");
+            System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(bingo));
+            System.out.println();
             
         } catch (SQLException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -420,6 +427,9 @@ public class Servidor {
                     .codigo(18)
                     .estado("ok")
                     .dato("desc", success ? "Habilitar carton " + p.getDatos().get("numero") + " habilitado" : "No se pudo habilitar")
+                    .dato("numero",Integer.valueOf(p.getDatos().get("numero").toString()))
+                    .dato("apuestaTotal", bingo.apuestaTotal())
+                    .dato("apuestaIndividual", bingo.apuestaIndividual())
                     .crear();
 
                 return response;
@@ -456,8 +466,12 @@ public class Servidor {
                 
                 bingo.setCreditos(cred);
                 int[] apuestas = new int[4];
-                for (int i = 0; i < cartones_habilitados; i++) {
-                    apuestas[i] = apuesta / cartones_habilitados;
+                for (int i = 0; i < habilitados.length; i++) {
+                    System.out.println("Carton " + (i+1) + ": " + habilitados[i]);
+                    if (habilitados[i]) {
+                        apuestas[i] = apuesta / cartones_habilitados;
+                        System.out.println("Carton " + (i+1) + " apuesta: " + apuestas[i]);
+                    }
                 }
                 bingo.setApostado(apuestas);
                 
@@ -481,13 +495,12 @@ public class Servidor {
                 c.add(cartonCasilla);
             }
             
-            System.out.println("Bingo creditos: " + bingo.getCreditos());
-            
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(10)
                     .estado("ok")
                     .dato("credito", bingo.getCreditos())
                     .dato("apostado", bingo.apuestaTotal())
+                    .dato("apuestaIndividual", bingo.apuestaIndividual())
                     .dato("carton1_habilitado", carton1_habilitado)
                     .dato("carton2_habilitado", carton2_habilitado)
                     .dato("carton3_habilitado", carton3_habilitado)
@@ -495,7 +508,6 @@ public class Servidor {
                     .dato("cartones", c)
                     .crear();
             
-            enviar(response.aJSON());
             return response;
         }
 
@@ -596,6 +608,7 @@ public class Servidor {
                     .codigo(14)
                     .estado("ok")
                     .dato("apuestaTotal", bingo.apuestaTotal())
+                    .dato("apuestaIndividual", bingo.apuestaIndividual())
                     .dato("desc", "Apuesta aumentada a "+ bingo.apuestaTotal())
                     .crear();
             
@@ -728,7 +741,9 @@ public class Servidor {
                 
                 boolean success = false;
                 if (numero > 0 && numero < Juego.getCantidadDeCartones() + 1) {
-                    success = bingo.deshabilitar(numero);
+                    success = bingo.deshabilitar(numero - 1);
+                    System.out.println(bingo.habilitados());
+                    System.out.println(ArrayUtils.toString(bingo.apuestas()));
                 }
                 
                 try {
@@ -743,6 +758,9 @@ public class Servidor {
                     .codigo(21)
                     .estado("ok")
                     .dato("desc", "Carton " + p.getDatos().get("numero") + " deshabilitado")
+                    .dato("numero", Integer.valueOf(p.getDatos().get("numero").toString()))
+                    .dato("apuestaTotal", bingo.apuestaTotal())
+                    .dato("apuestaIndividual", bingo.apuestaIndividual())
                     .crear();
                 }
                 else{
