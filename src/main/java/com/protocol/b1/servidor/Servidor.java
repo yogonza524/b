@@ -177,6 +177,8 @@ public class Servidor {
                 case 24: response = this.generarBolillero(); break;
                 case 25: response = this.colocarCreditos(p); break;
                 case 50 : response = this.jugar(); break;
+                case 121: response = this.bonus(); break;
+                case 122: response = this.premioObtenidoEnBonus(p); break;
                 default: response = noImplementadoAun(p);
             }
             
@@ -298,12 +300,17 @@ public class Servidor {
         private Paquete jugar() throws IOException {
             
             try {
-                Conexion.getInstancia().actualizar("UPDATE juego SET comenzo = '" + getCurrentTimeStamp() + "'");
+                String query = "UPDATE juego SET comenzo = '" + getCurrentTimeStamp() + "'"
+                                + ", ganado = 0, bolas_visibles = '" + ArrayUtils.toString(bingo.getBolasVisibles()) + "'"
+                        + ", bolas_extras = '" + ArrayUtils.toString(bingo.getBolasExtra()) + "'"
+                        + ", liberar_bolas_extra = " + bingo.liberarBolasExtra();
+                System.out.println(query);
+                Conexion.getInstancia().actualizar(query);
             } catch (SQLException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
             
-            bingo.jugar(true);
+            bingo.jugar(false);
             
             System.out.println("Ganado: " + bingo.ganancias());
             System.out.println("Apostado: " + ArrayUtils.toString(bingo.apuestas()));
@@ -324,6 +331,11 @@ public class Servidor {
                     .codigo(50)
                     .estado("ok")
                     .dato("bolasVisibles", bingo.getBolasVisibles())
+                    .dato("ganado", bingo.ganancias())
+                    .dato("premios", bingo.getPremiosPagados())
+                    .dato("apostado", bingo.apuestaTotal())
+                    .dato("apuestas", bingo.getApostado())
+                    .dato("bonus", bingo.getBonus())
                     .crear();
             
             enviar(p.aJSON());
@@ -409,9 +421,14 @@ public class Servidor {
                     && !p.getDatos().isEmpty() 
                     && p.getDatos().get("numero") != null) {
                 
+                try {
+                    //Coloco en 0 las ganancias, esto refleja lo que hace la vista
+                    Conexion.getInstancia().actualizar("UPDATE juego SET ganado = 0");
+                } catch (SQLException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
                 int numero = Integer.valueOf(p.getDatos().get("numero").toString());
-                
-                
                 
                 boolean success = bingo.habilitar(numero - 1);
                 
@@ -590,6 +607,8 @@ public class Servidor {
                     .codigo(11)
                     .estado("ok")
                     .dato("bolasVisibles", bingo.getBolasVisibles())
+                    .dato("bolasExtra", bingo.getBolasExtra())
+                    .dato("liberarBolasExtra", bingo.liberarBolasExtra())
                     .crear();
             
             return response;
@@ -727,6 +746,7 @@ public class Servidor {
                     .estado("ok")
                     .dato("bolasVisibles", bingo.getBolasVisibles())
                     .dato("bolasExtra", bingo.getBolasExtra())
+                    .dato("liberarBolasExtra", bingo.liberarBolasExtra())
                     .dato("desc", "Bolillero nuevo generado")
                     .crear();
             
@@ -785,6 +805,44 @@ public class Servidor {
                     .crear();
             
             return response;
+        }
+
+        private Paquete bonus() {
+            Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(121)
+                    .estado("ok")
+                    .dato("bonus", bingo.getBonus())
+                    .crear();
+            
+            return response;
+        }
+
+        private Paquete premioObtenidoEnBonus(Paquete p) {
+            if (p != null && p.getDatos() != null && p.getDatos().get("creditosDePremio") != null) {
+                
+                //Recupero el premio (numero entero en creditos)
+                int premio = Integer.valueOf(p.getDatos().get("premio").toString());
+                
+                //Aumentar las ganancias 
+                bingo.setTotalGanadoEnBonus(bingo.getTotalGanadoEnBonus() + premio);
+
+                try {
+                    //Actualizar los datos de la base de datos
+                    Conexion.getInstancia().actualizar(("UPDATE juego set ganado_en_bonus = ganado_en_bonus +" + premio));
+                } catch (SQLException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+                Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(122)
+                    .estado("ok")
+                    .dato("ganado", bingo.ganancias())
+                    .dato("desc", "Aumentando las ganancias gracias al bonus")
+                    .crear();
+            
+                return response;
+            }
+            return null;
         }
         
     }

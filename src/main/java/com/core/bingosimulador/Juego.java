@@ -1140,6 +1140,9 @@ public class Juego {
             this.generarBolillero();
         }
         
+        //Genero un nuevo Bonus
+        this.generarBonus();
+        
         if (this.apuestaTotal() > this.creditos) {
             log("La apuesta total de " + this.apuestaTotal() + " supera los "
                     + "creditos disponibles, " + creditos);
@@ -1387,6 +1390,31 @@ public class Juego {
         this.limiteSuperiorParaBolaExtraGratis = superior;
     }
 
+    public void generarBonus(){
+        //Cargo los valores aleatorios
+        if (utilizarPremiosVariablesBonus) {
+            //Genero los premios en funcion de lo apostado
+            int apuesta = this.apuestaTotal();
+            
+            Integer[] variables = Matematica.crearArregloAleatorioConCeros(premiosVariablesBonus, cantidadTotalDePremiosEnBonus);
+            for (int i = 0; i < cantidadTotalDePremiosEnBonus; i++) {
+                bonus[i] = apuesta * variables[i];   
+            }
+//            System.out.println("Premios del bonus: " + ArrayUtils.toString(bonus));
+        }
+        else{
+            if (utilizarPremiosFijosBonus) {
+                bonus = Matematica.crearArregloAleatorioConCeros(premiosFijosBonus, cantidadTotalDePremiosEnBonus);
+//                System.out.println("Premios del bonus: " + ArrayUtils.toString(bonus));
+            }
+            else{
+                //Por defecto cargo el bonus fijo
+                bonus = Matematica.crearArregloAleatorioConCeros(premiosFijosBonus, cantidadTotalDePremiosEnBonus);
+//                System.out.println("Premios del bonus: " + ArrayUtils.toString(bonus));
+            }
+        }
+    }
+    
     private void cicloBonus() {
         //Inicializo los valores
         totalGanadoEnBonus = 0;
@@ -1633,9 +1661,4 @@ public class Juego {
 //        Map
 //    }
     
-    public static class B1{
-        
-        
-        
-    }
 }
