@@ -753,9 +753,20 @@ public class Juego {
                                     this.ganadoEnBolasExtra -= factoresDePago[k] * apuestaIndividual();
                                 }
                             }
-//                            //log(("Se borra el premio " + nombresDeFiguras[k]);
-//                            //log(("Esta contenido en " + nombresDeFiguras[indiceDelMayor]);
                         }
+                    }
+                }
+            }
+        }
+        
+        //Borrar premios a partir del mayor hacia el menor
+        //Esto es necesario para igualar el criterio de la vista con el backend
+        //Este procedimiento pisa el anterior criterio
+        for (int i = 0; i < premiosPagados.length; i++) {
+            for (int j = 0; j < premiosPagados[0].length; j++) {
+                if (premiosPagados[i][j] > 0) {
+                    for (int k = j + 1; k < premiosPagados[0].length; k++) {
+                        premiosPagados[i][k] = 0;
                     }
                 }
             }
@@ -1132,6 +1143,14 @@ public class Juego {
 
     public void setTournament(double tournament) {
         this.tournament = tournament;
+    }
+    
+    public int ganadoEnCarton(int numero){
+        int result = 0;
+        for (int i = 0; i < this.premiosPagados[numero - 1].length; i++) {
+            result += this.premiosPagados[numero - 1][i];
+        }
+        return result;
     }
     
     public void jugar(boolean generarNuevoBolillero){

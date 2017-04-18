@@ -9,6 +9,8 @@ package com.protocol.b1.servidor;
 import com.bingo.enumeraciones.Denominacion;
 import com.bv20.core.BV20;
 import com.core.bingosimulador.Juego;
+import com.core.bv20.model.Controlador;
+import com.core.bv20.model.Estado;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.MalformedJsonException;
 import com.protocol.b1.configuracion.ConfiguracionMain;
@@ -55,6 +57,9 @@ public class Servidor {
     private final XSocketDataHandler manejador;
     private Juego bingo;
     
+    //Atributos auxiliares
+    private int puertoBilletero;
+    
     private Map<String,Object> parametros;
     //</editor-fold>
 
@@ -67,13 +72,12 @@ public class Servidor {
     }
     
     public Servidor(String[] args) throws IOException{
+        bingo = new Juego();
+        configurarJuego(bingo);
         cargarConfiguracionPorDefecto();
         obtenerParametros(args);
         manejador = new XSocketDataHandler();
         server = new Server((int) parametros.get("puerto"),manejador);
-        bingo = new Juego();
-        
-        configurarJuego(bingo);
     }
     //</editor-fold>
     
@@ -91,6 +95,11 @@ public class Servidor {
                             parametros.put("puerto", 8890);
                         }
                         break;
+                    case "-bv20":
+                        //Coloco el puerto para abrirlo luego
+                        puertoBilletero = Integer.valueOf(p[1]);
+                        billetero = crearBilletero();
+                        break;
                 }
                 
             }
@@ -98,6 +107,11 @@ public class Servidor {
     }
     
     public void iniciar() throws IOException, InterruptedException{
+        //Verificar si esta conectado el billetero
+        if (billetero != null && puertoBilletero > -1) {
+            billetero.abrirPuerto(puertoBilletero);
+            System.out.println("Billetero abierto y escuchando en el puerto " + puertoBilletero);
+        }
         server.start();
         
         Thread.currentThread().join(); //Bucle infinito
@@ -109,6 +123,10 @@ public class Servidor {
     }
 
     private void configurarJuego(Juego bingo) {
+        
+        //Deshabilitar cartones si no hay suficiente credito, calcular apuestas
+        bingo.setModoDeshabilitarPorFaltaDeCredito(true);
+        
         try {
             List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT * FROM juego");
             
@@ -124,10 +142,23 @@ public class Servidor {
                 boolean[] habilitados = new boolean[]{carton1Habilitado,carton2Habilitado,carton3Habilitado,carton4Habilitado};
                 
                 bingo.setCreditos(creditos);
+                
+                //La habilitacion siempre se debe realizar antes que la apuesta
                 bingo.setCartonesHabilitados(habilitados);
                 
                 //el metodo apostar depende de los cartones habilitados
                 bingo.apostar(apuestaTotal);
+                
+                //Colocar la denominacion actual
+                int denominacion = Double.valueOf(query.get(0).get("denominacion_factor").toString()).intValue();
+                switch(denominacion){
+                    case 20: 
+                        //Cinco centavos
+                        bingo.setDenominacion(Denominacion.CINCO_CENTAVOS); break;
+                    case 10:
+                        //Diez centavos
+                        bingo.setDenominacion(Denominacion.DIEZ_CENTAVOS); break;
+                }
             }
             
             System.out.println("Configuracion inicial");
@@ -137,6 +168,362 @@ public class Servidor {
         } catch (SQLException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    private BV20 crearBilletero() {
+        BV20 b = new BV20(new Controlador() {
+            @Override
+            public void canalInhibido(int numeroDeCanal) {
+                System.out.println("Canal inhibido para aceptar billetes: " + numeroDeCanal);
+            }
+
+            @Override
+            public void canalDesinhibido(int numeroDeCanal) {
+                System.out.println("Canal desinhibido para aceptar billetes: " + numeroDeCanal);
+            }
+
+            @Override
+            public void aceptadoEnCanal(int numeroDeCanal) {
+                System.out.println("Aceptado en canal " + numeroDeCanal);
+                switch(numeroDeCanal){
+                    case 0: 
+                    {
+                        try {
+                            //Verificar que la conexion este abierta
+                            if (server != null && server.isOpen()) {
+                                //Billete de $1 aceptado
+                                float creditos = 1 / bingo.getDenominacion().getValue();
+                                
+                                System.out.println("Billete recibido de $2");
+                                
+                                //Aumentar los creditos del juego
+                                bingo.setCreditos((int) (bingo.getCreditos() + creditos));
+                                
+                                //Persistir el cambio en la base de datos
+                                Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + bingo.getCreditos());
+                                
+                                Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$1 = cantidad_de_billetes_de_$1 + 1");
+                                
+                                manejador.enviar(new Paquete.PaqueteBuilder()
+                                        .codigo(30)
+                                        .estado("ok")
+                                        .dato("creditos", bingo.getCreditos())
+                                        .crear()
+                                        .aJSON()
+                                );
+                            }
+                        } catch (SQLException ex) {
+                            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IOException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    }
+break;
+                    case 1: 
+                    {
+                        try {
+                            //Verificar que la conexion este abierta
+                            if (server != null && server.isOpen()) {
+                                //Billete de $2 aceptado
+                                float creditos = 2 / bingo.getDenominacion().getValue();
+                                
+                                System.out.println("Billete recibido de $2");
+                                
+                                //Aumentar los creditos del juego
+                                bingo.setCreditos((int) (bingo.getCreditos() + creditos));
+                                
+                                //Persistir el cambio en la base de datos
+                                Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + bingo.getCreditos());
+                                
+                                Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$2 = cantidad_de_billetes_de_$2 + 1");
+                                
+                                manejador.enviar(new Paquete.PaqueteBuilder()
+                                        .codigo(30)
+                                        .estado("ok")
+                                        .dato("creditos", bingo.getCreditos())
+                                        .crear()
+                                        .aJSON()
+                                );
+                            }
+                        } catch (SQLException ex) {
+                            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IOException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    }
+                    break;
+                    case 2: 
+                    {
+                        try {
+                            //Verificar que la conexion este abierta
+                            if (server != null && server.isOpen()) {
+                                //Billete de $5 aceptado
+                                float creditos = 5 / bingo.getDenominacion().getValue();
+                                
+                                System.out.println("Billete recibido de $5");
+                                
+                                //Aumentar los creditos del juego
+                                bingo.setCreditos((int) (bingo.getCreditos() + creditos));
+                                
+                                //Persistir el cambio en la base de datos
+                                Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + bingo.getCreditos());
+                                
+                                Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$5 = cantidad_de_billetes_de_$5 + 1");
+                                
+                                manejador.enviar(new Paquete.PaqueteBuilder()
+                                        .codigo(30)
+                                        .estado("ok")
+                                        .dato("creditos", bingo.getCreditos())
+                                        .crear()
+                                        .aJSON()
+                                );
+                            }
+                        } catch (SQLException ex) {
+                            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IOException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    }
+                    break;
+                    case 3: 
+                    {
+                        try {
+                            //Verificar que la conexion este abierta
+                            if (server != null && server.isOpen()) {
+                                //Billete de $10 aceptado
+                                float creditos = 10 / bingo.getDenominacion().getValue();
+                                
+                                System.out.println("Billete recibido de $10");
+                                
+                                //Aumentar los creditos del juego
+                                bingo.setCreditos((int) (bingo.getCreditos() + creditos));
+                                
+                                //Persistir el cambio en la base de datos
+                                Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + bingo.getCreditos());
+                                
+                                Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$10 = cantidad_de_billetes_de_$10 + 1");
+                                
+                                manejador.enviar(new Paquete.PaqueteBuilder()
+                                        .codigo(30)
+                                        .estado("ok")
+                                        .dato("creditos", bingo.getCreditos())
+                                        .crear()
+                                        .aJSON()
+                                );
+                            }
+                        } catch (SQLException ex) {
+                            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IOException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    }
+                    break;
+                    case 4: 
+                    {
+                        try {
+                            //Verificar que la conexion este abierta
+                            if (server != null && server.isOpen()) {
+                                //Billete de $20 aceptado
+                                float creditos = 20 / bingo.getDenominacion().getValue();
+                                
+                                System.out.println("Billete recibido de $20");
+                                
+                                //Aumentar los creditos del juego
+                                bingo.setCreditos((int) (bingo.getCreditos() + creditos));
+                                
+                                //Persistir el cambio en la base de datos
+                                Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + bingo.getCreditos());
+                                
+                                Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$20 = cantidad_de_billetes_de_$20 + 1");
+                                
+                                manejador.enviar(new Paquete.PaqueteBuilder()
+                                        .codigo(30)
+                                        .estado("ok")
+                                        .dato("creditos", bingo.getCreditos())
+                                        .crear()
+                                        .aJSON()
+                                );
+                            }
+                        } catch (SQLException ex) {
+                            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IOException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    }
+                    break;
+                    case 5: 
+                    {
+                        try {
+                            //Verificar que la conexion este abierta
+                            if (server != null && server.isOpen()) {
+                                //Billete de $50 aceptado
+                                float creditos = 50 / bingo.getDenominacion().getValue();
+                                
+                                System.out.println("Billete recibido de $50");
+                                
+                                //Aumentar los creditos del juego
+                                bingo.setCreditos((int) (bingo.getCreditos() + creditos));
+                                
+                                //Persistir el cambio en la base de datos
+                                Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + bingo.getCreditos());
+                                
+                                Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$50 = cantidad_de_billetes_de_$50 + 1");
+                                
+                                manejador.enviar(new Paquete.PaqueteBuilder()
+                                        .codigo(30)
+                                        .estado("ok")
+                                        .dato("creditos", bingo.getCreditos())
+                                        .crear()
+                                        .aJSON()
+                                );
+                            }
+                        } catch (SQLException ex) {
+                            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IOException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    }
+                    break;
+                    case 6: 
+                    {
+                        try {
+                            //Verificar que la conexion este abierta
+                            if (server != null && server.isOpen()) {
+                                //Billete de $100 aceptado
+                                float creditos = 100 / bingo.getDenominacion().getValue();
+                                
+                                System.out.println("Billete recibido de $100");
+                                
+                                //Aumentar los creditos del juego
+                                bingo.setCreditos((int) (bingo.getCreditos() + creditos));
+                                
+                                //Persistir el cambio en la base de datos
+                                Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + bingo.getCreditos());
+                                
+                                Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$100 = cantidad_de_billetes_de_$100 + 1");
+                                
+                                manejador.enviar(new Paquete.PaqueteBuilder()
+                                        .codigo(30)
+                                        .estado("ok")
+                                        .dato("creditos", bingo.getCreditos())
+                                        .crear()
+                                        .aJSON()
+                                );
+                            }
+                        } catch (SQLException ex) {
+                            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IOException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    }
+                    break;
+                }
+            }
+
+            @Override
+            public void billeteNoReconocido() {
+                System.out.println("Billete no reconocido");
+            }
+
+            @Override
+            public void billeteroFuncionandoLento() {
+                
+            }
+
+            @Override
+            public void validadorOcupado() {
+                System.out.println("Validando...");
+            }
+
+            @Override
+            public void validadorDisponible() {
+                System.out.println("Billetero disponible");
+            }
+
+            @Override
+            public void billeteRechazadoFalso() {
+                
+            }
+
+            @Override
+            public void billeteroLlenoOatascado() {
+                
+            }
+
+            @Override
+            public void operacionAbortadaDuranteIngreso() {
+                
+            }
+
+            @Override
+            public void billeteroReiniciado() {
+                
+            }
+
+            @Override
+            public void depositoHabilitado() {
+                
+            }
+
+            @Override
+            public void ingresoDeshabilitado() {
+                
+            }
+
+            @Override
+            public void depositoDeshabilitado() {
+                
+            }
+
+            @Override
+            public void todosLosCanalesHabilitados() {
+                
+            }
+
+            @Override
+            public void errorDeComando() {
+                
+            }
+
+            @Override
+            public void manejadorPorDefectoPaquetesLongitud2(byte[] datos) {
+                
+            }
+
+            @Override
+            public void manejadorPorDefectoPaquetesLongitud1(byte dato) {
+                
+            }
+
+            @Override
+            public void manejadorEstado(Estado e) {
+                
+            }
+
+            @Override
+            public void firmware(int number) {
+                System.out.println("Firmware: " + number);
+                
+                try {
+                    Conexion.getInstancia().actualizar("UPDATE billetero SET firmware = " + number);
+                } catch (SQLException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            @Override
+            public void dataSet(String dataset) {
+                System.out.println("Dataset: " + dataset);
+                
+                try {
+                    Conexion.getInstancia().actualizar("UPDATE billetero SET dataset = " + dataset);
+                } catch (SQLException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
+        
+        return b;
     }
 
     // <editor-fold defaultstate="collapsed" desc="Getters y Setters">
@@ -176,6 +563,7 @@ public class Servidor {
                 case 22: response = this.denominacionActual(p); break;
                 case 24: response = this.generarBolillero(); break;
                 case 25: response = this.colocarCreditos(p); break;
+                case 26: response = this.pagar(); break;
                 case 50 : response = this.jugar(); break;
                 case 121: response = this.bonus(); break;
                 case 122: response = this.premioObtenidoEnBonus(p); break;
@@ -302,8 +690,7 @@ public class Servidor {
             try {
                 String query = "UPDATE juego SET comenzo = '" + getCurrentTimeStamp() + "'"
                                 + ", ganado = 0, bolas_visibles = '" + ArrayUtils.toString(bingo.getBolasVisibles()) + "'"
-                        + ", bolas_extras = '" + ArrayUtils.toString(bingo.getBolasExtra()) + "'"
-                        + ", liberar_bolas_extra = " + bingo.liberarBolasExtra();
+                        + ", bolas_extras = '" + ArrayUtils.toString(bingo.getBolasExtra()) + "'";
                 System.out.println(query);
                 Conexion.getInstancia().actualizar(query);
             } catch (SQLException ex) {
@@ -320,7 +707,17 @@ public class Servidor {
             }
             
             try {
-                Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + bingo.getCreditos());
+                Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + bingo.getCreditos() + 
+                        ", liberar_bolas_extra = " + bingo.liberarBolasExtra()
+                        + ", ganado_carton1 = " + bingo.ganadoEnCarton(1) + 
+                        ", ganado_carton2 = " + bingo.ganadoEnCarton(2) + 
+                        ", ganado_carton3 = " + bingo.ganadoEnCarton(3) + 
+                        ", ganado_carton4 = " + bingo.ganadoEnCarton(4) +
+                        ", apuesta_total = " + bingo.apuestaTotal() + 
+                        ", carton2_habilitado = " + bingo.getCartonesHabilitados()[1] +
+                        ", carton3_habilitado = " + bingo.getCartonesHabilitados()[2] +
+                        ", carton4_habilitado = " + bingo.getCartonesHabilitados()[3]
+                );
                 Conexion.getInstancia().actualizar("UPDATE juego SET ganado = " + bingo.ganancias());
                 Conexion.getInstancia().actualizar("UPDATE juego SET termino = '" + getCurrentTimeStamp().toString() + "'");
             } catch (SQLException ex) {
@@ -335,6 +732,7 @@ public class Servidor {
                     .dato("premios", bingo.getPremiosPagados())
                     .dato("apostado", bingo.apuestaTotal())
                     .dato("apuestas", bingo.getApostado())
+                    .dato("cartonesHabilitados", bingo.getCartonesHabilitados())
                     .dato("bonus", bingo.getBonus())
                     .crear();
             
@@ -515,6 +913,7 @@ public class Servidor {
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(10)
                     .estado("ok")
+                    .dato("b1Habilitado", true) //Necesario para decirle a la vista que escuche
                     .dato("credito", bingo.getCreditos())
                     .dato("apostado", bingo.apuestaTotal())
                     .dato("apuestaIndividual", bingo.apuestaIndividual())
@@ -522,6 +921,10 @@ public class Servidor {
                     .dato("carton2_habilitado", carton2_habilitado)
                     .dato("carton3_habilitado", carton3_habilitado)
                     .dato("carton4_habilitado", carton4_habilitado)
+                    .dato("denominacion", bingo.getDenominacion().name())
+                    .dato("figuras", bingo.getFigurasDePago())
+                    .dato("factoresDePago", bingo.factoresDePago())
+                    .dato("ganado", bingo.ganancias())
                     .dato("cartones", c)
                     .crear();
             
@@ -843,6 +1246,32 @@ public class Servidor {
                 return response;
             }
             return null;
+        }
+
+        private Paquete pagar() {
+            
+            double pagado = 0;
+            
+            try {
+                List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT dinero FROM juego");
+                
+                if (query != null && !query.isEmpty()) {
+                    pagado = Double.parseDouble(query.get(0).get("dinero").toString());
+                    
+                    //Colocar en cero los acumuladores
+                    Conexion.getInstancia().actualizar("UPDATE juego SET creditos = 0, ganado = 0, liberar_bolas_extra = FALSE");
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(26)
+                    .estado("ok")
+                    .dato("pagado", pagado)
+                    .crear();
+            
+            return response;
         }
         
     }
