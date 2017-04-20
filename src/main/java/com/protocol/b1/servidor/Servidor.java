@@ -732,6 +732,7 @@ break;
                     .dato("premios", bingo.getPremiosPagados())
                     .dato("apostado", bingo.apuestaTotal())
                     .dato("apuestas", bingo.getApostado())
+                    .dato("creditos",bingo.getCreditos())
                     .dato("cartonesHabilitados", bingo.getCartonesHabilitados())
                     .dato("bonus", bingo.getBonus())
                     .crear();
@@ -845,6 +846,8 @@ break;
                     .dato("numero",Integer.valueOf(p.getDatos().get("numero").toString()))
                     .dato("apuestaTotal", bingo.apuestaTotal())
                     .dato("apuestaIndividual", bingo.apuestaIndividual())
+                    .dato("creditos", bingo.getCreditos())
+                    .dato("cartonesHabilitados", bingo.getCartonesHabilitados())
                     .crear();
 
                 return response;
