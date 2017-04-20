@@ -20,6 +20,20 @@ import java.util.List;
  * StackOverflow: http://stackoverflow.com/users/5079517/gonza?tab=profile
  */
 public class FiguraPagoFactoria {
+
+    private static FiguraPago diamante(int factorGanancia) {
+        String name = new Object(){}.getClass().getEnclosingMethod().getName();
+        
+        FiguraPago diamante = new FiguraPago.FiguraPagoBuilder()
+                .factorDeGanancia(factorGanancia)
+                .nombre(name + "1")
+                .casilla(0, 2)
+                .casilla(1, 1)
+                .casilla(1, 3)
+                .casilla(2, 2)
+                .crear();
+        return diamante;
+    }
     
     private FiguraPagoFactoria(){} //Constructor private. Singleton parcial
     
@@ -462,8 +476,9 @@ public class FiguraPagoFactoria {
                 .agregar(FiguraPagoFactoria.piramideComun(8))
                 .agregar(FiguraPagoFactoria.vInvertida(3))
                 .agregar(FiguraPagoFactoria.v(3))
-                .agregar(FiguraPagoFactoria.consuelo1(1))
-                .agregar(FiguraPagoFactoria.consuelo2(1))
+                .agregar(FiguraPagoFactoria.diamante(1))
+//                .agregar(FiguraPagoFactoria.consuelo1(1))
+//                .agregar(FiguraPagoFactoria.consuelo2(1))
                 ;
         
         //Cargar los cartones de 1 linea
