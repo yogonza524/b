@@ -564,7 +564,10 @@ break;
                 case 24: response = this.generarBolillero(); break;
                 case 25: response = this.colocarCreditos(p); break;
                 case 26: response = this.pagar(); break;
-                case 50 : response = this.jugar(); break;
+                case 50: response = this.jugar(); break;
+                case 60: response = this.bolasExtraSeleccionadas(); break;
+                case 61: response = this.seleccionarBolaExtra(p); break;
+                case 62: response = this.costoBolaExtra(); break;
                 case 121: response = this.bonus(); break;
                 case 122: response = this.premioObtenidoEnBonus(p); break;
                 default: response = noImplementadoAun(p);
@@ -730,6 +733,7 @@ break;
                     .dato("bolasVisibles", bingo.getBolasVisibles())
                     .dato("ganado", bingo.ganancias())
                     .dato("premios", bingo.getPremiosPagados())
+                    .dato("premiosPorSalir", bingo.getPremiosPorSalir())
                     .dato("apostado", bingo.apuestaTotal())
                     .dato("apuestas", bingo.getApostado())
                     .dato("creditos",bingo.getCreditos())
@@ -1254,6 +1258,7 @@ break;
         private Paquete pagar() {
             
             double pagado = 0;
+            String leyenda = "";
             
             try {
                 List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT dinero FROM juego");
@@ -1264,6 +1269,19 @@ break;
                     //Colocar en cero los acumuladores
                     Conexion.getInstancia().actualizar("UPDATE juego SET creditos = 0, ganado = 0, liberar_bolas_extra = FALSE");
                 }
+                
+                //Mandar la leyenda de contadores
+                
+                
+                query = Conexion.getInstancia().consultar("SELECT * from contadores");
+                
+                if (query != null && !query.isEmpty()) {
+                    leyenda = "TOTAL $1: " + query.get(0).get("cantidad_de_billetes_de_$1") + "($" + 
+                            sumar(1, Integer.valueOf(query.get(0).get("cantidad_de_billetes_de_$1").toString())) + ")\n";
+                    
+                    leyenda += "Pagar: $" + pagado;
+                }
+                
             } catch (SQLException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1272,9 +1290,62 @@ break;
                     .codigo(26)
                     .estado("ok")
                     .dato("pagado", pagado)
+                    .dato("leyenda", leyenda)
                     .crear();
             
             return response;
+        }
+
+        private Paquete bolasExtraSeleccionadas() {
+            Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(60)
+                    .estado("ok")
+                    .dato("bolasExtraSeleccionadas", bingo.getBolasExtraSeleccionadas())
+                    .crear();
+            return response;
+        }
+
+        private Paquete seleccionarBolaExtra(Paquete p) {
+            if (p != null && p.getDatos() != null && p.getDatos().get("indice") != null) {
+                
+                //Tomar el indice y seleccionar una bola extra
+                int indice = Integer.valueOf(p.getDatos().get("indice").toString());
+                
+                String leyenda = bingo.seleccionarBolaExtra(indice);
+                
+                Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(60)
+                    .estado("ok")
+                    .dato("bolasVisibles", bingo.getBolasVisibles())
+                    .dato("leyenda", leyenda)
+                    .crear();
+                return response;
+            }
+            return new Paquete.PaqueteBuilder()
+                    .codigo(60)
+                    .estado("error")
+                    .dato("desc", "Faltan parametros")
+                    .dato("paqueteRecibido", p == null? "Paquete vacio" : "Paquete recibido correctamente (no nulo)")
+                    .dato("parametrosRecibidos", p != null && p.getDatos() != null? p.getDatos() : "No hay datos")
+                    .crear();
+        }
+
+        private Paquete costoBolaExtra() {
+            Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(62)
+                    .estado("ok")
+                    .dato("costoBolaExtra", bingo.costoBolaExtra())
+                    .crear();
+            
+            return response;
+        }
+
+        private String sumar(int valor, Integer frecuencia) {
+            int cont = 0;
+            for (int i = 0; i < frecuencia; i++) {
+                cont += valor;
+            }
+            return cont + "";
         }
         
     }

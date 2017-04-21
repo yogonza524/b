@@ -713,7 +713,17 @@ public class Juego {
                 }
             }
         }
-        //log(("Se buscaron todos los cartones por salir");
+        
+        //Borrar aquellos premios por salir menores al mayor
+        for (int i = 0; i < Juego.CARTONES; i++) {
+            for (int j = 0; j < this.premiosPorSalir[0].length; j++) {
+                if (premiosPorSalir[i][j] > 0) {
+                    for (int k = j + 1; k < this.premiosPorSalir[0].length; k++) {
+                        this.premiosPorSalir[i][k] = 0;
+                    }
+                }
+            }
+        }
     }
     
     private void buscarPremios(int[] bolilleroVisible, int[][][] cartones, FaseDeBusqueda fase){
@@ -1679,5 +1689,71 @@ public class Juego {
 //    public Map<Integer, List<Integer>> verPremiosPorCarton(){
 //        Map
 //    }
+
+    public String seleccionarBolaExtra(int indice) {
+        String result = "";
+        if (indice > -1 && indice < 10) {
+            //Indice valido, seleccionar la bola extra y buscar los nuevos premios
+            if (!bolasExtraSeleccionadas[indice]) {
+                
+                //Cambio la bandera de la bola extra seleccionada
+                bolasExtraSeleccionadas[indice] = true;
+                
+                //Correcto, realizar la busqueda de nuevos premios y premios por salir, 
+                //descontar el costo de la bola extra actual
+                int costoBolaExtra = this.costoBolaExtra();
+                
+                //Agregar la bola extra a la lista de bolas visibles
+                this.bolasVisibles = (int[])ArrayUtils.add(this.bolasVisibles, this.bolasExtra[indice]);
+                
+                //Coloco en 0 el valor de la bola extra
+                this.bolasExtra[indice] = 0;
+                
+                //Descuento el valor de la bola extra del credito actual
+                this.creditos -= costoBolaExtra;
+                
+                //Busco los nuevos premios
+                buscarPremios(FaseDeBusqueda.PRIMERA);
+                
+                //Verificar si se obtuvo un nuevo premio
+                //La condicion de obtencion de nuevo premio gracias a una bola
+                //extra es que luego de buscar los premios con la bola extra
+                //en el conjunto de bolas visibles
+                //el vector de premios y premios por salir tendran un elemento
+                //en comun, esto indica que el premio por salir salió y se encuentra
+                //computado en el vector de premios, se debe sumar al credito ganado
+                //y luego buscar los nuevos premios por salir
+                for (int i = 0; i < Juego.CARTONES; i++) {
+                    for (int j = 0; j < premiosPagados.length; j++) {
+                        if (premiosPagados[i][j] == premiosPorSalir[i][j]) {
+                            //Salio el premio gracias a la bola extra comprada
+                            creditos += premiosPagados[i][j];
+                            
+                            //Coloco el mensaje correspondiente
+                            result = "Premio obtenido gracias a la bola extra " + bolasVisibles[bolasVisibles.length - 1];
+                            
+                            //Parar la iteracion, solo un premio puede formarse
+                            //ya que las bolas son unicas e irrepetibles
+                            break;
+                        }
+                    }
+                }
+                
+                //Busco los premios por salir
+                buscarPremiosPorSalir(true);
+                
+                if (result.isEmpty()) {
+                    result = "No se obtuvieron premios al elegir la bola " + bolasVisibles[bolasVisibles.length - 1];
+                }
+            }
+            else{
+                result = "Indice ya seleccionado, no se realizaran operaciones. Abortado";
+            }
+        }
+        else{
+            result = "Indice fuera de rango, valores validos: de 0 a 9";
+        }
+        return result;
+    }
     
 }
