@@ -1556,7 +1556,7 @@ public class Juego {
             habilitar(0); //Primer carton siempre habilitado
             
             if (apuestaTotal() == 0) {
-                apostado[0] = 1;
+                apostado[0] = creditos > 0 ? creditos : apuestasNuevas > 0 ? apuestasNuevas - 1 : 1;
             }
             
             //log(("Cartones luego de deshabilitar: " + ArrayUtils.toString(cartonesHabilitados));
