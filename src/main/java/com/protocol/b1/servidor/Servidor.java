@@ -143,6 +143,15 @@ public class Servidor {
                 
                 bingo.setCreditos(creditos);
                 
+                //Verificar si se puede habilitar dependiendo de la cantidad de creditos
+                if (creditos == 0) {
+                    Conexion.getInstancia().actualizar("UPDATE juego SET carton2_habilitado = false, carton3_habilitado = false, carton4_habilitado = false, apuesta_total = 1");
+                    habilitados[1] = false;
+                    habilitados[2] = false;
+                    habilitados[3] = false;
+                    apuestaTotal = 1;
+                }
+                
                 //La habilitacion siempre se debe realizar antes que la apuesta
                 bingo.setCartonesHabilitados(habilitados);
                 
@@ -153,7 +162,7 @@ public class Servidor {
                 int denominacion = Double.valueOf(query.get(0).get("denominacion_factor").toString()).intValue();
                 switch(denominacion){
                     case 20: 
-                        //Cinco centavos
+                        //Cinco centavos18
                         bingo.setDenominacion(Denominacion.CINCO_CENTAVOS); break;
                     case 10:
                         //Diez centavos
@@ -845,7 +854,7 @@ break;
                 
                 Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(18)
-                    .estado("ok")
+                    .estado(success? "ok" : "error")
                     .dato("desc", success ? "Habilitar carton " + p.getDatos().get("numero") + " habilitado" : "No se pudo habilitar")
                     .dato("numero",Integer.valueOf(p.getDatos().get("numero").toString()))
                     .dato("apuestaTotal", bingo.apuestaTotal())
@@ -1065,11 +1074,30 @@ break;
         }
 
         private Paquete cobrar() throws IOException {
+            
+            String leyenda = "";
+            
+            try {
+                //Mandar la leyenda de contadores
+                
+                List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT * from contadores");
+                
+                if (query != null && !query.isEmpty()) {
+                    leyenda = "TOTAL $1: " + query.get(0).get("cantidad_de_billetes_de_$1") + "($" + 
+                            sumar(1, Integer.valueOf(query.get(0).get("cantidad_de_billetes_de_$1").toString())) + ")\n";
+                    
+                }
+                
+            } catch (SQLException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
             Paquete respuesta = new Paquete.PaqueteBuilder()
                         .codigo(16)
                         .estado("ok")
                         .dato("desc", "Pago manual activado, llamando al krupier")
                         .dato("credito", bingo.getCreditos())
+                        .dato("leyendaPagoManual", leyenda)
                         .dato("pagar", bingo.getCreditos())
                         .crear();
             
@@ -1196,7 +1224,7 @@ break;
                 else{
                     response = new Paquete.PaqueteBuilder()
                     .codigo(21)
-                    .estado("fail")
+                    .estado("error")
                     .dato("desc", "Carton " + p.getDatos().get("numero") + " No se pudo deshabilitar")
                     .crear();
                 }
@@ -1258,7 +1286,7 @@ break;
         private Paquete pagar() {
             
             double pagado = 0;
-            String leyenda = "";
+            String leyendaPagoManual = "";
             
             try {
                 List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT dinero FROM juego");
@@ -1276,10 +1304,23 @@ break;
                 query = Conexion.getInstancia().consultar("SELECT * from contadores");
                 
                 if (query != null && !query.isEmpty()) {
-                    leyenda = "TOTAL $1: " + query.get(0).get("cantidad_de_billetes_de_$1") + "($" + 
-                            sumar(1, Integer.valueOf(query.get(0).get("cantidad_de_billetes_de_$1").toString())) + ")\n";
+                    leyendaPagoManual = "TOTAL $1: " + query.get(0).get("cantidad_de_billetes_de_$1") + "($" + 
+                            sumar(1, Integer.valueOf(query.get(0).get("cantidad_de_billetes_de_$1").toString())) + ")\n"
+                            + "TOTAL $2: "  + query.get(0).get("cantidad_de_billetes_de_$2") + "($" + 
+                            sumar(2, Integer.valueOf(query.get(0).get("cantidad_de_billetes_de_$2").toString())) + ")\n"
+                            + "TOTAL $5: "  + query.get(0).get("cantidad_de_billetes_de_$5") + "($" + 
+                            sumar(5, Integer.valueOf(query.get(0).get("cantidad_de_billetes_de_$5").toString())) + ")\n"
+                            + "TOTAL $10: "  + query.get(0).get("cantidad_de_billetes_de_$10") + "($" + 
+                            sumar(10, Integer.valueOf(query.get(0).get("cantidad_de_billetes_de_$10").toString())) + ")\n"
+                            + "TOTAL $20: "  + query.get(0).get("cantidad_de_billetes_de_$20") + "($" + 
+                            sumar(20, Integer.valueOf(query.get(0).get("cantidad_de_billetes_de_$20").toString())) + ")\n"
+                            + "TOTAL $50: "  + query.get(0).get("cantidad_de_billetes_de_$50") + "($" + 
+                            sumar(50, Integer.valueOf(query.get(0).get("cantidad_de_billetes_de_$50").toString())) + ")\n"
+                            + "TOTAL $100: "  + query.get(0).get("cantidad_de_billetes_de_$100") + "($" + 
+                            sumar(100, Integer.valueOf(query.get(0).get("cantidad_de_billetes_de_$100").toString())) + ")\n"
+                            ;
                     
-                    leyenda += "Pagar: $" + pagado;
+                    leyendaPagoManual += "Pagar: $" + pagado;
                 }
                 
             } catch (SQLException ex) {
@@ -1290,7 +1331,7 @@ break;
                     .codigo(26)
                     .estado("ok")
                     .dato("pagado", pagado)
-                    .dato("leyenda", leyenda)
+                    .dato("leyendaPagoManual", leyendaPagoManual)
                     .crear();
             
             return response;
