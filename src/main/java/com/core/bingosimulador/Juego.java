@@ -17,6 +17,7 @@ import com.persistencia.ConfiguracionPersistencia;
 import com.persistencia.PersistenciaJson;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -365,6 +366,22 @@ public class Juego {
 
     public boolean isUtilizarBolasExtraGratis() {
         return utilizarBolasExtraGratis;
+    }
+
+    public boolean isUtilizarPremiosFijosBonus() {
+        return utilizarPremiosFijosBonus;
+    }
+
+    public void setUtilizarPremiosFijosBonus(boolean utilizarPremiosFijosBonus) {
+        this.utilizarPremiosFijosBonus = utilizarPremiosFijosBonus;
+    }
+
+    public boolean isUtilizarPremiosVariablesBonus() {
+        return utilizarPremiosVariablesBonus;
+    }
+
+    public void setUtilizarPremiosVariablesBonus(boolean utilizarPremiosVariablesBonus) {
+        this.utilizarPremiosVariablesBonus = utilizarPremiosVariablesBonus;
     }
 
     public void setUtilizarBolasExtraGratis(boolean utilizarBolasExtraGratis) {
@@ -1131,8 +1148,48 @@ public class Juego {
         this.premiosDelBonusSeleccionados = premiosDelBonusSeleccionados;
     }
 
+    public int getCantidadTotalDePremiosEnBonus() {
+        return cantidadTotalDePremiosEnBonus;
+    }
+
+    public void setCantidadTotalDePremiosEnBonus(int cantidadTotalDePremiosEnBonus) {
+        this.cantidadTotalDePremiosEnBonus = cantidadTotalDePremiosEnBonus;
+    }
+
+    public int getCantidadDePremiosBonusFijo() {
+        return cantidadDePremiosBonusFijo;
+    }
+
+    public void setCantidadDePremiosBonusFijo(int cantidadDePremiosBonusFijo) {
+        this.cantidadDePremiosBonusFijo = cantidadDePremiosBonusFijo;
+    }
+
+    public int getCantidadDePremiosBonusVariable() {
+        return cantidadDePremiosBonusVariable;
+    }
+
+    public void setCantidadDePremiosBonusVariable(int cantidadDePremiosBonusVariable) {
+        this.cantidadDePremiosBonusVariable = cantidadDePremiosBonusVariable;
+    }
+
     public int getTotalGanadoEnBonus() {
         return totalGanadoEnBonus;
+    }
+
+    public Map<Integer, Integer> getPremiosFijosBonus() {
+        return premiosFijosBonus;
+    }
+
+    public void setPremiosFijosBonus(Map<Integer, Integer> premiosFijosBonus) {
+        this.premiosFijosBonus = premiosFijosBonus;
+    }
+
+    public Map<Integer, Integer> getPremiosVariablesBonus() {
+        return premiosVariablesBonus;
+    }
+
+    public void setPremiosVariablesBonus(Map<Integer, Integer> premiosVariablesBonus) {
+        this.premiosVariablesBonus = premiosVariablesBonus;
     }
 
     public int getCantidadDeVecesQueSeObtuvoElBonus() {
@@ -1170,7 +1227,9 @@ public class Juego {
         }
         
         //Genero un nuevo Bonus
-        this.generarBonus();
+        if (modoSimulacion) {
+            this.generarBonus();
+        }
         
         if (this.apuestaTotal() > this.creditos) {
             log("La apuesta total de " + this.apuestaTotal() + " supera los "
@@ -1420,6 +1479,8 @@ public class Juego {
     }
 
     public void generarBonus(){
+        this.bonus = new Integer[utilizarPremiosFijosBonus? this.cantidadDePremiosBonusFijo : this.cantidadDePremiosBonusVariable];
+        
         //Cargo los valores aleatorios
         if (utilizarPremiosVariablesBonus) {
             //Genero los premios en funcion de lo apostado
@@ -1428,6 +1489,45 @@ public class Juego {
             Integer[] variables = Matematica.crearArregloAleatorioConCeros(premiosVariablesBonus, cantidadTotalDePremiosEnBonus);
             for (int i = 0; i < cantidadTotalDePremiosEnBonus; i++) {
                 bonus[i] = apuesta * variables[i];   
+            }
+//            System.out.println("Premios del bonus: " + ArrayUtils.toString(bonus));
+        }
+        else{
+            if (utilizarPremiosFijosBonus) {
+                bonus = Matematica.crearArregloAleatorioConCeros(premiosFijosBonus, cantidadTotalDePremiosEnBonus);
+//                System.out.println("Premios del bonus: " + ArrayUtils.toString(bonus));
+            }
+            else{
+                //Por defecto cargo el bonus fijo
+                bonus = Matematica.crearArregloAleatorioConCeros(premiosFijosBonus, cantidadTotalDePremiosEnBonus);
+//                System.out.println("Premios del bonus: " + ArrayUtils.toString(bonus));
+            }
+        }
+    }
+    
+    public void generarBonusB1(){
+        this.bonus = new Integer[utilizarPremiosFijosBonus? this.cantidadDePremiosBonusFijo : this.cantidadDePremiosBonusVariable];
+        
+        //Cargo los valores aleatorios
+        if (utilizarPremiosVariablesBonus) {
+            //Genero los premios en funcion de lo apostado
+            int apuesta = this.apuestaTotal();
+            
+            List<Integer> variables = new ArrayList<>();
+            for(Map.Entry<Integer,Integer> entry : this.premiosVariablesBonus.entrySet()){
+                for (int i = 0; i < entry.getKey(); i++) {
+                    variables.add(entry.getValue());
+                }
+            }
+            
+            //Mover aleatoriamente los elementos
+            Integer[] valores = Arrays.copyOfRange(variables.toArray(), 0, variables.toArray().length, Integer[].class);
+            Matematica.revolver(valores);
+            
+            this.bonus = new Integer[variables.size() - RNG.getInstance().pickInt(variables.size() - 1)];
+            
+            for (int i = 0; i < bonus.length; i++) {
+                bonus[i] = apuesta * valores[i];   
             }
 //            System.out.println("Premios del bonus: " + ArrayUtils.toString(bonus));
         }

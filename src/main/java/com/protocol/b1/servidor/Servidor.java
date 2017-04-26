@@ -127,6 +127,24 @@ public class Servidor {
         //Deshabilitar cartones si no hay suficiente credito, calcular apuestas
         bingo.setModoDeshabilitarPorFaltaDeCredito(true);
         
+        //Bonus variable
+        bingo.setUtilizarPremiosVariablesBonus(true);
+        
+        //Utilizar 16 items en el bonus
+        bingo.setCantidadDePremiosBonusFijo(16);
+        bingo.setCantidadDePremiosBonusVariable(16);
+        bingo.setCantidadTotalDePremiosEnBonus(4);
+        
+        //Colocar los premios variables
+        Map<Integer,Integer> premiosBonusVariable = new HashMap<>();
+        premiosBonusVariable.put(5, 3);
+        premiosBonusVariable.put(3, 4);
+        
+        bingo.setPremiosVariablesBonus(premiosBonusVariable);
+        
+        //TODO:Colocar los premios fijos
+        
+        
         try {
             List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT * FROM juego");
             
@@ -579,6 +597,7 @@ break;
                 case 62: response = this.costoBolaExtra(); break;
                 case 121: response = this.bonus(); break;
                 case 122: response = this.premioObtenidoEnBonus(p); break;
+                case 123: response = this.informarGananciaEnBonus(p); break;
                 default: response = noImplementadoAun(p);
             }
             
@@ -591,6 +610,7 @@ break;
             enviar(response.aJSON());
             
         } catch(Exception ex){
+//            ex.printStackTrace();
             this.tratarDeEnviarExcepcion(ex);
         }
         
@@ -603,6 +623,8 @@ break;
         try {
             synchronized(SESSIONS){
                 added = SESSIONS.add(inbc);
+                bingo = new Juego();
+                configurarJuego(bingo);
             }
             } catch (BufferUnderflowException e) {
                 Logger.getLogger(XSocketDataHandler.class.getName()).log(Level.SEVERE, null, e);
@@ -1178,6 +1200,7 @@ break;
 
         private Paquete generarBolillero() {
             bingo.generarBolillero();
+            bingo.generarBonusB1();
             
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(24)
@@ -1185,6 +1208,7 @@ break;
                     .dato("bolasVisibles", bingo.getBolasVisibles())
                     .dato("bolasExtra", bingo.getBolasExtra())
                     .dato("liberarBolasExtra", bingo.liberarBolasExtra())
+                    .dato("bonus", bingo.getBonus())
                     .dato("desc", "Bolillero nuevo generado")
                     .crear();
             
@@ -1387,6 +1411,33 @@ break;
                 cont += valor;
             }
             return cont + "";
+        }
+
+        private Paquete informarGananciaEnBonus(Paquete p) {
+            boolean recibido = p!= null && p.getDatos() != null && p.getDatos().get("ganadoEnBonus") != null;
+            System.out.println("Premios del bonus" + ArrayUtils.toString(bingo.getBonus()));
+            
+            if (recibido) {
+                //El juego envió correctamente las ganancias del Bonus, persistirlas y actualizar los creditos
+                Integer ganadoEnBonus = Integer.valueOf(p.getDatos().get("ganadoEnBonus").toString());
+                bingo.setCreditos(bingo.getCreditos() + ganadoEnBonus);
+                
+                try {
+                    Conexion.getInstancia().actualizar("UPDATE juego SET creditos = "  + bingo.getCreditos() +
+                            ", ganado = ganado + " + ganadoEnBonus + ", ganado_en_bonus = " + ganadoEnBonus
+                    );
+                } catch (SQLException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+            Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(123)
+                    .estado(recibido? "ok" : "error")
+                    .dato("desc", recibido ? "Recibido en bonus "  + p.getDatos().get("ganadoEnBonus") + " creditos"  : "Faltan parametros, abortando")
+                    .crear();
+            
+            return response;
         }
         
     }
