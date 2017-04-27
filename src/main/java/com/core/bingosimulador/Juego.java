@@ -84,6 +84,8 @@ public class Juego {
     private int ganadoEnBolasExtra;
     private int apuestaCompleta;
     
+    //Variable auxiliar para elegir el indice de la bola extra
+    private int indiceBolaExtra;
     //Creditos
     private int creditos;
     private double dinero;
@@ -713,7 +715,10 @@ public class Juego {
                 int[][] casillasBinarias = Matematica.figuraBinaria(bolasVisibles, cartones[i]);
                 
                 //Verifico que le falte una casilla y ademas sea mayor al umbral
-                if (cartonesHabilitados[i] && Matematica.leFaltaUno(casillasBinarias, figurasDePago[j])) {
+                //y ademas el premio que vaya a salir sea mayor a uno que ya salió
+                if (cartonesHabilitados[i] && Matematica.leFaltaUno(casillasBinarias, figurasDePago[j])
+                        && elPremioPorSalirEsMayorQueCualquierPremioQueYaSalio(this.premiosSegunApostado()[j], i)
+                        ) {
                     
                     //Utilizar umbral?
                     if (utilizarUmbral) { //Si, utilizar el umbral
@@ -740,6 +745,11 @@ public class Juego {
                     }
                 }
             }
+        }
+        System.out.println("Resultado de la busqueda de premios por salir");
+        
+        for (int i = 0; i < Juego.CARTONES; i++) {
+            System.out.println(i + ": " + ArrayUtils.toString(premiosPorSalir[i]));
         }
     }
     
@@ -1326,7 +1336,7 @@ public class Juego {
         cantidadDeVecesQueSeObtuvoElBonus = 0;
         salioElBonusAlInicioDelJuego = false;
         inicioDelCicloDeJuego = false;
-        
+        indiceBolaExtra = 0;
     }
 
     private void borrarSeleccionDeBolasExtra() {
@@ -1790,30 +1800,50 @@ public class Juego {
 //        Map
 //    }
 
+    public String seleccionarBolaExtra() {
+        return seleccionarBolaExtra(indiceBolaExtra++);
+    }
+    
     public String seleccionarBolaExtra(int indice) {
         String result = "";
         if (indice > -1 && indice < 10) {
+            System.out.println("Metodo seleccionarBolaExtra");
             //Indice valido, seleccionar la bola extra y buscar los nuevos premios
             if (!bolasExtraSeleccionadas[indice]) {
                 
                 //Cambio la bandera de la bola extra seleccionada
                 bolasExtraSeleccionadas[indice] = true;
                 
+                System.out.println("Indice: " + indice);
+                
                 //Correcto, realizar la busqueda de nuevos premios y premios por salir, 
                 //descontar el costo de la bola extra actual
                 int costoBolaExtra = this.costoBolaExtra();
                 
+                System.out.println("Costo bola extra: " + costoBolaExtra);
+                
                 //Agregar la bola extra a la lista de bolas visibles
                 this.bolasVisibles = (int[])ArrayUtils.add(this.bolasVisibles, this.bolasExtra[indice]);
+                
+                System.out.println("Bolas visibles: " + ArrayUtils.toString(this.bolasVisibles));
                 
                 //Coloco en 0 el valor de la bola extra
                 this.bolasExtra[indice] = 0;
                 
+                System.out.println("Bolas extra: " + ArrayUtils.toString(this.bolasExtra));
+                
                 //Descuento el valor de la bola extra del credito actual
                 this.creditos -= costoBolaExtra;
                 
+                System.out.println("Creditos: " + creditos);
+                
                 //Busco los nuevos premios
                 buscarPremios(FaseDeBusqueda.PRIMERA);
+                
+                //Muestro los premios actuales
+                for (int i = 0; i < Juego.CARTONES; i++) {
+                    System.out.println(i + ": " + ArrayUtils.toString(this.premiosPagados[i]));
+                }
                 
                 //Verificar si se obtuvo un nuevo premio
                 //La condicion de obtencion de nuevo premio gracias a una bola
@@ -1825,12 +1855,24 @@ public class Juego {
                 //y luego buscar los nuevos premios por salir
                 for (int i = 0; i < Juego.CARTONES; i++) {
                     for (int j = 0; j < premiosPagados.length; j++) {
-                        if (premiosPagados[i][j] == premiosPorSalir[i][j]) {
+                        if (premiosPagados[i][j] > 0 && 
+                            premiosPorSalir[i][j] > 0 &&
+                            premiosPagados[i][j] == premiosPorSalir[i][j]) {
                             //Salio el premio gracias a la bola extra comprada
                             creditos += premiosPagados[i][j];
                             
                             //Coloco el mensaje correspondiente
                             result = "Premio obtenido gracias a la bola extra " + bolasVisibles[bolasVisibles.length - 1];
+                            
+                            System.out.println("Premio obtenido gracias a la bola extra: " + this.nombresDeFiguras[j]
+                                + " en carton: " + (i + 1)
+                                    );
+                            
+                            System.out.println("Premios actuales");
+                            
+                            for (int k = 0; k < this.premiosPagados.length; k++) {
+                                System.out.println(k + ": " + ArrayUtils.toString(this.premiosPagados[k]));
+                            }
                             
                             //Parar la iteracion, solo un premio puede formarse
                             //ya que las bolas son unicas e irrepetibles
@@ -1840,7 +1882,7 @@ public class Juego {
                 }
                 
                 //Busco los premios por salir
-                buscarPremiosPorSalir(true);
+                buscarPremiosPorSalir(utilizarUmbralParaLiberarBolasExtra);
                 
                 if (result.isEmpty()) {
                     result = "No se obtuvieron premios al elegir la bola " + bolasVisibles[bolasVisibles.length - 1];
@@ -1852,6 +1894,21 @@ public class Juego {
         }
         else{
             result = "Indice fuera de rango, valores validos: de 0 a 9";
+        }
+        return result;
+    }
+
+    public int[] getBolas() {
+        return ArrayUtils.addAll(this.bolasVisibles, this.bolasExtra);
+    }
+
+    private boolean elPremioPorSalirEsMayorQueCualquierPremioQueYaSalio(int creditosQuePagaElCartonPorSalir, int numeroDeCarton) {
+        boolean result = true;
+        for (int i = 0; i < premiosPagados[numeroDeCarton].length; i++) {
+            if (premiosPagados[numeroDeCarton][i] > creditosQuePagaElCartonPorSalir) {
+                result = false;
+                break;
+            }
         }
         return result;
     }

@@ -7,6 +7,7 @@
 package com.protocol.b1.servidor;
 
 import com.bingo.enumeraciones.Denominacion;
+import com.bingo.enumeraciones.FaseDeBusqueda;
 import com.bv20.core.BV20;
 import com.core.bingosimulador.Juego;
 import com.core.bv20.model.Controlador;
@@ -762,6 +763,7 @@ break;
                     .codigo(50)
                     .estado("ok")
                     .dato("bolasVisibles", bingo.getBolasVisibles())
+                    .dato("bolas", bingo.getBolas())
                     .dato("ganado", bingo.ganancias())
                     .dato("premios", bingo.getPremiosPagados())
                     .dato("premiosPorSalir", bingo.getPremiosPorSalir())
@@ -770,6 +772,7 @@ break;
                     .dato("creditos",bingo.getCreditos())
                     .dato("cartonesHabilitados", bingo.getCartonesHabilitados())
                     .dato("bonus", bingo.getBonus())
+                    .dato("liberarBolasExtra", bingo.liberarBolasExtra())
                     .crear();
             
             enviar(p.aJSON());
@@ -1202,11 +1205,15 @@ break;
             bingo.generarBolillero();
             bingo.generarBonusB1();
             
+            bingo.buscarPremios(FaseDeBusqueda.PRIMERA);
+            bingo.buscarPremiosPorSalir(bingo.isUtilizarUmbralParaLiberarBolasExtra());
+            
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(24)
                     .estado("ok")
                     .dato("bolasVisibles", bingo.getBolasVisibles())
                     .dato("bolasExtra", bingo.getBolasExtra())
+                    .dato("bolas", bingo.getBolas())
                     .dato("liberarBolasExtra", bingo.liberarBolasExtra())
                     .dato("bonus", bingo.getBonus())
                     .dato("desc", "Bolillero nuevo generado")
@@ -1371,28 +1378,25 @@ break;
         }
 
         private Paquete seleccionarBolaExtra(Paquete p) {
-            if (p != null && p.getDatos() != null && p.getDatos().get("indice") != null) {
+            String leyenda = bingo.seleccionarBolaExtra();
                 
-                //Tomar el indice y seleccionar una bola extra
-                int indice = Integer.valueOf(p.getDatos().get("indice").toString());
-                
-                String leyenda = bingo.seleccionarBolaExtra(indice);
+                try {
+                    Conexion.getInstancia().actualizar("UPDATE juego SET "
+                            + "creditos = " + bingo.getCreditos() + ","
+                            + "ganado = " + bingo.ganancias()
+                    );
+                } catch (SQLException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 
                 Paquete response = new Paquete.PaqueteBuilder()
-                    .codigo(60)
+                    .codigo(61)
                     .estado("ok")
                     .dato("bolasVisibles", bingo.getBolasVisibles())
+                    .dato("costoBolaExtra", bingo.costoBolaExtra())
                     .dato("leyenda", leyenda)
                     .crear();
                 return response;
-            }
-            return new Paquete.PaqueteBuilder()
-                    .codigo(60)
-                    .estado("error")
-                    .dato("desc", "Faltan parametros")
-                    .dato("paqueteRecibido", p == null? "Paquete vacio" : "Paquete recibido correctamente (no nulo)")
-                    .dato("parametrosRecibidos", p != null && p.getDatos() != null? p.getDatos() : "No hay datos")
-                    .crear();
         }
 
         private Paquete costoBolaExtra() {
