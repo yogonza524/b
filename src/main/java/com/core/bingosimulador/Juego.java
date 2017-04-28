@@ -751,6 +751,8 @@ public class Juego {
         for (int i = 0; i < Juego.CARTONES; i++) {
             System.out.println(i + ": " + ArrayUtils.toString(premiosPorSalir[i]));
         }
+        
+        System.out.println("Bolillero: " + ArrayUtils.toString(this.bolasVisibles));
     }
     
     private void buscarPremios(int[] bolilleroVisible, int[][][] cartones, FaseDeBusqueda fase){
@@ -1808,8 +1810,13 @@ public class Juego {
         String result = "";
         if (indice > -1 && indice < 10) {
             System.out.println("Metodo seleccionarBolaExtra");
+            
+            int costoBolaExtra = this.costoBolaExtra();
+                
+            System.out.println("Costo bola extra: " + costoBolaExtra);
+            
             //Indice valido, seleccionar la bola extra y buscar los nuevos premios
-            if (!bolasExtraSeleccionadas[indice]) {
+            if (!bolasExtraSeleccionadas[indice] && (creditos - costoBolaExtra > 0)) {
                 
                 //Cambio la bandera de la bola extra seleccionada
                 bolasExtraSeleccionadas[indice] = true;
@@ -1818,9 +1825,6 @@ public class Juego {
                 
                 //Correcto, realizar la busqueda de nuevos premios y premios por salir, 
                 //descontar el costo de la bola extra actual
-                int costoBolaExtra = this.costoBolaExtra();
-                
-                System.out.println("Costo bola extra: " + costoBolaExtra);
                 
                 //Agregar la bola extra a la lista de bolas visibles
                 this.bolasVisibles = (int[])ArrayUtils.add(this.bolasVisibles, this.bolasExtra[indice]);
@@ -1837,14 +1841,23 @@ public class Juego {
                 
                 System.out.println("Creditos: " + creditos);
                 
+                //Almaceno una copia de los premios pagados para verificar
+                //luego si debo computar premios nuevos
+                int[][] premiosObtenidosEnFaseCero = clonar(this.premiosPagados);
+                
                 //Busco los nuevos premios
                 buscarPremios(FaseDeBusqueda.PRIMERA);
                 
                 //Muestro los premios actuales
+                System.out.println("**************************************");
+                
+                System.out.println("Premios en fase 1");
+                
                 for (int i = 0; i < Juego.CARTONES; i++) {
                     System.out.println(i + ": " + ArrayUtils.toString(this.premiosPagados[i]));
                 }
                 
+                System.out.println("**************************************");
                 //Verificar si se obtuvo un nuevo premio
                 //La condicion de obtencion de nuevo premio gracias a una bola
                 //extra es que luego de buscar los premios con la bola extra
@@ -1853,33 +1866,7 @@ public class Juego {
                 //en comun, esto indica que el premio por salir salió y se encuentra
                 //computado en el vector de premios, se debe sumar al credito ganado
                 //y luego buscar los nuevos premios por salir
-                for (int i = 0; i < Juego.CARTONES; i++) {
-                    for (int j = 0; j < premiosPagados.length; j++) {
-                        if (premiosPagados[i][j] > 0 && 
-                            premiosPorSalir[i][j] > 0 &&
-                            premiosPagados[i][j] == premiosPorSalir[i][j]) {
-                            //Salio el premio gracias a la bola extra comprada
-                            creditos += premiosPagados[i][j];
-                            
-                            //Coloco el mensaje correspondiente
-                            result = "Premio obtenido gracias a la bola extra " + bolasVisibles[bolasVisibles.length - 1];
-                            
-                            System.out.println("Premio obtenido gracias a la bola extra: " + this.nombresDeFiguras[j]
-                                + " en carton: " + (i + 1)
-                                    );
-                            
-                            System.out.println("Premios actuales");
-                            
-                            for (int k = 0; k < this.premiosPagados.length; k++) {
-                                System.out.println(k + ": " + ArrayUtils.toString(this.premiosPagados[k]));
-                            }
-                            
-                            //Parar la iteracion, solo un premio puede formarse
-                            //ya que las bolas son unicas e irrepetibles
-                            break;
-                        }
-                    }
-                }
+                result = buscarNuevosPremios(result, premiosObtenidosEnFaseCero);
                 
                 //Busco los premios por salir
                 buscarPremiosPorSalir(utilizarUmbralParaLiberarBolasExtra);
@@ -1908,6 +1895,80 @@ public class Juego {
             if (premiosPagados[numeroDeCarton][i] > creditosQuePagaElCartonPorSalir) {
                 result = false;
                 break;
+            }
+        }
+        return result;
+    }
+
+    private String buscarNuevosPremios(String result, int[][] premiosObtenidosEnFaseCero) {
+        
+        
+        
+        System.out.println("---------------------------------------------");
+        
+        System.out.println("Premios obtenidos en fase 0");
+        
+        for (int i = 0; i < Juego.CARTONES; i++) {
+            System.out.println(i + ": " + ArrayUtils.toString(premiosObtenidosEnFaseCero[i]));
+        }
+        
+        System.out.println("---------------------------------------------");
+        
+        //Recorro los nuevos premios y comparo si debo pagar un premio nuevo
+        for (int i = 0; i < Juego.CARTONES; i++) {
+            for (int j = 0; j < premiosPagados[0].length; j++) {
+                if (premiosPagados[i][j] > 0 && premiosPagados[i][j] > premiosObtenidosEnFaseCero[i][j]) {
+                    creditos += premiosPagados[i][j];
+                    
+                    System.out.println("*****************************************");
+                    
+                    System.out.println("Premio Obtenido en " + i + "," + j);
+                    
+                    System.out.println("*****************************************");
+                    
+                    for (int k = j + 1; k < premiosPagados[0].length; k++) {
+                        creditos -= premiosObtenidosEnFaseCero[i][k];
+                    }
+                }
+            }
+        }
+        
+        for (int i = 0; i < Juego.CARTONES; i++) {
+                    for (int j = 0; j < premiosPagados.length; j++) {
+                        if (premiosPagados[i][j] > 0 && 
+                            premiosPorSalir[i][j] > 0 &&
+                            premiosPagados[i][j] == premiosPorSalir[i][j]) {
+                            //Salio el premio gracias a la bola extra comprada
+                            creditos += premiosPagados[i][j];
+                            
+                            //Coloco el mensaje correspondiente
+                            result = "Premio obtenido gracias a la bola extra " + bolasVisibles[bolasVisibles.length - 1];
+                            
+                            System.out.println("Premio obtenido gracias a la bola extra: " + this.nombresDeFiguras[j]
+                                + " en carton: " + (i + 1)
+                                    );
+                            
+                            System.out.println("Premios actuales");
+                            
+                            for (int k = 0; k < this.premiosPagados.length; k++) {
+                                System.out.println(k + ": " + ArrayUtils.toString(this.premiosPagados[k]));
+                            }
+                            
+                            //Parar la iteracion, solo un premio puede formarse
+                            //ya que las bolas son unicas e irrepetibles
+                            break;
+                        }
+                    }
+                }
+        return result;
+    }
+
+    private int[][] clonar(int[][] premiosPagados) {
+        int[][] result = new int[premiosPagados.length][premiosPagados[0].length];
+        
+        for (int i = 0; i < premiosPagados.length; i++) {
+            for (int j = 0; j < premiosPagados[0].length; j++) {
+                result[i][j] = premiosPagados[i][j];
             }
         }
         return result;

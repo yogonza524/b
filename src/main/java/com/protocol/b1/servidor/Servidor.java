@@ -162,6 +162,16 @@ public class Servidor {
                 
                 bingo.setCreditos(creditos);
                 
+                //Verificar si los creditos son suficientes
+                if (creditos < apuestaTotal) {
+                    
+                    int cartonesHabilitados = (habilitados[1]? 1:0) + (habilitados[2]? 1:0) + (habilitados[3]? 1:0) + 1;
+                    
+                    apuestaTotal = (creditos /cartonesHabilitados) * cartonesHabilitados;
+                    
+                    Conexion.getInstancia().actualizar("UPDATE juego SET apuesta_total = " + apuestaTotal);
+                }
+                
                 //Verificar si se puede habilitar dependiendo de la cantidad de creditos
                 if (creditos == 0) {
                     Conexion.getInstancia().actualizar("UPDATE juego SET carton2_habilitado = false, carton3_habilitado = false, carton4_habilitado = false, apuesta_total = 1");
@@ -593,6 +603,8 @@ break;
                 case 25: response = this.colocarCreditos(p); break;
                 case 26: response = this.pagar(); break;
                 case 50: response = this.jugar(); break;
+                case 51: response = this.colocarCreditos(p); break;
+                case 52: response = this.colocarApuestas(p); break;
                 case 60: response = this.bolasExtraSeleccionadas(); break;
                 case 61: response = this.seleccionarBolaExtra(p); break;
                 case 62: response = this.costoBolaExtra(); break;
@@ -606,12 +618,14 @@ break;
             System.out.println(p.aJSON());
             
             System.out.println("Paquete enviado");
-            System.out.println(response.aJSON());
+            System.out.println(response != null? response.aJSON() : "Mensaje nulo");
             
-            enviar(response.aJSON());
+            if (response != null) {
+                enviar(response.aJSON());
+            }
             
         } catch(Exception ex){
-//            ex.printStackTrace();
+            ex.printStackTrace();
             this.tratarDeEnviarExcepcion(ex);
         }
         
@@ -1029,15 +1043,14 @@ break;
             
             if (p != null && p.getDatos() != null && p.getDatos().get("credito") != null) {
                 
-                int creditos = Integer.valueOf(p.getDatos().get("credito").toString());
-                bingo.agregarCreditos(creditos);
-                Conexion.getInstancia().actualizar("UPDATE juego SET creditos = creditos + " + creditos +
-                        ", dinero = dinero + (creditos / denominacion_factor)");
+                int creditos = Double.valueOf(p.getDatos().get("credito").toString()).intValue();
+                bingo.setCreditos(creditos);
+                Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + creditos);
                 
                 Paquete response = new Paquete.PaqueteBuilder()
-                    .codigo(25)
+                    .codigo(51)
                     .estado("ok")
-                    .dato("creditos", creditos)
+                    .dato("creditos", bingo.getCreditos())
                     .crear();
                 
                 return response;
@@ -1383,7 +1396,10 @@ break;
                 try {
                     Conexion.getInstancia().actualizar("UPDATE juego SET "
                             + "creditos = " + bingo.getCreditos() + ","
-                            + "ganado = " + bingo.ganancias()
+                            + "ganado = " + bingo.ganancias() + ","
+                            + "carton2_habilitado = " + bingo.getCartonesHabilitados()[1] + ","
+                            + "carton3_habilitado = " + bingo.getCartonesHabilitados()[2] + ","
+                            + "carton4_habilitado = " + bingo.getCartonesHabilitados()[3]
                     );
                 } catch (SQLException ex) {
                     Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -1442,6 +1458,30 @@ break;
                     .crear();
             
             return response;
+        }
+
+        private Paquete colocarApuestas(Paquete p) {
+            if (p != null && p.getDatos() != null && p.getDatos().get("totalApostado") != null) {
+                
+                int apuestas = Double.valueOf(p.getDatos().get("totalApostado").toString()).intValue();
+                bingo.apostar(apuestas / bingo.habilitados());
+                try {
+                    Conexion.getInstancia().actualizar("UPDATE juego SET apuesta_total = " + apuestas);
+                } catch (SQLException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+                Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(52)
+                    .estado("ok")
+                    .dato("totalApostado", apuestas)
+                    .crear();
+                
+                return response;
+            }
+            
+            return null;
+
         }
         
     }
