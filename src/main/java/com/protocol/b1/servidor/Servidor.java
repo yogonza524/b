@@ -128,6 +128,11 @@ public class Servidor {
         //Deshabilitar cartones si no hay suficiente credito, calcular apuestas
         bingo.setModoDeshabilitarPorFaltaDeCredito(true);
         
+        //Colocar el umbral 
+        bingo.setUmbralParaLiberarBolasExtra(7);
+        
+        bingo.setUtilizarUmbralParaLiberarBolasExtra(true);
+        
         //Bonus variable
         bingo.setUtilizarPremiosVariablesBonus(true);
         
@@ -603,11 +608,12 @@ break;
                 case 25: response = this.colocarCreditos(p); break;
                 case 26: response = this.pagar(); break;
                 case 50: response = this.jugar(); break;
-                case 51: response = this.colocarCreditos(p); break;
-                case 52: response = this.colocarApuestas(p); break;
+                //case 51: response = this.colocarCreditos(p); break;
+                //case 52: response = this.colocarApuestas(p); break;
                 case 60: response = this.bolasExtraSeleccionadas(); break;
                 case 61: response = this.seleccionarBolaExtra(p); break;
                 case 62: response = this.costoBolaExtra(); break;
+                case 63: response = this.gananciasYCreditos(); break;
                 case 121: response = this.bonus(); break;
                 case 122: response = this.premioObtenidoEnBonus(p); break;
                 case 123: response = this.informarGananciaEnBonus(p); break;
@@ -738,7 +744,7 @@ break;
             
             try {
                 String query = "UPDATE juego SET comenzo = '" + getCurrentTimeStamp() + "'"
-                                + ", ganado = 0, bolas_visibles = '" + ArrayUtils.toString(bingo.getBolasVisibles()) + "'"
+                                + ", ganado_en_bonus = 0, ganado = 0, bolas_visibles = '" + ArrayUtils.toString(bingo.getBolasVisibles()) + "'"
                         + ", bolas_extras = '" + ArrayUtils.toString(bingo.getBolasExtra()) + "'";
                 System.out.println(query);
                 Conexion.getInstancia().actualizar(query);
@@ -1044,11 +1050,11 @@ break;
             if (p != null && p.getDatos() != null && p.getDatos().get("credito") != null) {
                 
                 int creditos = Double.valueOf(p.getDatos().get("credito").toString()).intValue();
-                bingo.setCreditos(creditos);
-                Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + creditos);
+                bingo.agregarCreditos(creditos);
+                Conexion.getInstancia().actualizar("UPDATE juego SET creditos = creditos + " + creditos);
                 
                 Paquete response = new Paquete.PaqueteBuilder()
-                    .codigo(51)
+                    .codigo(25)
                     .estado("ok")
                     .dato("creditos", bingo.getCreditos())
                     .crear();
@@ -1399,7 +1405,11 @@ break;
                             + "ganado = " + bingo.ganancias() + ","
                             + "carton2_habilitado = " + bingo.getCartonesHabilitados()[1] + ","
                             + "carton3_habilitado = " + bingo.getCartonesHabilitados()[2] + ","
-                            + "carton4_habilitado = " + bingo.getCartonesHabilitados()[3]
+                            + "carton4_habilitado = " + bingo.getCartonesHabilitados()[3] + ","
+                            + "ganado_carton1 = " + bingo.getGanado()[0] + ","
+                            + "ganado_carton2 = " + bingo.getGanado()[1] + ","
+                            + "ganado_carton3 = " + bingo.getGanado()[2] + ","
+                            + "ganado_carton4 = " + bingo.getGanado()[3]
                     );
                 } catch (SQLException ex) {
                     Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -1482,6 +1492,17 @@ break;
             
             return null;
 
+        }
+
+        private Paquete gananciasYCreditos() {
+            Paquete result = new Paquete.PaqueteBuilder()
+                    .codigo(63)
+                    .estado("ok")
+                    .dato("creditos", bingo.getCreditos())
+                    .dato("ganado", bingo.ganancias())
+                    .crear();
+            
+            return result;
         }
         
     }
