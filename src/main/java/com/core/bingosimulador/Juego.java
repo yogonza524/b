@@ -456,6 +456,7 @@ public class Juego {
     
     public void agregarCreditos(int creditos){
         if (creditos > 0) {
+            System.out.println("Metodo agregar creditos");
             this.setCreditos(this.getCreditos() + creditos);
         }
     }
@@ -666,6 +667,10 @@ public class Juego {
         boolean result = false;
         for (int i = 0; i < premiosPorSalir.length; i++) {
             for (int j = 0; j < premiosPorSalir[0].length; j++) {
+                int apuestaInd = this.apuestaIndividual();
+                if (apuestaInd <= 0) {
+                    apuestaInd = 1;
+                }
                 int creditosDelPremioPorSalir = premiosPorSalir[i][j] / this.apuestaIndividual();
                 if (creditosDelPremioPorSalir > 0) {
                     if (!utilizarUmbralParaLiberarBolasExtra) {
@@ -833,6 +838,7 @@ public class Juego {
             for (int j = 0; j < premiosPagados[0].length; j++) {
                 ganado[i] += premiosPagados[i][j];
             }
+            System.out.println("Metodo computar ganancias, carton " + i + ", ganado: " + ganado[i]);
             this.setCreditos(this.getCreditos() + ganado[i]);
         }
     }
@@ -916,7 +922,7 @@ public class Juego {
                 if (cartonesHabilitados[i] && premiosPorSalir[i][j] / apuestaIndividual() > premio) {
                     premio = premiosPorSalir[i][j] / apuestaIndividual();
                     nombrePremio = nombresDeFiguras[j];
-//                    System.out.println("Mayor actual: " + nombrePremio + "(" + premio + ")");
+                    System.out.println("Mayor actual por salir: " + nombrePremio + "(" + premio + ")");
                 }
             }
         }
@@ -1373,6 +1379,7 @@ public class Juego {
                 //Tiene creditos, descontar 
                 //log(("Puede comprar la bola extra! Descontando el costo anterior del credito");
                 bolasExtraSeleccionadas[indiceDeBolaExtraAComprar] = true; //Marco como seleccionada
+                System.out.println("Descontar creditos al seleccionar la bola extra, costo " + costoBolaSeleccionada);
                 this.setCreditos(this.getCreditos() - costoBolaSeleccionada); //Descuento
                 
                 //log(("Se descontaron creditos por la bolas extra, credito actual: " + creditos);
@@ -1822,7 +1829,7 @@ public class Juego {
                 //Cambio la bandera de la bola extra seleccionada
                 bolasExtraSeleccionadas[indice] = true;
                 
-//                System.out.println("Indice: " + indice);
+                System.out.println("Indice: " + indice);
                 
                 //Correcto, realizar la busqueda de nuevos premios y premios por salir, 
                 //descontar el costo de la bola extra actual
@@ -1838,6 +1845,7 @@ public class Juego {
 //                System.out.println("Bolas extra: " + ArrayUtils.toString(this.bolasExtra));
                 
                 //Descuento el valor de la bola extra del credito actual
+                System.out.println("Descontar costo de bola extra, costo " + costoBolaExtra);
                 this.setCreditos(creditos - costoBolaExtra);
                 
                 //Almaceno una copia de los premios pagados para verificar
@@ -1917,12 +1925,13 @@ public class Juego {
         for (int i = 0; i < Juego.CARTONES; i++) {
             for (int j = 0; j < premiosPagados[0].length; j++) {
                 if (premiosPagados[i][j] > 0 && premiosPagados[i][j] > premiosObtenidosEnFaseCero[i][j]) {
+                    System.out.println("Pgar nuevo premio en carton: " + i);
                     this.setCreditos(creditos + premiosPagados[i][j]);
                     
                     this.getGanado()[i] = premiosPagados[i][j];
                     
                     //Coloco el mensaje correspondiente
-                      result = "Premio obtenido gracias a la bola extra " + bolasVisibles[bolasVisibles.length - 1];
+                      result = "Premio obtenido, bola extra " + bolasVisibles[bolasVisibles.length - 1] + " en carton " + i + ", figura " + nombresDeFiguras[j];
                     
 //                    System.out.println("*****************************************");
 //                    System.out.println("Premio Obtenido en " + i + "," + j);
@@ -1930,7 +1939,9 @@ public class Juego {
                     
                     System.out.println("Descontando premios menores, siempre paga el mayor");
                     for (int k = j + 1; k < premiosPagados[0].length; k++) {
-                        System.out.println("Carton " + i + ", Creditos descontados: "  + premiosObtenidosEnFaseCero[i][k]);
+                        if (premiosObtenidosEnFaseCero[i][k] > 0) {
+                            System.out.println("Carton " + i + ", Creditos descontados: "  + premiosObtenidosEnFaseCero[i][k]);
+                        }
                         this.setCreditos(creditos - premiosObtenidosEnFaseCero[i][k]);
                     }
                 }
@@ -1943,7 +1954,8 @@ public class Juego {
                             premiosPorSalir[i][j] > 0 &&
                             premiosPagados[i][j] == premiosPorSalir[i][j]) {
                             //Salio el premio gracias a la bola extra comprada
-                            this.setCreditos(creditos - premiosPagados[i][j]);
+                            System.out.println("Salio el premio gracias a la bola extra comprada, sumando");
+                            this.setCreditos(creditos + premiosPagados[i][j]);
                             
                             //Coloco el mensaje correspondiente
                             result = "Premio obtenido gracias a la bola extra " + bolasVisibles[bolasVisibles.length - 1];

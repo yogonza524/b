@@ -607,8 +607,9 @@ break;
                 case 24: response = this.generarBolillero(); break;
                 case 25: response = this.colocarCreditos(p); break;
                 case 26: response = this.pagar(); break;
+                case 27: response = this.generarBonus(); break;
                 case 50: response = this.jugar(); break;
-                //case 51: response = this.colocarCreditos(p); break;
+                case 51: response = this.cargarCreditos(p); break;
                 //case 52: response = this.colocarApuestas(p); break;
                 case 60: response = this.bolasExtraSeleccionadas(); break;
                 case 61: response = this.seleccionarBolaExtra(p); break;
@@ -1304,6 +1305,20 @@ break;
             
             return response;
         }
+        
+        private Paquete generarBonus() {
+            
+            bingo.generarBonusB1();
+            
+            Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(27)
+                    .estado("ok")
+                    .dato("bonus", bingo.getBonus())
+                    .dato("desc", "Nuevo bonus generado")
+                    .crear();
+            
+            return response;
+        }
 
         private Paquete premioObtenidoEnBonus(Paquete p) {
             if (p != null && p.getDatos() != null && p.getDatos().get("creditosDePremio") != null) {
@@ -1418,7 +1433,6 @@ break;
                 Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(61)
                     .estado("ok")
-                    .dato("bolasVisibles", bingo.getBolasVisibles())
                     .dato("costoBolaExtra", bingo.costoBolaExtra())
                     .dato("leyenda", leyenda)
                     .crear();
@@ -1426,10 +1440,14 @@ break;
         }
 
         private Paquete costoBolaExtra() {
+            
+            bingo.generarBonusB1();
+            
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(62)
                     .estado("ok")
                     .dato("costoBolaExtra", bingo.costoBolaExtra())
+                    .dato("bonus", bingo.getBonus())
                     .crear();
             
             return response;
@@ -1503,6 +1521,39 @@ break;
                     .crear();
             
             return result;
+        }
+
+        private Paquete cargarCreditos(Paquete p) {
+            if (p.getDatos() != null && p.getDatos().get("totalCreditos") != null) {
+                int c = Double.valueOf(p.getDatos().get("totalCreditos").toString()).intValue();
+                int cred = 0;
+                try {
+                    List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT creditos FROM juego LIMIT 1");
+                    if (query != null && !query.isEmpty()) {
+                        cred = Double.valueOf(query.get(0).get("creditos").toString()).intValue();
+                        if (c != cred) {
+                            System.out.println("Se perdió la sincronizacion");
+                            bingo.setCreditos(c);
+                            Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + c);
+                            
+                            throw new RuntimeException("Sincronizacion perdida");
+                        }
+                        return new Paquete.PaqueteBuilder()
+                                .codigo(51)
+                                .estado("ok")
+                                .dato("desc", "Sincronizacion estable, no se modificaron los creditos (backend manejando)")
+                                .crear();
+                    }
+                } catch (SQLException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                } catch(RuntimeException re){
+                    System.out.println("Sincronizacion perdida, se cargaran los creditos de la vista: " + c);
+                }
+            }
+            return new Paquete.PaqueteBuilder()
+                    .codigo(51)
+                    .estado("error")
+                    .crear();
         }
         
     }
