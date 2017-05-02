@@ -699,11 +699,16 @@ public class Juego {
         
         if (utilizarBolasExtraGratis && factorDeGananciaDelPremioMayor >= limiteInferiorParaBolaExtraGratis 
                 && factorDeGananciaDelPremioMayor <= limiteSuperiorParaBolaExtraGratis) {
+            System.out.println("Utilizando bola extra gratis, limite inferior: " + limiteInferiorParaBolaExtraGratis
+                    + ", limite superior: " + limiteSuperiorParaBolaExtraGratis
+                    + "factor del premio mayor: " + factorDeGananciaDelPremioMayor
+            );
             return 0;
         }
         int apuestaInd = this.apuestaIndividual();
         int costo = (int)(factorDeGananciaDelPremioMayor * apuestaInd * porcentajeDelPremioMayorPorSalirParaBolaExtra);
-        //log(("Costo de la bola extra: " + costo);
+        System.out.println("Costo bola extra: " + costo + ", premio mayor por salir: " + factorDeGananciaDelPremioMayor);
+//log(("Costo de la bola extra: " + costo);
 //        System.out.println("Apuesta individual: " + apuestaInd + 
 //                ". Porcentaje de descuento: " + porcentajeDelPremioMayorPorSalirParaBolaExtra + ". Costo: " + costo);
 //        System.out.println("------------------------------------");
@@ -838,8 +843,11 @@ public class Juego {
             for (int j = 0; j < premiosPagados[0].length; j++) {
                 ganado[i] += premiosPagados[i][j];
             }
-            System.out.println("Metodo computar ganancias, carton " + i + ", ganado: " + ganado[i]);
-            this.setCreditos(this.getCreditos() + ganado[i]);
+            if (ganado[i] > 0) {
+                System.out.println("Metodo computar ganancias, carton " + i + ", ganado: " + ganado[i] + ", creditos: " + creditos + "(" + (creditos + ganado[i]) + ")");
+            }
+            //this.setCreditos(this.getCreditos() + ganado[i]);
+            creditos += ganado[i];
         }
     }
     
@@ -922,7 +930,7 @@ public class Juego {
                 if (cartonesHabilitados[i] && premiosPorSalir[i][j] / apuestaIndividual() > premio) {
                     premio = premiosPorSalir[i][j] / apuestaIndividual();
                     nombrePremio = nombresDeFiguras[j];
-                    System.out.println("Mayor actual por salir: " + nombrePremio + "(" + premio + ")");
+//                    System.out.println("Mayor actual por salir: " + nombrePremio + "(" + premio + ")");
                 }
             }
         }
@@ -1925,14 +1933,14 @@ public class Juego {
         for (int i = 0; i < Juego.CARTONES; i++) {
             for (int j = 0; j < premiosPagados[0].length; j++) {
                 if (premiosPagados[i][j] > 0 && premiosPagados[i][j] > premiosObtenidosEnFaseCero[i][j]) {
-                    System.out.println("Pgar nuevo premio en carton: " + i);
+                    System.out.println("Pagar nuevo premio en carton: " + i + ", premio de " + premiosPagados[i][j]);
                     this.setCreditos(creditos + premiosPagados[i][j]);
                     
                     this.getGanado()[i] = premiosPagados[i][j];
                     
                     //Coloco el mensaje correspondiente
                       result = "Premio obtenido, bola extra " + bolasVisibles[bolasVisibles.length - 1] + " en carton " + i + ", figura " + nombresDeFiguras[j];
-                    
+                    System.out.println(result);
 //                    System.out.println("*****************************************");
 //                    System.out.println("Premio Obtenido en " + i + "," + j);
 //                    System.out.println("*****************************************");
@@ -1948,34 +1956,34 @@ public class Juego {
             }
         }
         
-        for (int i = 0; i < Juego.CARTONES; i++) {
-                    for (int j = 0; j < premiosPagados.length; j++) {
-                        if (premiosPagados[i][j] > 0 && 
-                            premiosPorSalir[i][j] > 0 &&
-                            premiosPagados[i][j] == premiosPorSalir[i][j]) {
-                            //Salio el premio gracias a la bola extra comprada
-                            System.out.println("Salio el premio gracias a la bola extra comprada, sumando");
-                            this.setCreditos(creditos + premiosPagados[i][j]);
-                            
-                            //Coloco el mensaje correspondiente
-                            result = "Premio obtenido gracias a la bola extra " + bolasVisibles[bolasVisibles.length - 1];
-                            
-                            System.out.println("Premio obtenido gracias a la bola extra: " + this.nombresDeFiguras[j]
-                                + " en carton: " + (i + 1)
-                                    );
-                            
-//                            System.out.println("Premios actuales");
-                            
-//                            for (int k = 0; k < this.premiosPagados.length; k++) {
-//                                System.out.println(k + ": " + ArrayUtils.toString(this.premiosPagados[k]));
-//                            }
-                            
-                            //Parar la iteracion, solo un premio puede formarse
-                            //ya que las bolas son unicas e irrepetibles
-                            break;
-                        }
-                    }
-                }
+//        for (int i = 0; i < Juego.CARTONES; i++) {
+//                    for (int j = 0; j < premiosPagados.length; j++) {
+//                        if (premiosPagados[i][j] > 0 && 
+//                            premiosPorSalir[i][j] > 0 &&
+//                            premiosPagados[i][j] == premiosPorSalir[i][j]) {
+//                            //Salio el premio gracias a la bola extra comprada
+////                            System.out.println("Salio el premio gracias a la bola extra comprada, sumando");
+//                            this.setCreditos(creditos + premiosPagados[i][j]);
+//                            
+//                            //Coloco el mensaje correspondiente
+//                            result = "Premio obtenido gracias a la bola extra " + bolasVisibles[bolasVisibles.length - 1];
+//                            
+//                            System.out.println("Premio obtenido gracias a la bola extra: " + this.nombresDeFiguras[j]
+//                                + " en carton: " + (i + 1)
+//                                    );
+//                            
+////                            System.out.println("Premios actuales");
+//                            
+////                            for (int k = 0; k < this.premiosPagados.length; k++) {
+////                                System.out.println(k + ": " + ArrayUtils.toString(this.premiosPagados[k]));
+////                            }
+//                            
+//                            //Parar la iteracion, solo un premio puede formarse
+//                            //ya que las bolas son unicas e irrepetibles
+//                            break;
+//                        }
+//                    }
+//                }
         return result;
     }
 

@@ -618,14 +618,15 @@ break;
                 case 121: response = this.bonus(); break;
                 case 122: response = this.premioObtenidoEnBonus(p); break;
                 case 123: response = this.informarGananciaEnBonus(p); break;
+                case 124: response = this.creditosActualizados(); break;
                 default: response = noImplementadoAun(p);
             }
             
-            System.out.println("Paquete recibido");
-            System.out.println(p.aJSON());
+//            System.out.println("Paquete recibido");
+//            System.out.println(p.aJSON());
             
-            System.out.println("Paquete enviado");
-            System.out.println(response != null? response.aJSON() : "Mensaje nulo");
+//            System.out.println("Paquete enviado");
+//            System.out.println(response != null? response.aJSON() : "Mensaje nulo");
             
             if (response != null) {
                 enviar(response.aJSON());
@@ -747,7 +748,7 @@ break;
                 String query = "UPDATE juego SET comenzo = '" + getCurrentTimeStamp() + "'"
                                 + ", ganado_en_bonus = 0, ganado = 0, bolas_visibles = '" + ArrayUtils.toString(bingo.getBolasVisibles()) + "'"
                         + ", bolas_extras = '" + ArrayUtils.toString(bingo.getBolasExtra()) + "'";
-                System.out.println(query);
+//                System.out.println(query);
                 Conexion.getInstancia().actualizar(query);
             } catch (SQLException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -755,12 +756,12 @@ break;
             
             bingo.jugar(false);
             
-            System.out.println("Ganado: " + bingo.ganancias());
-            System.out.println("Apostado: " + ArrayUtils.toString(bingo.apuestas()));
-            System.out.println("Premios");
-            for (int i = 0; i < 4; i++) {
-                System.out.println(ArrayUtils.toString(bingo.getPremiosPagados()[i]));
-            }
+//            System.out.println("Ganado: " + bingo.ganancias());
+//            System.out.println("Apostado: " + ArrayUtils.toString(bingo.apuestas()));
+//            System.out.println("Premios");
+//            for (int i = 0; i < 4; i++) {
+//                System.out.println(ArrayUtils.toString(bingo.getPremiosPagados()[i]));
+//            }
             
             try {
                 Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + bingo.getCreditos() + 
@@ -798,7 +799,7 @@ break;
             
             enviar(p.aJSON());
             
-            System.out.println(p.aJSON());
+//            System.out.println(p.aJSON());
             return p;
         }
         
@@ -1468,6 +1469,22 @@ break;
             if (recibido) {
                 //El juego envió correctamente las ganancias del Bonus, persistirlas y actualizar los creditos
                 Integer ganadoEnBonus = Integer.valueOf(p.getDatos().get("ganadoEnBonus").toString());
+                
+                try {
+                    List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT ganado_en_bonus FROM juego");
+                    
+                    if (query != null && !query.isEmpty()) {
+                        int ganadoAnterior = Integer.valueOf(query.get(0).get("ganado_en_bonus").toString());
+                        
+                        //Se resta siempre por que pueden haber mas de 1 bonus por juego y 
+                        //el front end envia la suma de los bonus anteriores
+                        ganadoEnBonus -= ganadoAnterior;
+                    }
+                } catch (SQLException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+                System.out.println("Ganado en bonus: "  + ganadoEnBonus + ", creditos actuales: " + bingo.getCreditos());
                 bingo.setCreditos(bingo.getCreditos() + ganadoEnBonus);
                 
                 try {
@@ -1554,6 +1571,14 @@ break;
                     .codigo(51)
                     .estado("error")
                     .crear();
+        }
+
+        private Paquete creditosActualizados() {
+            Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(124)
+                    .dato("creditosActualizados", bingo.getCreditos())
+                    .crear();
+            return response;
         }
         
     }
