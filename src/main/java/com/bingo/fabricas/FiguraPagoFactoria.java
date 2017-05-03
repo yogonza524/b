@@ -468,12 +468,12 @@ public class FiguraPagoFactoria {
         FiguraPagoFactoria.TableroBuilder cartones = new FiguraPagoFactoria.TableroBuilder()
                 .agregar(FiguraPagoFactoria.tresLineas(1500))
                 .agregar(FiguraPagoFactoria.cuadrado(500))
-                .agregar(FiguraPagoFactoria.h(300))
+                .agregar(FiguraPagoFactoria.h(200))
                 .agregar(FiguraPagoFactoria.gamma(100))
                 .agregar(FiguraPagoFactoria.tt(100))
-                .agregar(FiguraPagoFactoria.grilla(40))
-                .agregar(FiguraPagoFactoria.y(8))
-                .agregar(FiguraPagoFactoria.piramideComun(8))
+                .agregar(FiguraPagoFactoria.grilla(30))
+                .agregar(FiguraPagoFactoria.y(10))
+                .agregar(FiguraPagoFactoria.piramideComun(10))
                 .agregar(FiguraPagoFactoria.vInvertida(3))
                 .agregar(FiguraPagoFactoria.v(3))
                 .agregar(FiguraPagoFactoria.diamante(1))
@@ -488,7 +488,7 @@ public class FiguraPagoFactoria {
         }
         
         //Cargar los cartones de 2 linea
-        FiguraPago[] dosLineas = FiguraPagoFactoria.dosLineas(50);
+        FiguraPago[] dosLineas = FiguraPagoFactoria.dosLineas(60);
         for(FiguraPago carton : dosLineas){
             cartones.agregar(carton);
         }

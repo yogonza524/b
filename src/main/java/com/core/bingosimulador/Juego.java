@@ -707,7 +707,7 @@ public class Juego {
         }
         int apuestaInd = this.apuestaIndividual();
         int costo = (int)(factorDeGananciaDelPremioMayor * apuestaInd * porcentajeDelPremioMayorPorSalirParaBolaExtra);
-        System.out.println("Costo bola extra: " + costo + ", premio mayor por salir: " + factorDeGananciaDelPremioMayor);
+//        System.out.println("Costo bola extra: " + costo + ", premio mayor por salir: " + factorDeGananciaDelPremioMayor);
 //log(("Costo de la bola extra: " + costo);
 //        System.out.println("Apuesta individual: " + apuestaInd + 
 //                ". Porcentaje de descuento: " + porcentajeDelPremioMayorPorSalirParaBolaExtra + ". Costo: " + costo);
@@ -1354,6 +1354,7 @@ public class Juego {
         salioElBonusAlInicioDelJuego = false;
         inicioDelCicloDeJuego = false;
         indiceBolaExtra = 0;
+        cantidadDeBolasExtraSeleccionadas = 0;
     }
 
     private void borrarSeleccionDeBolasExtra() {
@@ -1837,7 +1838,9 @@ public class Juego {
                 //Cambio la bandera de la bola extra seleccionada
                 bolasExtraSeleccionadas[indice] = true;
                 
-                System.out.println("Indice: " + indice);
+                //Aumento la cantidad de bolas extra seleccionadas
+                cantidadDeBolasExtraSeleccionadas++;
+                
                 
                 //Correcto, realizar la busqueda de nuevos premios y premios por salir, 
                 //descontar el costo de la bola extra actual
@@ -1850,10 +1853,11 @@ public class Juego {
                 //Coloco en 0 el valor de la bola extra
                 this.bolasExtra[indice] = 0;
                 
-//                System.out.println("Bolas extra: " + ArrayUtils.toString(this.bolasExtra));
+                System.out.println("Bola extra " + indice + " seleccionada, costo: " + costoBolaExtra 
+                        + ", creditos anteriores: " + creditos +
+                        ", creditos actuales " + (creditos - costoBolaExtra));
                 
                 //Descuento el valor de la bola extra del credito actual
-                System.out.println("Descontar costo de bola extra, costo " + costoBolaExtra);
                 this.setCreditos(creditos - costoBolaExtra);
                 
                 //Almaceno una copia de los premios pagados para verificar
@@ -1950,7 +1954,7 @@ public class Juego {
                         if (premiosObtenidosEnFaseCero[i][k] > 0) {
                             System.out.println("Carton " + i + ", Creditos descontados: "  + premiosObtenidosEnFaseCero[i][k]);
                         }
-                        this.setCreditos(creditos - premiosObtenidosEnFaseCero[i][k]);
+                        creditos -= premiosObtenidosEnFaseCero[i][k];
                     }
                 }
             }

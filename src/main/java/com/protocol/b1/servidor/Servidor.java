@@ -609,12 +609,13 @@ break;
                 case 26: response = this.pagar(); break;
                 case 27: response = this.generarBonus(); break;
                 case 50: response = this.jugar(); break;
-                case 51: response = this.cargarCreditos(p); break;
+                //case 51: response = this.cargarCreditos(p); break;
                 //case 52: response = this.colocarApuestas(p); break;
                 case 60: response = this.bolasExtraSeleccionadas(); break;
                 case 61: response = this.seleccionarBolaExtra(p); break;
                 case 62: response = this.costoBolaExtra(); break;
                 case 63: response = this.gananciasYCreditos(); break;
+                case 120: response = this.enviarCreditosActuales(); break;
                 case 121: response = this.bonus(); break;
                 case 122: response = this.premioObtenidoEnBonus(p); break;
                 case 123: response = this.informarGananciaEnBonus(p); break;
@@ -1499,6 +1500,9 @@ break;
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(123)
                     .estado(recibido? "ok" : "error")
+                    .dato("todasLasBolasExtraFueronLiberadas", bingo.getCantidadDeBolasExtraSeleccionadas() == 10)
+                    .dato("noHuboBolasExtra", bingo.getCantidadDeBolasExtraSeleccionadas() == 0)
+                    .dato("creditosActuales", bingo.getCreditos())
                     .dato("desc", recibido ? "Recibido en bonus "  + p.getDatos().get("ganadoEnBonus") + " creditos"  : "Faltan parametros, abortando")
                     .crear();
             
@@ -1576,7 +1580,17 @@ break;
         private Paquete creditosActualizados() {
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(124)
+                    .estado("ok")
                     .dato("creditosActualizados", bingo.getCreditos())
+                    .crear();
+            return response;
+        }
+
+        private Paquete enviarCreditosActuales() {
+            Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(120)
+                    .estado("ok")
+                    .dato("creditosActuales", bingo.getCreditos())
                     .crear();
             return response;
         }
