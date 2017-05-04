@@ -505,17 +505,17 @@ break;
 
             @Override
             public void depositoHabilitado() {
-                
+                System.out.println("Habilitado para ingreso de billetes");
             }
 
             @Override
             public void ingresoDeshabilitado() {
-                
+                System.out.println("Deshabilitado para ingresar billetes");
             }
 
             @Override
             public void depositoDeshabilitado() {
-                
+                System.out.println("Deposito deshabilitado");
             }
 
             @Override
@@ -1151,6 +1151,9 @@ break;
             //Colocar los creditos en 0
             bingo.setCreditos(0);
             
+            //Habilitar el billetero
+            billetero.habilitarDeposito();
+            
             try {
                 Conexion.getInstancia().actualizar("UPDATE juego set creditos = 0");
             } catch (SQLException ex) {
@@ -1354,6 +1357,8 @@ break;
             
             double pagado = 0;
             String leyendaPagoManual = "";
+            
+            billetero.deshabilitarDeposito();
             
             try {
                 List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT dinero FROM juego");
