@@ -707,7 +707,7 @@ public class Juego {
         }
         int apuestaInd = this.apuestaIndividual();
         int costo = (int)(factorDeGananciaDelPremioMayor * apuestaInd * porcentajeDelPremioMayorPorSalirParaBolaExtra);
-//        System.out.println("Costo bola extra: " + costo + ", premio mayor por salir: " + factorDeGananciaDelPremioMayor);
+        System.out.println("Costo bola extra: " + costo + ", premio mayor por salir: " + factorDeGananciaDelPremioMayor);
 //log(("Costo de la bola extra: " + costo);
 //        System.out.println("Apuesta individual: " + apuestaInd + 
 //                ". Porcentaje de descuento: " + porcentajeDelPremioMayorPorSalirParaBolaExtra + ". Costo: " + costo);

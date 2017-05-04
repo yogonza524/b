@@ -228,6 +228,7 @@ public class Servidor {
             @Override
             public void aceptadoEnCanal(int numeroDeCanal) {
                 System.out.println("Aceptado en canal " + numeroDeCanal);
+                boolean aceptado = false;
                 switch(numeroDeCanal){
                     case 0: 
                     {
@@ -254,6 +255,8 @@ public class Servidor {
                                         .crear()
                                         .aJSON()
                                 );
+                                //Billete aceptado
+                                aceptado = true;
                             }
                         } catch (SQLException ex) {
                             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -287,6 +290,8 @@ break;
                                         .crear()
                                         .aJSON()
                                 );
+                                //Billete aceptado
+                                aceptado = true;
                             }
                         } catch (SQLException ex) {
                             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -320,6 +325,8 @@ break;
                                         .crear()
                                         .aJSON()
                                 );
+                                //Billete aceptado
+                                aceptado = true;
                             }
                         } catch (SQLException ex) {
                             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -353,6 +360,8 @@ break;
                                         .crear()
                                         .aJSON()
                                 );
+                                //Billete aceptado
+                                aceptado = true;
                             }
                         } catch (SQLException ex) {
                             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -386,6 +395,8 @@ break;
                                         .crear()
                                         .aJSON()
                                 );
+                                //Billete aceptado
+                                aceptado = true;
                             }
                         } catch (SQLException ex) {
                             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -419,6 +430,8 @@ break;
                                         .crear()
                                         .aJSON()
                                 );
+                                //Billete aceptado
+                                aceptado = true;
                             }
                         } catch (SQLException ex) {
                             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -452,6 +465,8 @@ break;
                                         .crear()
                                         .aJSON()
                                 );
+                                //Billete aceptado
+                                aceptado = true;
                             }
                         } catch (SQLException ex) {
                             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -460,6 +475,12 @@ break;
                     }
                     }
                     break;
+                }
+                if (aceptado) {
+                    billetero.aceptarDeposito();
+                }
+                else{
+                    billetero.rechazarDeposito();
                 }
             }
 
@@ -620,6 +641,7 @@ break;
                 case 122: response = this.premioObtenidoEnBonus(p); break;
                 case 123: response = this.informarGananciaEnBonus(p); break;
                 case 124: response = this.creditosActualizados(); break;
+                case 125: response = this.actualizarEstadoDesdeLaVista(p); break;
                 default: response = noImplementadoAun(p);
             }
             
@@ -1152,7 +1174,7 @@ break;
             bingo.setCreditos(0);
             
             //Habilitar el billetero
-            billetero.habilitarDeposito();
+            billetero.habilitarTodo();
             
             try {
                 Conexion.getInstancia().actualizar("UPDATE juego set creditos = 0");
@@ -1358,7 +1380,8 @@ break;
             double pagado = 0;
             String leyendaPagoManual = "";
             
-            billetero.deshabilitarDeposito();
+            //Deshabilitar para evitar problemas
+            billetero.deshabilitarTodo();
             
             try {
                 List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT dinero FROM juego");
@@ -1598,6 +1621,49 @@ break;
                     .dato("creditosActuales", bingo.getCreditos())
                     .crear();
             return response;
+        }
+
+        private Paquete actualizarEstadoDesdeLaVista(Paquete p) {
+            if (p != null && p.getDatos() != null && p.getDatos().get("cartonesActivos") != null 
+                    && p.getDatos().get("apuestaTotal") != null
+                    && p.getDatos().get("creditos") != null) {
+                int cartonesActivos = Double.valueOf(p.getDatos().get("cartonesActivos").toString()).intValue();
+                int apuestaTotal = Double.valueOf(p.getDatos().get("apuestaTotal").toString()).intValue();
+                int creditos = Double.valueOf(p.getDatos().get("creditos").toString()).intValue();
+                
+                for (int i = 0; i < cartonesActivos; i++) {
+                    bingo.getCartonesHabilitados()[i] = true;
+                }
+                
+                for (int i = cartonesActivos; i < 4; i++) {
+                    bingo.getCartonesHabilitados()[i] = false;
+                }
+                
+                bingo.apostar(apuestaTotal);
+                bingo.setCreditos(creditos);
+                
+                try {
+                    Conexion.getInstancia().actualizar("UPDATE juego SET apuesta_total = " + apuestaTotal +
+                            ", creditos = " + creditos + 
+                            ", carton1_habilitado = " + bingo.getCartonesHabilitados()[0] +
+                            ", carton2_habilitado = " + bingo.getCartonesHabilitados()[1] +
+                            ", carton3_habilitado = " + bingo.getCartonesHabilitados()[2] +
+                            ", carton4_habilitado = " + bingo.getCartonesHabilitados()[3]);
+                    
+                    return new Paquete.PaqueteBuilder()
+                            .codigo(125)
+                            .estado("ok")
+                            .dato("desc", "Estado interno cambiado correctamente")
+                            .crear();
+                } catch (SQLException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            return new Paquete.PaqueteBuilder()
+                    .codigo(125)
+                    .estado("error")
+                    .dato("desc", "Faltan parametros")
+                    .crear();
         }
         
     }
