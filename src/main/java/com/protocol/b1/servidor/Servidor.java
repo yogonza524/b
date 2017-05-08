@@ -649,11 +649,11 @@ break;
                 default: response = noImplementadoAun(p);
             }
             
-//            System.out.println("Paquete recibido");
-//            System.out.println(p.aJSON());
+            System.out.println("Paquete recibido");
+            System.out.println(p.aJSON());
             
-//            System.out.println("Paquete enviado");
-//            System.out.println(response != null? response.aJSON() : "Mensaje nulo");
+            System.out.println("Paquete enviado");
+            System.out.println(response != null? response.aJSON() : "Mensaje nulo");
             
             if (response != null) {
                 enviar(response.aJSON());
