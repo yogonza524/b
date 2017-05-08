@@ -725,10 +725,13 @@ public class Juego {
             for (int j = 0; j < figurasDePago.length; j++) {
                 int[][] casillasBinarias = Matematica.figuraBinaria(bolasVisibles, cartones[i]);
                 
-                //Verifico que le falte una casilla y ademas sea mayor al umbral
+                //Verifico que le falte una casilla, que sea mayor al umbral
                 //y ademas el premio que vaya a salir sea mayor a uno que ya salió
+                
+                boolean elPremioPorSalirEsMayorQueCualquierPremioQueYaSalio = elPremioPorSalirEsMayorQueCualquierPremioQueYaSalio(this.premiosSegunApostado()[j], i);
+                
                 if (cartonesHabilitados[i] && Matematica.leFaltaUno(casillasBinarias, figurasDePago[j])
-                        && elPremioPorSalirEsMayorQueCualquierPremioQueYaSalio(this.premiosSegunApostado()[j], i)
+                        && elPremioPorSalirEsMayorQueCualquierPremioQueYaSalio
                         ) {
                     
                     //Utilizar umbral?
@@ -930,15 +933,16 @@ public class Juego {
                 if (cartonesHabilitados[i] && premiosPorSalir[i][j] / apuestaIndividual() > premio) {
                     premio = premiosPorSalir[i][j] / apuestaIndividual();
                     nombrePremio = nombresDeFiguras[j];
-//                    System.out.println("Mayor actual por salir: " + nombrePremio + "(" + premio + ")");
+                    System.out.println("Mayor actual por salir: " + nombrePremio + "(" + premio + ")");
                 }
             }
         }
 //        System.out.println("Premio mayor por salir: " + nombrePremio + "(" + premio + "). Apuesta: " + this.apostado[0]);
 //        //log(("Premio mayor por salir: " + nombrePremio + "("+ premio + "), premiosPorSalir: " + ArrayUtils.toString(premiosPorSalir));
-//        for (int i = 0; i < CARTONES; i++) {
-//            System.out.println(ArrayUtils.toString(premiosPorSalir[i]));
-//        }
+        System.out.println("Metodo premio mayor por salir");
+        for (int i = 0; i < CARTONES; i++) {
+            System.out.println(ArrayUtils.toString(premiosPorSalir[i]));
+        }
         
         return premio;
     }
@@ -1516,6 +1520,9 @@ public class Juego {
             int apuesta = this.apuestaTotal();
             
             Integer[] variables = Matematica.crearArregloAleatorioConCeros(premiosVariablesBonus, cantidadTotalDePremiosEnBonus);
+            
+            this.bonus = new Integer[variables.length];
+            
             for (int i = 0; i < cantidadTotalDePremiosEnBonus; i++) {
                 bonus[i] = apuesta * variables[i];   
             }
@@ -1912,11 +1919,16 @@ public class Juego {
         boolean result = true;
         for (int i = 0; i < premiosPagados[numeroDeCarton].length; i++) {
             if (premiosPagados[numeroDeCarton][i] > creditosQuePagaElCartonPorSalir) {
+//            if (premiosPagados[numeroDeCarton][i] > creditosQuePagaElCartonPorSalir && !elPremioYaSalio(numeroDeCarton, i)) {
                 result = false;
                 break;
             }
         }
         return result;
+    }
+    
+    private boolean elPremioYaSalio(int numeroDeCarton, int numeroDeFigura){
+        return premiosPagados[numeroDeCarton][numeroDeFigura] > 0;
     }
 
     private String buscarNuevosPremios(String result, int[][] premiosObtenidosEnFaseCero) {

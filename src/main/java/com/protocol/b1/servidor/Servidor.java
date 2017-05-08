@@ -477,10 +477,14 @@ break;
                     break;
                 }
                 if (aceptado) {
-                    billetero.aceptarDeposito();
+                    if (billetero != null) {
+                        billetero.aceptarDeposito();
+                    }
                 }
                 else{
-                    billetero.rechazarDeposito();
+                    if (billetero != null) {
+                        billetero.rechazarDeposito();
+                    }
                 }
             }
 
@@ -1174,7 +1178,9 @@ break;
             bingo.setCreditos(0);
             
             //Habilitar el billetero
-            billetero.habilitarTodo();
+            if (billetero != null) {
+                billetero.habilitarTodo();
+            }
             
             try {
                 Conexion.getInstancia().actualizar("UPDATE juego set creditos = 0");
@@ -1381,7 +1387,9 @@ break;
             String leyendaPagoManual = "";
             
             //Deshabilitar para evitar problemas
-            billetero.deshabilitarTodo();
+            if (billetero != null) {
+                billetero.deshabilitarTodo();
+            }
             
             try {
                 List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT dinero FROM juego");
