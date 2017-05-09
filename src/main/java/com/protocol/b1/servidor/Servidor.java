@@ -104,6 +104,26 @@ public class Servidor {
                         puertoBilletero = Integer.valueOf(p[1]);
                         billetero = crearBilletero();
                         break;
+                    case "-servidor":
+                        //Colocar el modo servidor
+                        try {
+                            boolean servidor = Integer.valueOf(p[1]) == 1 ? true : false;
+                            
+                            Conexion.getInstancia().actualizar("UPDATE configuracion SET servidor = " + servidor);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                    case "-servidorIp":
+                        //Coloco el ip del servidor
+                        
+                        try{
+                            Conexion.getInstancia().actualizar("UPDATE configuracion SET ip_servidor = " + p[1]);
+                        } catch (SQLException ex) {
+                            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        
+                        break;
                 }
                 
             }
