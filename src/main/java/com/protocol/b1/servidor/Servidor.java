@@ -8,6 +8,7 @@ package com.protocol.b1.servidor;
 
 import com.bingo.enumeraciones.Denominacion;
 import com.bingo.enumeraciones.FaseDeBusqueda;
+import com.bingo.rng.RNG;
 import com.bv20.core.BV20;
 import com.core.bingosimulador.Juego;
 import com.core.bv20.model.Controlador;
@@ -17,7 +18,9 @@ import com.google.gson.stream.MalformedJsonException;
 import com.protocol.b1.configuracion.ConfiguracionMain;
 import com.protocol.b1.enumeraciones.Idioma;
 import com.protocol.dao.Conexion;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.Socket;
 import java.nio.BufferUnderflowException;
 import java.nio.channels.ClosedChannelException;
 import java.sql.SQLException;
@@ -646,6 +649,8 @@ break;
                 case 123: response = this.informarGananciaEnBonus(p); break;
                 case 124: response = this.creditosActualizados(); break;
                 case 125: response = this.actualizarEstadoDesdeLaVista(p); break;
+                case 200: response = this.acumularParaElJackpot(); break;
+                case 201: response = this.otorgarJackpot(p); break;
                 default: response = noImplementadoAun(p);
             }
             
@@ -790,6 +795,7 @@ break;
 //                System.out.println(ArrayUtils.toString(bingo.getPremiosPagados()[i]));
 //            }
             
+            //Actualizo los datos de la base de datos
             try {
                 Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + bingo.getCreditos() + 
                         ", liberar_bolas_extra = " + bingo.liberarBolasExtra()
@@ -800,10 +806,64 @@ break;
                         ", apuesta_total = " + bingo.apuestaTotal() + 
                         ", carton2_habilitado = " + bingo.getCartonesHabilitados()[1] +
                         ", carton3_habilitado = " + bingo.getCartonesHabilitados()[2] +
-                        ", carton4_habilitado = " + bingo.getCartonesHabilitados()[3]
+                        ", carton4_habilitado = " + bingo.getCartonesHabilitados()[3] +
+                        ", ganado = " + bingo.ganancias() + 
+                        ", termino = '" + getCurrentTimeStamp().toString() + "'"
                 );
-                Conexion.getInstancia().actualizar("UPDATE juego SET ganado = " + bingo.ganancias());
-                Conexion.getInstancia().actualizar("UPDATE juego SET termino = '" + getCurrentTimeStamp().toString() + "'");
+                
+                //Acumular para el Jackpot
+                double factorParaJackpot;
+                boolean servidor;
+                List<HashMap<String,Object>> query = null;
+
+                try {
+                    //Obtengo el tipo de maquina de juego: servidor o cliente
+                    query = Conexion.getInstancia().consultar("SELECT * FROM configuracion");
+                    } catch (SQLException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+
+                    if (query != null && !query.isEmpty()) {
+
+                        //Obtengo el tipo de maquina, servidor(true) o cliente(false)
+                        servidor = Boolean.valueOf(query.get(0).get("servidor").toString());
+
+                        if (servidor) {
+                            //La maquina es servidor, debe descontar para el Jackpot
+                            //Obtengo el factor de descuento para Jackpot, actualmente
+                            //se encuentra en el 1% de lo recaudado (0.01)
+                            factorParaJackpot = Double.valueOf(query.get(0).get("factor_para_jackpot").toString());
+
+                            double paraJackpot = bingo.apuestaTotal() * bingo.getDenominacion().getValue() * factorParaJackpot;
+
+                            try {
+                                Conexion.getInstancia().actualizar("UPDATE configuracion SET acumulado = acumulado + " + paraJackpot);
+                            } catch (SQLException ex) {
+                                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                        else{
+                            //La maquina no es servidor, enviar el mensaje al servidor
+                            System.out.println("No es el servidor, enviar al ip");
+                            
+                            Object ipServidor = query.get(0).get("ip_servidor");
+                            
+                            if (ipServidor != null) {
+                                String ipDelServidor = ipServidor.toString();
+                                
+                                //Logica del Socket
+                                Socket s = new Socket(ipDelServidor, parametros.get("puerto") != null? Integer.valueOf(parametros.get("puerto").toString()) : 8890);
+                                
+                                DataOutputStream os = new DataOutputStream(s.getOutputStream());
+                                
+                                os.writeUTF(new Paquete.PaqueteBuilder().codigo(200).estado("pedido").crear().aJSON() + "\0");
+                                
+                                os.flush();
+                                s.close();
+                            }
+                        }
+                    }
+                
             } catch (SQLException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1672,6 +1732,108 @@ break;
                     .estado("error")
                     .dato("desc", "Faltan parametros")
                     .crear();
+        }
+
+        private Paquete acumularParaElJackpot() {
+            Paquete.PaqueteBuilder response = new Paquete.PaqueteBuilder()
+                    .codigo(200)
+                    .estado("error");
+            
+            double factorParaJackpot;
+            boolean servidor;
+            List<HashMap<String,Object>> query = null;
+            
+            try {
+                //Obtengo el tipo de maquina de juego: servidor o cliente
+                query = Conexion.getInstancia().consultar("SELECT * FROM configuracion");
+            } catch (SQLException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                response.dato("desc", "Problemas con la consulta a la base de datos");
+            }
+            
+            if (query != null && !query.isEmpty()) {
+                
+                //Obtengo el tipo de maquina, servidor(true) o cliente(false)
+                servidor = Boolean.valueOf(query.get(0).get("servidor").toString());
+                
+                if (servidor) {
+                    //La maquina es servidor, debe descontar para el Jackpot
+                    //Obtengo el factor de descuento para Jackpot, actualmente
+                    //se encuentra en el 1% de lo recaudado (0.01)
+                    factorParaJackpot = Double.valueOf(query.get(0).get("factor_para_jackpot").toString());
+                    
+                    double paraJackpot = bingo.apuestaTotal() * bingo.getDenominacion().getValue() * factorParaJackpot;
+                    
+                    try {
+                        Conexion.getInstancia().actualizar("UPDATE configuracion SET acumulado = acumulado + " + paraJackpot);
+                    } catch (SQLException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                        response.dato("desc","Problemas actualizando el acumulado (Mensaje 200)");
+                    }
+                }
+                else{
+                    response.dato("desc", "Esta máquina no es servidor, es cliente");
+                }
+            }
+            
+            return response.crear();
+        }
+
+        private Paquete otorgarJackpot(Paquete p) {
+            Paquete.PaqueteBuilder response = new Paquete.PaqueteBuilder()
+                    .estado("error")
+                    .codigo(201);
+            
+            //Verificar si esta maquina es Servidor
+            List<HashMap<String,Object>> query = null;
+                    
+            try {
+                
+                query = Conexion.getInstancia().consultar("SELECT * FROM configuracion");
+                
+            } catch (SQLException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                response.dato("desc", "Excepcion SQL: " + ex.getMessage());
+            }
+            
+            if (query == null) {
+                return response.dato("desc", "No se encontró la configuracion en la base de datos").crear();
+            }
+            
+            boolean servidor = Boolean.valueOf(query.get(0).get("servidor").toString());
+            
+            //Verifico que la maquina sea servidor, caso contrario informar que es cliente
+            if (servidor) {
+                //Maquina servidor, verificar la condicion y si se cumple enviar el Jackpot
+                double acumulado = Double.valueOf(query.get(0).get("acumulado").toString());
+                
+                //La condicion varia en funcion de lo que pida el cliente
+                boolean condicion = acumulado > 12000.0 && acumulado < 25000.0 && RNG.getInstance().pickInt(10) > 5;
+                
+                if (condicion) {
+                    
+                    try {
+                        //Colocar en 0 el valor del acumulado en la base de datos
+                        Conexion.getInstancia().actualizar("UPDATE configuracion SET acumulado = 0.0");
+                        
+                        //Otorgar el Jackpot
+                        response.estado("ok").dato("acumulado", acumulado);
+                    } catch (SQLException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                        response.dato("desc", "Excepcion SQL, no se pudo actualizar el acumulado en tabla configuracion")
+                                .dato("excepcion", ex.getMessage());
+                    }
+                }
+                else{
+                    return response.dato("desc", "Servidor responde: aun no se ha cumplido la condicion para otorgar el Jackpot").crear();
+                }
+            }
+            else{
+                return response.dato("desc", "Metodo invalido: la maquina no es servidor").crear();
+            }
+            
+            return response.crear();
+                    
         }
         
     }
