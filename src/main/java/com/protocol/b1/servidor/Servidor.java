@@ -57,8 +57,18 @@ public class Servidor {
     
     // <editor-fold defaultstate="collapsed" desc="Atributos">
     private BV20 billetero;
-    private final IServer server;
-    private final XSocketDataHandler manejador;
+    
+    private final IServer serverGame;
+    private final XSocketDataHandler manejadorGame;
+    
+    private IServer serverJackpot;
+    private XSocketDataHandlerServerJackpot manejadorServerJackpot;
+    
+    //Si la maquina no es servidor de Jackpot entonces los siguientes 2(dos)
+    //objetos seran cargados para comunicarse con el servidor de Jackpot
+    private IServer clientJackpot;
+    private XSocketDataHandlerClientJackpot manejadorClientJackpot;
+    
     private Juego bingo;
     
     //Atributos auxiliares
@@ -70,9 +80,14 @@ public class Servidor {
     // <editor-fold defaultstate="collapsed" desc="Constructor">
     public Servidor(int puerto, Juego bingo) throws IOException{
         parametros = new HashMap<>();
-        manejador = new XSocketDataHandler();
-        server = new Server(puerto,manejador);
+        manejadorGame = new XSocketDataHandler();
+        manejadorServerJackpot = new XSocketDataHandlerServerJackpot();
+        
+        serverGame = new Server(puerto,manejadorGame);
+        
         this.bingo = bingo;
+        
+        inicializarJackpot();
     }
     
     public Servidor(String[] args) throws IOException{
@@ -80,8 +95,12 @@ public class Servidor {
         configurarJuego(bingo);
         cargarConfiguracionPorDefecto();
         obtenerParametros(args);
-        manejador = new XSocketDataHandler();
-        server = new Server((int) parametros.get("puerto"),manejador);
+        manejadorGame = new XSocketDataHandler();
+        serverGame = new Server((int) parametros.get("puerto"),manejadorGame);
+        
+        //Inicializar Jackpot
+        inicializarJackpot();
+        
     }
     //</editor-fold>
     
@@ -136,7 +155,7 @@ public class Servidor {
             billetero.abrirPuerto(puertoBilletero);
             System.out.println("Billetero abierto y escuchando en el puerto " + puertoBilletero);
         }
-        server.start();
+        serverGame.start();
         
         Thread.currentThread().join(); //Bucle infinito
     }
@@ -149,7 +168,7 @@ public class Servidor {
     private void configurarJuego(Juego bingo) {
         
         //Deshabilitar cartones si no hay suficiente credito, calcular apuestas
-        bingo.setModoDeshabilitarPorFaltaDeCredito(true);
+        //bingo.setModoDeshabilitarPorFaltaDeCredito(true);
         
         //Colocar el umbral 
         bingo.setUmbralParaLiberarBolasExtra(7);
@@ -257,7 +276,7 @@ public class Servidor {
                     {
                         try {
                             //Verificar que la conexion este abierta
-                            if (server != null && server.isOpen()) {
+                            if (serverGame != null && serverGame.isOpen()) {
                                 //Billete de $1 aceptado
                                 float creditos = 1 / bingo.getDenominacion().getValue();
                                 
@@ -271,7 +290,7 @@ public class Servidor {
                                 
                                 Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$1 = cantidad_de_billetes_de_$1 + 1");
                                 
-                                manejador.enviar(new Paquete.PaqueteBuilder()
+                                manejadorGame.enviar(new Paquete.PaqueteBuilder()
                                         .codigo(30)
                                         .estado("ok")
                                         .dato("creditos", bingo.getCreditos())
@@ -292,7 +311,7 @@ break;
                     {
                         try {
                             //Verificar que la conexion este abierta
-                            if (server != null && server.isOpen()) {
+                            if (serverGame != null && serverGame.isOpen()) {
                                 //Billete de $2 aceptado
                                 float creditos = 2 / bingo.getDenominacion().getValue();
                                 
@@ -306,7 +325,7 @@ break;
                                 
                                 Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$2 = cantidad_de_billetes_de_$2 + 1");
                                 
-                                manejador.enviar(new Paquete.PaqueteBuilder()
+                                manejadorGame.enviar(new Paquete.PaqueteBuilder()
                                         .codigo(30)
                                         .estado("ok")
                                         .dato("creditos", bingo.getCreditos())
@@ -327,7 +346,7 @@ break;
                     {
                         try {
                             //Verificar que la conexion este abierta
-                            if (server != null && server.isOpen()) {
+                            if (serverGame != null && serverGame.isOpen()) {
                                 //Billete de $5 aceptado
                                 float creditos = 5 / bingo.getDenominacion().getValue();
                                 
@@ -341,7 +360,7 @@ break;
                                 
                                 Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$5 = cantidad_de_billetes_de_$5 + 1");
                                 
-                                manejador.enviar(new Paquete.PaqueteBuilder()
+                                manejadorGame.enviar(new Paquete.PaqueteBuilder()
                                         .codigo(30)
                                         .estado("ok")
                                         .dato("creditos", bingo.getCreditos())
@@ -362,7 +381,7 @@ break;
                     {
                         try {
                             //Verificar que la conexion este abierta
-                            if (server != null && server.isOpen()) {
+                            if (serverGame != null && serverGame.isOpen()) {
                                 //Billete de $10 aceptado
                                 float creditos = 10 / bingo.getDenominacion().getValue();
                                 
@@ -376,7 +395,7 @@ break;
                                 
                                 Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$10 = cantidad_de_billetes_de_$10 + 1");
                                 
-                                manejador.enviar(new Paquete.PaqueteBuilder()
+                                manejadorGame.enviar(new Paquete.PaqueteBuilder()
                                         .codigo(30)
                                         .estado("ok")
                                         .dato("creditos", bingo.getCreditos())
@@ -397,7 +416,7 @@ break;
                     {
                         try {
                             //Verificar que la conexion este abierta
-                            if (server != null && server.isOpen()) {
+                            if (serverGame != null && serverGame.isOpen()) {
                                 //Billete de $20 aceptado
                                 float creditos = 20 / bingo.getDenominacion().getValue();
                                 
@@ -411,7 +430,7 @@ break;
                                 
                                 Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$20 = cantidad_de_billetes_de_$20 + 1");
                                 
-                                manejador.enviar(new Paquete.PaqueteBuilder()
+                                manejadorGame.enviar(new Paquete.PaqueteBuilder()
                                         .codigo(30)
                                         .estado("ok")
                                         .dato("creditos", bingo.getCreditos())
@@ -432,7 +451,7 @@ break;
                     {
                         try {
                             //Verificar que la conexion este abierta
-                            if (server != null && server.isOpen()) {
+                            if (serverGame != null && serverGame.isOpen()) {
                                 //Billete de $50 aceptado
                                 float creditos = 50 / bingo.getDenominacion().getValue();
                                 
@@ -446,7 +465,7 @@ break;
                                 
                                 Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$50 = cantidad_de_billetes_de_$50 + 1");
                                 
-                                manejador.enviar(new Paquete.PaqueteBuilder()
+                                manejadorGame.enviar(new Paquete.PaqueteBuilder()
                                         .codigo(30)
                                         .estado("ok")
                                         .dato("creditos", bingo.getCreditos())
@@ -467,7 +486,7 @@ break;
                     {
                         try {
                             //Verificar que la conexion este abierta
-                            if (server != null && server.isOpen()) {
+                            if (serverGame != null && serverGame.isOpen()) {
                                 //Billete de $100 aceptado
                                 float creditos = 100 / bingo.getDenominacion().getValue();
                                 
@@ -481,7 +500,7 @@ break;
                                 
                                 Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$100 = cantidad_de_billetes_de_$100 + 1");
                                 
-                                manejador.enviar(new Paquete.PaqueteBuilder()
+                                manejadorGame.enviar(new Paquete.PaqueteBuilder()
                                         .codigo(30)
                                         .estado("ok")
                                         .dato("creditos", bingo.getCreditos())
@@ -617,6 +636,44 @@ break;
         return b;
     }
 
+    private void inicializarJackpot() {
+        
+        try {
+            //Verificar si esta maquina es servidor de Jackpot
+            List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT servidor, puerto_jackpot FROM configuracion");
+            
+            if (query != null && !query.isEmpty() && query.get(0).get("servidor") != null && Boolean.valueOf(query.get(0).get("servidor").toString())) {
+                //Esta maquina es el servidor de Jackpot, verificar si puedo instanciar
+                if (query.get(0).get("puerto_jackpot") != null) {
+                    //Instanciar el servidor de Jackpot
+                    manejadorServerJackpot = new XSocketDataHandlerServerJackpot();
+                    serverJackpot = new Server(Integer.valueOf(query.get(0).get("puerto_jackpot").toString()), manejadorServerJackpot);
+                }
+                else{
+                    System.err.println("No se ha colocado el puerto para el servidor de jackpot, no se puede instanciar el servidor");
+                }
+            }
+            else{
+                //Verificar si no es el servidor
+                if (query != null && !query.isEmpty() && query.get(0).get("servidor") != null && !Boolean.valueOf(query.get(0).get("servidor").toString())) {
+                    //La maquina es un cliente, no es el servidor, instanciar el servidor de Jackpot
+                    if (query.get(0).get("puerto_jackpot") != null) {
+                        //Instanciar el cliente de Jackpot
+                        manejadorClientJackpot = new XSocketDataHandlerClientJackpot();
+                        clientJackpot = new Server(Integer.valueOf(query.get(0).get("puerto_jackpot").toString()), manejadorServerJackpot);
+                    }
+                    else{
+                        System.err.println("No se ha colocado el puerto para el cliente de jackpot, no se puede instanciar el cliente");
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     // <editor-fold defaultstate="collapsed" desc="Getters y Setters">
 
     //</editor-fold>
@@ -656,7 +713,7 @@ break;
                 case 25: response = this.colocarCreditos(p); break;
                 case 26: response = this.pagar(); break;
                 case 27: response = this.generarBonus(); break;
-                case 50: response = this.jugar(); break;
+                case 50: response = this.jugar(p); break;
                 //case 51: response = this.cargarCreditos(p); break;
                 //case 52: response = this.colocarApuestas(p); break;
                 case 60: response = this.bolasExtraSeleccionadas(); break;
@@ -671,6 +728,7 @@ break;
                 case 125: response = this.actualizarEstadoDesdeLaVista(p); break;
                 case 200: response = this.acumularParaElJackpot(); break;
                 case 201: response = this.otorgarJackpot(p); break;
+                case 202: response = this.obtenerTotalAcumuladoEnJackpot(); break;
                 default: response = noImplementadoAun(p);
             }
             
@@ -794,7 +852,7 @@ break;
             return respuesta;
         }
 
-        private Paquete jugar() throws IOException {
+        private Paquete jugar(Paquete p) throws IOException {
             
             try {
                 String query = "UPDATE juego SET comenzo = '" + getCurrentTimeStamp() + "'"
@@ -805,6 +863,19 @@ break;
             } catch (SQLException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
+            
+            if (p != null && p.getDatos() != null && p.getDatos().get("creditos") != null
+                    && p.getDatos().get("apuestaTotal") != null) {
+                try {
+                    bingo.apostar(Double.valueOf(p.getDatos().get("apuestaTotal").toString()).intValue());
+                    bingo.setCreditos(Double.valueOf(p.getDatos().get("creditos").toString()).intValue());
+                    
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            
+            System.out.println("Total apostado: " + ArrayUtils.toString(bingo.apuestas()));
             
             bingo.jugar(false);
             
@@ -881,6 +952,9 @@ break;
                                 os.flush();
                                 s.close();
                             }
+                            else{
+                                System.out.println("No hay ninguna IP configurada como servidor de Jackpot");
+                            }
                         }
                     }
                 
@@ -888,7 +962,7 @@ break;
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
             
-            Paquete p = new Paquete.PaqueteBuilder()
+            Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(50)
                     .estado("ok")
                     .dato("bolasVisibles", bingo.getBolasVisibles())
@@ -904,10 +978,11 @@ break;
                     .dato("liberarBolasExtra", bingo.liberarBolasExtra())
                     .crear();
             
-            enviar(p.aJSON());
+//            enviar(response.aJSON());
+              log(p);
             
 //            System.out.println(p.aJSON());
-            return p;
+            return response;
         }
         
         private java.sql.Timestamp getCurrentTimeStamp() {
@@ -1854,6 +1929,108 @@ break;
             
             return response.crear();
                     
+        }
+        
+        private boolean log(Paquete p){
+            boolean result = false;
+            if (p != null && p.getDatos() != null && p.getDatos().get("apuestaTotal") != null
+                    && p.getDatos().get("creditos") != null) {
+                int apuestaTotal = Double.valueOf(p.getDatos().get("apuestaTotal").toString()).intValue();
+                int creditos = Double.valueOf(p.getDatos().get("creditos").toString()).intValue();
+                
+                try {
+                    Conexion.getInstancia().insertar("INSERT INTO logs(creditos_backend, creditos_frontend"
+                            + ",apuesta_total_backend, apuesta_total_frontend) VALUES(" + bingo.getCreditos() +
+                            "," + (creditos -  apuestaTotal) + "," + bingo.apuestaTotal() + "," + apuestaTotal + ")");
+                    result = true;
+                    System.out.println("Log correcto");
+                } catch (SQLException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            else{
+                System.out.println("Faltan parametros para el log");
+            }
+            return result;
+        }
+
+        private Paquete obtenerTotalAcumuladoEnJackpot() {
+            
+            try {
+                //1. Si la instancia del juego actual es el servidor de Jackpot
+                //entonces devuelvo el total acumulado en la base de datos
+                //2. Si la instancia del juego actual no es el servidor de Jackpot
+                //entonces verifico si existe una IP configurada apuntando al
+                //servidor de Jackpot, si existe entonces solicito el acumulado
+                //sino informo que no existe el servidor de Jackpot
+                
+                //1.
+                List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT servidor, acumulado, ip_servidor FROM configuracion");
+                
+                if (query != null && !query.isEmpty()) {
+                    //Verificar si es el servidor
+                    if (Boolean.valueOf(query.get(0).get("servidor").toString())) {
+                        //Es el servidor, retornar el valor acumulado
+                        return new Paquete.PaqueteBuilder()
+                                .codigo(202)
+                                .estado("ok")
+                                .dato("acumulado", Integer.valueOf(query.get(0).get("acumulado").toString()))
+                                .crear();
+                    }
+                    else{
+                        //
+                    }
+                }
+                
+                } catch (SQLException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    return new Paquete.PaqueteBuilder().codigo(202).estado("error").dato("desc", "Excepcion SQL, no se puede verificar los datos del servidor de Jackpot").crear();
+                }
+            
+            Paquete response = new Paquete.PaqueteBuilder()
+                    .codigo(202)
+                    .estado("ok")
+                    
+                    .crear();
+            
+            return response;
+        }
+    }
+    
+    private class XSocketDataHandlerServerJackpot implements IDataHandler, IConnectHandler, IDisconnectHandler{
+
+        @Override
+        public boolean onData(INonBlockingConnection inbc) throws IOException, BufferUnderflowException, ClosedChannelException, MaxReadSizeExceededException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public boolean onConnect(INonBlockingConnection inbc) throws IOException, BufferUnderflowException, MaxReadSizeExceededException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public boolean onDisconnect(INonBlockingConnection inbc) throws IOException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+        
+    }
+    
+    private class XSocketDataHandlerClientJackpot implements IDataHandler, IConnectHandler, IDisconnectHandler{
+
+        @Override
+        public boolean onData(INonBlockingConnection inbc) throws IOException, BufferUnderflowException, ClosedChannelException, MaxReadSizeExceededException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public boolean onConnect(INonBlockingConnection inbc) throws IOException, BufferUnderflowException, MaxReadSizeExceededException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public boolean onDisconnect(INonBlockingConnection inbc) throws IOException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
         
     }

@@ -939,10 +939,10 @@ public class Juego {
         }
 //        System.out.println("Premio mayor por salir: " + nombrePremio + "(" + premio + "). Apuesta: " + this.apostado[0]);
 //        //log(("Premio mayor por salir: " + nombrePremio + "("+ premio + "), premiosPorSalir: " + ArrayUtils.toString(premiosPorSalir));
-        System.out.println("Metodo premio mayor por salir");
-        for (int i = 0; i < CARTONES; i++) {
-            System.out.println(ArrayUtils.toString(premiosPorSalir[i]));
-        }
+//        System.out.println("Metodo premio mayor por salir");
+//        for (int i = 0; i < CARTONES; i++) {
+//            System.out.println(ArrayUtils.toString(premiosPorSalir[i]));
+//        }
         
         return premio;
     }

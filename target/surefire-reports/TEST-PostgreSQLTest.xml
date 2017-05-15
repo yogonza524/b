@@ -61,13 +61,13 @@
     <property name="sun.desktop" value="windows"/>
     <property name="sun.cpu.isalist" value=""/>
   </properties>
-  <testcase classname="PostgreSQLTest" name="anotherTest" time="0.03">
+  <testcase classname="PostgreSQLTest" name="anotherTest" time="0.25">
     <skipped/>
   </testcase>
-  <testcase classname="PostgreSQLTest" name="idMachineTest" time="0.03">
+  <testcase classname="PostgreSQLTest" name="idMachineTest" time="0.25">
     <skipped/>
   </testcase>
-  <testcase classname="PostgreSQLTest" name="connectionTest" time="0.03">
+  <testcase classname="PostgreSQLTest" name="connectionTest" time="0.25">
     <skipped/>
   </testcase>
 </testsuite>
