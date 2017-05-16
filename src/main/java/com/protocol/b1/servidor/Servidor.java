@@ -9,6 +9,7 @@ package com.protocol.b1.servidor;
 import com.bingo.enumeraciones.Denominacion;
 import com.bingo.enumeraciones.FaseDeBusqueda;
 import com.bingo.rng.RNG;
+import com.bingo.util.Matematica;
 import com.bv20.core.BV20;
 import com.core.bingosimulador.Juego;
 import com.core.bv20.model.Controlador;
@@ -25,6 +26,7 @@ import java.nio.BufferUnderflowException;
 import java.nio.channels.ClosedChannelException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -685,6 +687,7 @@ break;
     private class XSocketDataHandler implements IDataHandler, IConnectHandler, IDisconnectHandler{
 
         private final Set<INonBlockingConnection> SESSIONS = Collections.synchronizedSet(new HashSet<INonBlockingConnection>());
+        private boolean hayJackpot;
         
         @Override
         public boolean onData(INonBlockingConnection nbc) throws IOException, BufferUnderflowException, ClosedChannelException, MaxReadSizeExceededException {
@@ -729,6 +732,7 @@ break;
                 case 200: response = this.acumularParaElJackpot(); break;
                 case 201: response = this.otorgarJackpot(p); break;
                 case 202: response = this.obtenerTotalAcumuladoEnJackpot(); break;
+                case 210: response = this.habilitarJackpot(); break;
                 default: response = noImplementadoAun(p);
             }
             
@@ -976,7 +980,13 @@ break;
                     .dato("cartonesHabilitados", bingo.getCartonesHabilitados())
                     .dato("bonus", bingo.getBonus())
                     .dato("liberarBolasExtra", bingo.liberarBolasExtra())
+                    .dato("hayJackpot", this.hayJackpot)
                     .crear();
+            
+            //Si hubo Jackpot, cambiar la bandera a false
+            if (hayJackpot) {
+                hayJackpot = false;
+            }
             
 //            enviar(response.aJSON());
               log(p);
@@ -1410,11 +1420,27 @@ break;
         }
 
         private Paquete generarBolillero() {
-            bingo.generarBolillero();
-            bingo.generarBonusB1();
             
-            bingo.buscarPremios(FaseDeBusqueda.PRIMERA);
-            bingo.buscarPremiosPorSalir(bingo.isUtilizarUmbralParaLiberarBolasExtra());
+            if (hayJackpot) {
+                int[] bolillero = generarJackpotDirigido();
+                
+                int[] visibles = Arrays.copyOf(bolillero, 30);
+                int[] extra = Arrays.copyOfRange(bolillero, 30, 40);
+                
+                //Revolver
+                Matematica.revolver(visibles);
+                Matematica.revolver(extra);
+                
+                bingo.setBolasVisibles(visibles);
+                bingo.setBolasExtra(extra);
+            }
+            else{
+                bingo.generarBolillero();
+                bingo.generarBonusB1();
+
+                bingo.buscarPremios(FaseDeBusqueda.PRIMERA);
+                bingo.buscarPremiosPorSalir(bingo.isUtilizarUmbralParaLiberarBolasExtra());
+            }
             
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(24)
@@ -1994,6 +2020,55 @@ break;
                     .crear();
             
             return response;
+        }
+
+        private Paquete habilitarJackpot() {
+            this.hayJackpot = true;
+            
+            return new Paquete.PaqueteBuilder()
+                    .codigo(210)
+                    .estado("ok")
+                    .dato("hayJackpot", hayJackpot)
+                    .dato("desc", "Se coloco en true el flag de Jackpot")
+                    .crear();
+        }
+
+        private int[] generarJackpotDirigido() {
+            //generar el bolillero del Bingo
+
+            int cont = 0;
+            int max = 60;
+            
+            int[] bolilleroDirigido = new int[max];
+            
+            for (int i = 0; i < Juego.getCantidadDeCartones(); i++) {
+                for (int j = 0; j < Juego.getLineas(); j++) {
+                    for (int k = 0; k < Juego.getColumnas(); k++) {
+                        bolilleroDirigido[cont++] = bingo.getCartones()[i][j][k];
+                    }
+                }
+            }
+            int[] salida = Arrays.copyOf(bolilleroDirigido, 15);
+            int[] cola = new int[15];
+            int incremento = 0;
+            
+            boolean seguir = true;
+            
+            while(seguir){
+                int indice = 15 + RNG.getInstance().pickInt(max - 15);
+                
+                if (bolilleroDirigido[indice] != 0) {
+                    cola[incremento++] = bolilleroDirigido[indice];
+                    bolilleroDirigido[indice] = 0;
+                    seguir = incremento < 15;
+                }
+            }
+            
+            salida = ArrayUtils.addAll(salida, cola);
+            
+            Matematica.revolver(salida);
+            
+            return salida;
         }
     }
     
