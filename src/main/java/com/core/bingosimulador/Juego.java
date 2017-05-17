@@ -522,11 +522,11 @@ public class Juego {
             result = true;
         }
         else{
-//            System.out.println("No se pudo habilitar");
-//            System.out.println("Apostado: " + ArrayUtils.toString(apostado));
-//            System.out.println("Habilitados: " + habilitados());
-//            System.out.println("Creditos: " + creditos);
-//            System.out.println("Cartones habilitados: " + ArrayUtils.toString(cartonesHabilitados));
+            System.out.println("No se pudo habilitar");
+            System.out.println("Apostado: " + ArrayUtils.toString(apostado));
+            System.out.println("Habilitados: " + habilitados());
+            System.out.println("Creditos: " + creditos);
+            System.out.println("Cartones habilitados: " + ArrayUtils.toString(cartonesHabilitados));
         }
         return result;
     }
@@ -706,8 +706,15 @@ public class Juego {
             return 0;
         }
         int apuestaInd = this.apuestaIndividual();
+        
+        System.out.println("Metodo costo de bola extra");
+        System.out.println("Apuesta individual: " + apuestaInd);
+        System.out.println("Factor de ganancia del premio mayor: " + factorDeGananciaDelPremioMayor);
+        System.out.println("Porcentaje del premio mayor por salir: " + porcentajeDelPremioMayorPorSalirParaBolaExtra);
+        
         int costo = (int)(factorDeGananciaDelPremioMayor * apuestaInd * porcentajeDelPremioMayorPorSalirParaBolaExtra);
-        System.out.println("Costo bola extra: " + costo + ", premio mayor por salir: " + factorDeGananciaDelPremioMayor);
+        System.out.println("Costo bola extra: " + costo + ", premio mayor por salir: " + 
+                factorDeGananciaDelPremioMayor);
 //log(("Costo de la bola extra: " + costo);
 //        System.out.println("Apuesta individual: " + apuestaInd + 
 //                ". Porcentaje de descuento: " + porcentajeDelPremioMayorPorSalirParaBolaExtra + ". Costo: " + costo);
@@ -933,7 +940,7 @@ public class Juego {
                 if (cartonesHabilitados[i] && premiosPorSalir[i][j] / apuestaIndividual() > premio) {
                     premio = premiosPorSalir[i][j] / apuestaIndividual();
                     nombrePremio = nombresDeFiguras[j];
-                    System.out.println("Mayor actual por salir: " + nombrePremio + "(" + premio + ")");
+                    System.out.println("Mayor actual por salir: " + nombrePremio + "(" + premio + ") en carton " + i);
                 }
             }
         }
@@ -1752,7 +1759,7 @@ public class Juego {
 
     public void apostar(int apuestaTotal) {
         int habilitados = habilitados();
-        int apuestaIndividual = habilitados > 0 ? apuestaTotal : 0;
+        int apuestaIndividual = habilitados > 0 ? apuestaTotal / habilitados : 0;
         
         if (apuestaIndividual == 0) {
             apuestaIndividual = 1;
@@ -1764,6 +1771,10 @@ public class Juego {
         
         for (int i = 0; i < habilitados; i++) {
             this.apostado[i] = apuestaIndividual;
+        }
+        
+        for (int i = habilitados; i < 4; i++) {
+            this.apostado[i] = 0;
         }
     }
     
@@ -2011,6 +2022,17 @@ public class Juego {
                 result[i][j] = premiosPagados[i][j];
             }
         }
+        return result;
+    }
+
+    public int[] getTablaDePagos() {
+        int[] result = new int[this.figurasDePago.length];
+        int apuestaIndividual = this.apuestaIndividual();
+        
+        for (int i = 0; i < result.length; i++) {
+            result[i] = this.factoresDePago[i] * apuestaIndividual;
+        }
+        
         return result;
     }
     

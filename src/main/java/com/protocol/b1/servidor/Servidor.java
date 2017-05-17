@@ -736,7 +736,7 @@ break;
                 case 27: response = this.generarBonus(); break;
                 case 50: response = this.jugar(p); break;
                 //case 51: response = this.cargarCreditos(p); break;
-                //case 52: response = this.colocarApuestas(p); break;
+                case 52: response = this.colocarApuestas(p); break;
                 case 60: response = this.bolasExtraSeleccionadas(); break;
                 case 61: response = this.seleccionarBolaExtra(p); break;
                 case 62: response = this.costoBolaExtra(); break;
@@ -750,15 +750,18 @@ break;
                 case 200: response = this.acumularParaElJackpot(); break;
                 case 201: response = this.otorgarJackpot(p); break;
                 case 202: response = this.obtenerTotalAcumuladoEnJackpot(); break;
+                case 203: response = this.reiniciarAcumulado(); break;
                 case 210: response = this.habilitarJackpot(); break;
                 default: response = noImplementadoAun(p);
             }
             
-            System.out.println("Paquete recibido");
-            System.out.println(p.aJSON());
-            
-            System.out.println("Paquete enviado");
-            System.out.println(response != null? response.aJSON() : "Mensaje nulo");
+                if (p.getCodigo() != 202) {
+                    System.out.println("Paquete recibido");
+                    System.out.println(p.aJSON());
+
+                    System.out.println("Paquete enviado");
+                    System.out.println(response != null? response.aJSON() : "Mensaje nulo");
+                }
             
             if (response != null) {
                 enviar(response.aJSON());
@@ -886,17 +889,17 @@ break;
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
             
-            if (p != null && p.getDatos() != null && p.getDatos().get("creditos") != null
-                    && p.getDatos().get("apuestaTotal") != null) {
-                try {
-                    bingo.apostar(Double.valueOf(p.getDatos().get("apuestaTotal").toString()).intValue());
-                    bingo.setCreditos(Double.valueOf(p.getDatos().get("creditos").toString()).intValue());
-                    
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            
+//            if (p != null && p.getDatos() != null && p.getDatos().get("creditos") != null
+//                    && p.getDatos().get("apuestaTotal") != null) {
+//                try {
+//                    bingo.apostar(Double.valueOf(p.getDatos().get("apuestaTotal").toString()).intValue());
+//                    bingo.setCreditos(Double.valueOf(p.getDatos().get("creditos").toString()).intValue());
+//                    
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            
             System.out.println("Total apostado: " + ArrayUtils.toString(bingo.apuestas()));
             
             bingo.jugar(false);
@@ -999,17 +1002,24 @@ break;
                     .dato("bonus", bingo.getBonus())
                     .dato("liberarBolasExtra", bingo.liberarBolasExtra())
                     .dato("hayJackpot", this.hayJackpot)
+                    .dato("carton1", bingo.getCartones()[0])
+                    .dato("carton2", bingo.getCartones()[1])
+                    .dato("carton3", bingo.getCartones()[2])
+                    .dato("carton4", bingo.getCartones()[3])
+                    .dato("tablaDePagos", bingo.getTablaDePagos())
                     .crear();
             
-            //Si hubo Jackpot, cambiar la bandera a false
+            //Si hubo Jackpot, cambiar la bandera a false y resetear el acumulado
             if (hayJackpot) {
                 hayJackpot = false;
             }
             
-            //Avisar al manejador de eventos sobre este acontecimiento
-            EventBusManager.getInstancia().getBus().post(new B1Controller.EventoJugar());
+            //B1 en modo gráfico?
+            if (B1FX) {
+                //Avisar al manejador de eventos sobre este acontecimiento
+                EventBusManager.getInstancia().getBus().post(new B1Controller.EventoJugar());
+            }
             
-//            enviar(response.aJSON());
               log(p);
             
 //            System.out.println(p.aJSON());
@@ -1464,16 +1474,15 @@ break;
                 
                 bingo.setBolasVisibles(visibles);
                 bingo.setBolasExtra(extra);
-                
-                bingo.generarBonusB1();
-                bingo.buscarPremios(FaseDeBusqueda.PRIMERA);
-                bingo.buscarPremiosPorSalir(bingo.isUtilizarUmbralParaLiberarBolasExtra());
             }
             else{
                 bingo.generarBolillero();
-                
-                
             }
+            
+            //Acciones por defecto
+            bingo.generarBonusB1();
+            bingo.buscarPremios(FaseDeBusqueda.PRIMERA);
+            bingo.buscarPremiosPorSalir(bingo.isUtilizarUmbralParaLiberarBolasExtra());
             
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(24)
@@ -1763,8 +1772,9 @@ break;
             if (p != null && p.getDatos() != null && p.getDatos().get("totalApostado") != null) {
                 
                 int apuestas = Double.valueOf(p.getDatos().get("totalApostado").toString()).intValue();
-                bingo.apostar(apuestas / bingo.habilitados());
+                bingo.apostar(apuestas);
                 try {
+                    System.out.println("Actualizando las apuestas totales, metodo colocarApuestas: " + apuestas);
                     Conexion.getInstancia().actualizar("UPDATE juego SET apuesta_total = " + apuestas);
                 } catch (SQLException ex) {
                     Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -2095,6 +2105,19 @@ break;
             Matematica.revolver(salida);
             
             return salida;
+        }
+
+        private Paquete reiniciarAcumulado() {
+            try {
+                //Reiniciar el acumulado
+                Conexion.getInstancia().actualizar("UPDATE configuracion SET acumulado = 0.0");
+                
+                return new Paquete.PaqueteBuilder().codigo(203).estado("ok").dato("desc", "Acumulado reiniciado a 0").crear();
+                
+            } catch (SQLException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                return new Paquete.PaqueteBuilder().codigo(203).estado("error").dato("desc", "Excepcion SQL: " + ex.getMessage()).crear();
+            }
         }
     }
     
