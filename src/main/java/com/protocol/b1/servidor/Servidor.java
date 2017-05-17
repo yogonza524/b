@@ -14,8 +14,10 @@ import com.bv20.core.BV20;
 import com.core.bingosimulador.Juego;
 import com.core.bv20.model.Controlador;
 import com.core.bv20.model.Estado;
+import com.fx.controladores.B1Controller;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.MalformedJsonException;
+import com.guava.core.EventBusManager;
 import com.protocol.b1.configuracion.ConfiguracionMain;
 import com.protocol.b1.enumeraciones.Idioma;
 import com.protocol.dao.Conexion;
@@ -66,6 +68,8 @@ public class Servidor {
     private IServer serverJackpot;
     private XSocketDataHandlerServerJackpot manejadorServerJackpot;
     
+    public static boolean B1FX = false;
+    
     //Si la maquina no es servidor de Jackpot entonces los siguientes 2(dos)
     //objetos seran cargados para comunicarse con el servidor de Jackpot
     private IServer clientJackpot;
@@ -107,46 +111,48 @@ public class Servidor {
     //</editor-fold>
     
     private void obtenerParametros(String[] args) {
-        for(String param : args){
-            String[] p = param.split(":");
-            
-            if (p != null && p.length > 0) {
-                switch(p[0]){
-                    case "-p" : 
-                        if (p[1].matches("\\d+")) {
-                            parametros.put("puerto", Integer.valueOf(p[1]));
-                        }
-                        else{
-                            parametros.put("puerto", 8890);
-                        }
-                        break;
-                    case "-bv20":
-                        //Coloco el puerto para abrirlo luego
-                        puertoBilletero = Integer.valueOf(p[1]);
-                        billetero = crearBilletero();
-                        break;
-                    case "-servidor":
-                        //Colocar el modo servidor
-                        try {
-                            boolean servidor = Integer.valueOf(p[1]) == 1 ? true : false;
-                            
-                            Conexion.getInstancia().actualizar("UPDATE configuracion SET servidor = " + servidor);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        break;
-                    case "-servidorIp":
-                        //Coloco el ip del servidor
-                        
-                        try{
-                            Conexion.getInstancia().actualizar("UPDATE configuracion SET ip_servidor = " + p[1]);
-                        } catch (SQLException ex) {
-                            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        
-                        break;
+        if (args != null && args.length > 0) {
+            for(String param : args){
+                String[] p = param.split(":");
+
+                if (p != null && p.length > 0) {
+                    switch(p[0]){
+                        case "-p" : 
+                            if (p[1].matches("\\d+")) {
+                                parametros.put("puerto", Integer.valueOf(p[1]));
+                            }
+                            else{
+                                parametros.put("puerto", 8890);
+                            }
+                            break;
+                        case "-bv20":
+                            //Coloco el puerto para abrirlo luego
+                            puertoBilletero = Integer.valueOf(p[1]);
+                            billetero = crearBilletero();
+                            break;
+                        case "-servidor":
+                            //Colocar el modo servidor de jackpot
+                            try {
+                                boolean servidor = Integer.valueOf(p[1]) == 1 ? true : false;
+
+                                Conexion.getInstancia().actualizar("UPDATE configuracion SET servidor = " + servidor);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            break;
+                        case "-servidorIp":
+                            //Coloco el ip del servidor de jackpot
+
+                            try{
+                                Conexion.getInstancia().actualizar("UPDATE configuracion SET ip_servidor = " + p[1]);
+                            } catch (SQLException ex) {
+                                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+
+                            break;
+                    }
+
                 }
-                
             }
         }
     }
@@ -159,7 +165,18 @@ public class Servidor {
         }
         serverGame.start();
         
-        Thread.currentThread().join(); //Bucle infinito
+        if (serverJackpot != null) {
+            serverJackpot.start();
+        }
+        else{
+            if (clientJackpot != null) {
+                clientJackpot.start();
+            }
+        }
+        
+        if (!B1FX) {
+            Thread.currentThread().join(); //Bucle infinito
+        }
     }
 
     private void cargarConfiguracionPorDefecto() {
@@ -658,11 +675,12 @@ break;
             else{
                 //Verificar si no es el servidor
                 if (query != null && !query.isEmpty() && query.get(0).get("servidor") != null && !Boolean.valueOf(query.get(0).get("servidor").toString())) {
-                    //La maquina es un cliente, no es el servidor, instanciar el servidor de Jackpot
+                    //La maquina es un cliente, no es el servidor, instanciar el servidor cliente de Jackpot
                     if (query.get(0).get("puerto_jackpot") != null) {
                         //Instanciar el cliente de Jackpot
                         manejadorClientJackpot = new XSocketDataHandlerClientJackpot();
                         clientJackpot = new Server(Integer.valueOf(query.get(0).get("puerto_jackpot").toString()), manejadorServerJackpot);
+                        
                     }
                     else{
                         System.err.println("No se ha colocado el puerto para el cliente de jackpot, no se puede instanciar el cliente");
@@ -988,6 +1006,9 @@ break;
                 hayJackpot = false;
             }
             
+            //Avisar al manejador de eventos sobre este acontecimiento
+            EventBusManager.getInstancia().getBus().post(new B1Controller.EventoJugar());
+            
 //            enviar(response.aJSON());
               log(p);
             
@@ -1182,6 +1203,11 @@ break;
                     .dato("ganado", bingo.ganancias())
                     .dato("cartones", c)
                     .crear();
+            
+            //Si esta corriendo B1 en modo FX alertar al oyente
+            if (B1FX) {
+                EventBusManager.getInstancia().getBus().post(new B1Controller.EventoConfigurar(bingo));
+            }
             
             return response;
         }
@@ -1380,6 +1406,11 @@ break;
                     .dato("cartones", c)
                     .crear();
             
+            //Si la aplicacion es BX avisar al oyente
+            if (B1FX) {
+                EventBusManager.getInstancia().getBus().post(new B1Controller.EventoCambiarCartones(bingo.getCartones()));
+            }
+            
             return response;
         }
 
@@ -1433,13 +1464,15 @@ break;
                 
                 bingo.setBolasVisibles(visibles);
                 bingo.setBolasExtra(extra);
+                
+                bingo.generarBonusB1();
+                bingo.buscarPremios(FaseDeBusqueda.PRIMERA);
+                bingo.buscarPremiosPorSalir(bingo.isUtilizarUmbralParaLiberarBolasExtra());
             }
             else{
                 bingo.generarBolillero();
-                bingo.generarBonusB1();
-
-                bingo.buscarPremios(FaseDeBusqueda.PRIMERA);
-                bingo.buscarPremiosPorSalir(bingo.isUtilizarUmbralParaLiberarBolasExtra());
+                
+                
             }
             
             Paquete response = new Paquete.PaqueteBuilder()
@@ -1982,36 +2015,29 @@ break;
 
         private Paquete obtenerTotalAcumuladoEnJackpot() {
             
-            try {
-                //1. Si la instancia del juego actual es el servidor de Jackpot
-                //entonces devuelvo el total acumulado en la base de datos
-                //2. Si la instancia del juego actual no es el servidor de Jackpot
-                //entonces verifico si existe una IP configurada apuntando al
-                //servidor de Jackpot, si existe entonces solicito el acumulado
-                //sino informo que no existe el servidor de Jackpot
-                
-                //1.
-                List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT servidor, acumulado, ip_servidor FROM configuracion");
-                
-                if (query != null && !query.isEmpty()) {
-                    //Verificar si es el servidor
-                    if (Boolean.valueOf(query.get(0).get("servidor").toString())) {
-                        //Es el servidor, retornar el valor acumulado
-                        return new Paquete.PaqueteBuilder()
-                                .codigo(202)
-                                .estado("ok")
-                                .dato("acumulado", Integer.valueOf(query.get(0).get("acumulado").toString()))
-                                .crear();
+            /*
+            Si la instancia actual de B1 es el servidor, entonces enviar el acumulado,
+            sino verificar si existe un servidor y consultarle el acumulado, sino
+            enviar un mensaje de error: no hay servidor de Jackpot
+            */
+            
+            if (serverJackpot != null && serverJackpot.isOpen()) {
+                try {
+                    //Hay un servidor de jackpot, es este, enviar acumulado
+                    List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT acumulado FROM configuracion LIMIT 1");
+                    if (query != null && !query.isEmpty() && query.get(0) != null && query.get(0).get("acumulado") != null) {
+                        double acumulado = Double.valueOf(query.get(0).get("acumulado").toString());
+                        return new Paquete.PaqueteBuilder().codigo(202).estado("ok").dato("desc", "Bote").dato("acumulado", acumulado).crear();
                     }
-                    else{
-                        //
-                    }
-                }
-                
                 } catch (SQLException ex) {
                     Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                    return new Paquete.PaqueteBuilder().codigo(202).estado("error").dato("desc", "Excepcion SQL, no se puede verificar los datos del servidor de Jackpot").crear();
+                    return new Paquete.PaqueteBuilder().codigo(202).estado("error").dato("desc", "Excepcion SQL: " + ex.getMessage()).crear();
                 }
+            }
+            else{
+                //No hay servidor en la instancia actual, verificar si hay alguno configurado
+                
+            }
             
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(202)
