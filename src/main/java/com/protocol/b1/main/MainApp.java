@@ -6,6 +6,7 @@
 
 package com.protocol.b1.main;
 
+import com.b1.batch.ProcessB1;
 import com.protocol.b1.servidor.Servidor;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -37,6 +38,7 @@ public class MainApp {
         try {
             server = new Servidor(args);
             server.iniciar();
+            
         } catch (IOException ex) {
             Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InterruptedException ex) {

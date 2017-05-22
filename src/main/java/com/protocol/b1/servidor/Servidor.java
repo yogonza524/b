@@ -6,6 +6,7 @@
 
 package com.protocol.b1.servidor;
 
+import com.b1.batch.ProcessB1;
 import com.bingo.enumeraciones.Denominacion;
 import com.bingo.enumeraciones.FaseDeBusqueda;
 import com.bingo.rng.RNG;
@@ -85,6 +86,14 @@ public class Servidor {
 
     // <editor-fold defaultstate="collapsed" desc="Constructor">
     public Servidor(int puerto, Juego bingo) throws IOException{
+        
+        try {
+            //Verificar el Servicio de PostgreSQL
+            verificarServicioPostgreSQL();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         parametros = new HashMap<>();
         manejadorGame = new XSocketDataHandler();
         manejadorServerJackpot = new XSocketDataHandlerServerJackpot();
@@ -97,6 +106,14 @@ public class Servidor {
     }
     
     public Servidor(String[] args) throws IOException{
+        
+        try {
+            //Verificar el Servicio de PostgreSQL
+            verificarServicioPostgreSQL();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         bingo = new Juego();
         configurarJuego(bingo);
         cargarConfiguracionPorDefecto();
@@ -158,10 +175,15 @@ public class Servidor {
     }
     
     public void iniciar() throws IOException, InterruptedException{
+        
         //Verificar si esta conectado el billetero
         if (billetero != null && puertoBilletero > -1) {
-            billetero.abrirPuerto(puertoBilletero);
-            System.out.println("Billetero abierto y escuchando en el puerto " + puertoBilletero);
+            if (billetero.abrirPuerto(puertoBilletero)) {
+                System.out.println("Billetero abierto y escuchando en el puerto " + puertoBilletero);
+            }
+            else{
+                System.out.println("Error al abrir el puerto del billetero");
+            }
         }
         serverGame.start();
         
@@ -173,6 +195,17 @@ public class Servidor {
                 clientJackpot.start();
             }
         }
+        
+        //Lanzar el BingoBot
+        new Thread(() -> {
+            try {
+                new ProcessB1().run(new String[]{"cmd"}, "\"C:\\Documents and Settings\\Gonzalo\\Desktop\\bingoBot\\PantallaPrincipalCorregida\\bingo.swf\"", "No se pudo iniciar el juego", true);
+            } catch (IOException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }).start();
         
         if (!B1FX) {
             Thread.currentThread().join(); //Bucle infinito
@@ -265,9 +298,9 @@ public class Servidor {
                 }
             }
             
-            System.out.println("Configuracion inicial");
-            System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(bingo));
-            System.out.println();
+//            System.out.println("Configuracion inicial");
+//            System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(bingo));
+//            System.out.println();
             
         } catch (SQLException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -694,6 +727,29 @@ break;
         }
     }
 
+    private void verificarServicioPostgreSQL() throws IOException, InterruptedException {
+        int esperar = 20; //Segundos a esperar la conexion de PostgreSQL
+        int cont = 0; //Contador de segundos
+        boolean postgreSQL = false;
+        while(cont < esperar && !postgreSQL){
+        
+            postgreSQL = new ProcessB1().isRunning("postgresql-9.4", new String[]{"cmd"});
+            
+            cont++;
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        if (!postgreSQL) {
+            System.out.println("Error: No se encontró el servicio PostgreSQL, no se puede continuar");
+            System.exit(1);
+        }
+        
+    }
+
     // <editor-fold defaultstate="collapsed" desc="Getters y Setters">
 
     //</editor-fold>
@@ -705,72 +761,75 @@ break;
     private class XSocketDataHandler implements IDataHandler, IConnectHandler, IDisconnectHandler{
 
         private final Set<INonBlockingConnection> SESSIONS = Collections.synchronizedSet(new HashSet<INonBlockingConnection>());
+        private final Set<INonBlockingConnection> SESSIONS_NOT_VALID = Collections.synchronizedSet(new HashSet<INonBlockingConnection>());
         private boolean hayJackpot;
         
         @Override
         public boolean onData(INonBlockingConnection nbc) throws IOException, BufferUnderflowException, ClosedChannelException, MaxReadSizeExceededException {
-            try {
-            String data = nbc.readStringByDelimiter("\0"); //Lectura
-            Paquete p = Paquete.deJSON(data); //Decodificación del paquete
-            
-            Paquete response = null;
-            
-            switch(p.getCodigo()){
-                case 1: response = this.idMaquina(); break;
-                case 3: response = this.idiomasSoportados(); break;
-                case 4: response = this.idiomaActual(); break;
-                case 6: response = this.cartonesActuales(); break;
-                case 7: response = this.bolas(); break;
-                case 10: response = this.configuracionJuego(); break;
-                case 11: response = this.bolasVisibles(); break;
-                case 14: response = this.aumentarApuesta(); break;
-                case 15: response = this.disminuirApuesta(); break;
-                case 16: response = this.cobrar(); break;
-                case 17: response = this.cambiarCartones(); break;
-                case 18: response = this.habilitarCarton(p); break;
-                case 21: response = this.deshabilitarCarton(p); break;
-                case 22: response = this.denominacionActual(p); break;
-                case 24: response = this.generarBolillero(); break;
-                case 25: response = this.colocarCreditos(p); break;
-                case 26: response = this.pagar(); break;
-                case 27: response = this.generarBonus(); break;
-                case 50: response = this.jugar(p); break;
-                //case 51: response = this.cargarCreditos(p); break;
-                case 52: response = this.colocarApuestas(p); break;
-                case 60: response = this.bolasExtraSeleccionadas(); break;
-                case 61: response = this.seleccionarBolaExtra(p); break;
-                case 62: response = this.costoBolaExtra(); break;
-                case 63: response = this.gananciasYCreditos(); break;
-                case 120: response = this.enviarCreditosActuales(); break;
-                case 121: response = this.bonus(); break;
-                case 122: response = this.premioObtenidoEnBonus(p); break;
-                case 123: response = this.informarGananciaEnBonus(p); break;
-                case 124: response = this.creditosActualizados(); break;
-                case 125: response = this.actualizarEstadoDesdeLaVista(p); break;
-                case 200: response = this.acumularParaElJackpot(); break;
-                case 201: response = this.otorgarJackpot(p); break;
-                case 202: response = this.obtenerTotalAcumuladoEnJackpot(); break;
-                case 203: response = this.reiniciarAcumulado(); break;
-                case 210: response = this.habilitarJackpot(); break;
-                default: response = noImplementadoAun(p);
-            }
-            
-                if (p.getCodigo() != 202) {
-                    System.out.println("Paquete recibido");
-                    System.out.println(p.aJSON());
+            if (SESSIONS.contains(nbc)) {
+                try {
+                    String data = nbc.readStringByDelimiter("\0"); //Lectura
+                    Paquete p = Paquete.deJSON(data); //Decodificación del paquete
 
-                    System.out.println("Paquete enviado");
-                    System.out.println(response != null? response.aJSON() : "Mensaje nulo");
+                    Paquete response = null;
+
+                    switch(p.getCodigo()){
+                        case 1: response = this.idMaquina(); break;
+                        case 3: response = this.idiomasSoportados(); break;
+                        case 4: response = this.idiomaActual(); break;
+                        case 6: response = this.cartonesActuales(); break;
+                        case 7: response = this.bolas(); break;
+                        case 10: response = this.configuracionJuego(); break;
+                        case 11: response = this.bolasVisibles(); break;
+                        case 14: response = this.aumentarApuesta(); break;
+                        case 15: response = this.disminuirApuesta(); break;
+                        case 16: response = this.cobrar(); break;
+                        case 17: response = this.cambiarCartones(); break;
+                        case 18: response = this.habilitarCarton(p); break;
+                        case 21: response = this.deshabilitarCarton(p); break;
+                        case 22: response = this.denominacionActual(p); break;
+                        case 24: response = this.generarBolillero(); break;
+                        case 25: response = this.colocarCreditos(p); break;
+                        case 26: response = this.pagar(); break;
+                        case 27: response = this.generarBonus(); break;
+                        case 50: response = this.jugar(p); break;
+                        //case 51: response = this.cargarCreditos(p); break;
+                        case 52: response = this.colocarApuestas(p); break;
+                        case 60: response = this.bolasExtraSeleccionadas(); break;
+                        case 61: response = this.seleccionarBolaExtra(p); break;
+                        case 62: response = this.costoBolaExtra(); break;
+                        case 63: response = this.gananciasYCreditos(); break;
+                        case 120: response = this.enviarCreditosActuales(); break;
+                        case 121: response = this.bonus(); break;
+                        case 122: response = this.premioObtenidoEnBonus(p); break;
+                        case 123: response = this.informarGananciaEnBonus(p); break;
+                        case 124: response = this.creditosActualizados(); break;
+                        case 125: response = this.actualizarEstadoDesdeLaVista(p); break;
+                        case 200: response = this.acumularParaElJackpot(); break;
+                        case 201: response = this.otorgarJackpot(p); break;
+                        case 202: response = this.obtenerTotalAcumuladoEnJackpot(); break;
+                        case 203: response = this.reiniciarAcumulado(); break;
+                        case 210: response = this.habilitarJackpot(); break;
+                        default: response = noImplementadoAun(p);
+                    }
+
+        //                if (p.getCodigo() != 202) {
+        //                    System.out.println("Paquete recibido");
+        //                    System.out.println(p.aJSON());
+        //
+        //                    System.out.println("Paquete enviado");
+        //                    System.out.println(response != null? response.aJSON() : "Mensaje nulo");
+        //                }
+
+                    if (response != null) {
+                        enviar(response.aJSON());
+                    }
+
+                } catch(Exception ex){
+//                    ex.printStackTrace();
+                    this.tratarDeEnviarExcepcion(ex);
                 }
-            
-            if (response != null) {
-                enviar(response.aJSON());
             }
-            
-        } catch(Exception ex){
-            ex.printStackTrace();
-            this.tratarDeEnviarExcepcion(ex);
-        }
         
         return true;
         }
@@ -778,21 +837,42 @@ break;
         @Override
         public boolean onConnect(INonBlockingConnection inbc) throws IOException, BufferUnderflowException, MaxReadSizeExceededException {
             boolean added = false;
-        try {
-            synchronized(SESSIONS){
-                added = SESSIONS.add(inbc);
-                bingo = new Juego();
-                configurarJuego(bingo);
-            }
-            } catch (BufferUnderflowException e) {
-                Logger.getLogger(XSocketDataHandler.class.getName()).log(Level.SEVERE, null, e);
-            }
-        return added;  
+            try {
+                synchronized(SESSIONS){
+                    if (SESSIONS != null && !SESSIONS.isEmpty()) {
+                        //Forbidden: Only one instance of BingoBot can be connected at same time
+                        System.out.println("No se permiten conexiones");
+                        SESSIONS_NOT_VALID.add(inbc);
+                    }
+                    else{
+                        //First session connection to BingoBot
+                        added = SESSIONS.add(inbc);
+                        bingo = new Juego();
+                        configurarJuego(bingo);
+                    }
+                }
+                } catch (BufferUnderflowException e) {
+                    Logger.getLogger(XSocketDataHandler.class.getName()).log(Level.SEVERE, null, e);
+                }
+            return added;  
         }
 
         @Override
         public boolean onDisconnect(INonBlockingConnection inbc) throws IOException {
-            System.out.println("Desconectado");
+            if (SESSIONS.contains(inbc)) {
+                System.out.println("Desconectado");
+                if (billetero != null) {
+                    billetero.cerrarPuerto();
+                }
+                //Cerrar la vista
+                enviar(new Paquete.PaqueteBuilder().codigo(300).estado("ok").crear().aJSON());
+                
+                System.exit(0);
+            }
+            if (SESSIONS_NOT_VALID.contains(inbc)) {
+                SESSIONS_NOT_VALID.remove(inbc);
+                System.out.println("Conexion no valida removida");
+            }
             return true;
         }
         
@@ -804,7 +884,7 @@ break;
          * @param ex Excepción a enviar al puerto
          */
         private Paquete tratarDeEnviarExcepcion(Exception ex) {
-            System.out.println("Excepcion: " + ex);
+//            System.out.println("Excepcion: " + ex);
             try {
                 Paquete respuesta = new Paquete.PaqueteBuilder()
                         .codigo(401)
