@@ -1260,6 +1260,9 @@ public class Juego {
     
     public void jugar(boolean generarNuevoBolillero){
         
+        System.out.println("Juego: umbral de bolas extra " + this.umbralParaLiberarBolasExtra);
+        System.out.println("Utilziar umbral: " + this.utilizarUmbralParaLiberarBolasExtra);
+        
         if (generarNuevoBolillero) {
             this.generarBolillero();
         }

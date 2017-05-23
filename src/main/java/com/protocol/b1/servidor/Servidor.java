@@ -7,6 +7,7 @@
 package com.protocol.b1.servidor;
 
 import com.b1.batch.ProcessB1;
+import com.b1.configuracion.Configuracion;
 import com.bingo.enumeraciones.Denominacion;
 import com.bingo.enumeraciones.FaseDeBusqueda;
 import com.bingo.rng.RNG;
@@ -103,6 +104,20 @@ public class Servidor {
         this.bingo = bingo;
         
         inicializarJackpot();
+        
+        //Oyente de evento cerrar aplicacion
+        Runtime.getRuntime().addShutdownHook(new Thread()
+        {
+            @Override
+            public void run()
+            {
+                try {
+                    manejadorGame.enviar(new Paquete.PaqueteBuilder().codigo(300).estado("ok").dato("desc","Cerrar").crear().aJSON());
+                } catch (IOException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
     }
     
     public Servidor(String[] args) throws IOException{
@@ -117,7 +132,8 @@ public class Servidor {
         bingo = new Juego();
         configurarJuego(bingo);
         cargarConfiguracionPorDefecto();
-        obtenerParametros(args);
+        obtenerConfiguracionDesdeArchivo(); //Prioridad baja, se trata de cargar solo si existe el archivo
+        obtenerParametros(args); //Prioridad alta, se ejecuta luego de la lectura de la configuracion
         manejadorGame = new XSocketDataHandler();
         serverGame = new Server((int) parametros.get("puerto"),manejadorGame);
         
@@ -176,15 +192,8 @@ public class Servidor {
     
     public void iniciar() throws IOException, InterruptedException{
         
-        //Verificar si esta conectado el billetero
-        if (billetero != null && puertoBilletero > -1) {
-            if (billetero.abrirPuerto(puertoBilletero)) {
-                System.out.println("Billetero abierto y escuchando en el puerto " + puertoBilletero);
-            }
-            else{
-                System.out.println("Error al abrir el puerto del billetero");
-            }
-        }
+        iniciarBilletero();
+        
         serverGame.start();
         
         if (serverJackpot != null) {
@@ -198,8 +207,12 @@ public class Servidor {
         
         //Lanzar el BingoBot
         new Thread(() -> {
+            //"\"C:\\Documents and Settings\\Gonzalo\\Desktop\\bingoBot\\PantallaPrincipalCorregida\\bingo.swf\""
+            Configuracion c = Configuracion.leer();
+            String ruta = c != null && c.getRutaBingoBot() != null && !c.getRutaBingoBot().isEmpty() ? c.getRutaBingoBot() : "\"C:\\Documents and Settings\\Gonzalo\\Desktop\\bingoBot\\PantallaPrincipalCorregida\\bingo.swf\"";
+            
             try {
-                new ProcessB1().run(new String[]{"cmd"}, "\"C:\\Documents and Settings\\Gonzalo\\Desktop\\bingoBot\\PantallaPrincipalCorregida\\bingo.swf\"", "No se pudo iniciar el juego", true);
+                new ProcessB1().run(new String[]{"cmd"}, ruta , "No se pudo iniciar el juego", true);
             } catch (IOException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             } catch (InterruptedException ex) {
@@ -223,9 +236,23 @@ public class Servidor {
         //bingo.setModoDeshabilitarPorFaltaDeCredito(true);
         
         //Colocar el umbral 
-        bingo.setUmbralParaLiberarBolasExtra(7);
+        if (Configuracion.existe()) {
+            Configuracion c = Configuracion.leer();
+            if (c != null) {
+                bingo.setUmbralParaLiberarBolasExtra(c.getUmbralMinimoParaLiberarBolasExtra());
+                bingo.setUtilizarUmbralParaLiberarBolasExtra(c.isUtilizarUmbralParaLiberarBolasExtra());
+            }
+            else{
+                bingo.setUmbralParaLiberarBolasExtra(7);
+                bingo.setUtilizarUmbralParaLiberarBolasExtra(true);
+            }
+        }
+        else{
+            bingo.setUmbralParaLiberarBolasExtra(7);
+            bingo.setUtilizarUmbralParaLiberarBolasExtra(true);
+        }
         
-        bingo.setUtilizarUmbralParaLiberarBolasExtra(true);
+        
         
         //Bonus variable
         bingo.setUtilizarPremiosVariablesBonus(true);
@@ -748,6 +775,64 @@ break;
             System.exit(1);
         }
         
+    }
+
+    private void obtenerConfiguracionDesdeArchivo() {
+        if (Configuracion.existe()) {
+            Configuracion c = Configuracion.leer();
+            if (c != null) {
+                if (bingo != null) {
+                    if (c.getUmbralMinimoParaLiberarBolasExtra() > 0) {
+                        bingo.setUmbralParaLiberarBolasExtra(c.getUmbralMinimoParaLiberarBolasExtra());
+                        System.out.println("Cargado umbral desde archivo, valor: " + c.getUmbralMinimoParaLiberarBolasExtra());
+                        System.out.println("Umbral del juego: " + bingo.getUmbralParaLiberarBolasExtra());
+                    }
+                    if (c.getPorcentajeDelMayorPorSalir() > 0.0) {
+                        bingo.setPorcentajeDelPremioMayorPorSalirParaBolaExtra(c.getPorcentajeDelMayorPorSalir());
+                    }
+                }
+            }
+            else{
+                System.out.println("Configuracion nula");
+            }
+        }
+        else{
+            try {
+                Configuracion.crearArchivoDeConfiguracion();
+            } catch (IOException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
+    private void iniciarBilletero() {
+        //Verificar el archivo de configuracion
+        Configuracion c = Configuracion.leer();
+        if (Configuracion.existe() && c != null) {
+            System.out.println("Puerto del billetero: " + c.getPuertoBilletero());
+            System.out.println("Billetero creado: " + billetero != null);
+                
+            if (c.getPuertoBilletero() > -1 && c.isBilletero()) {
+                if (billetero == null) {
+                    billetero = crearBilletero();
+                    puertoBilletero = c.getPuertoBilletero();
+                }
+            }
+        }
+        
+        //Verificar si esta conectado el billetero
+        if (billetero != null && puertoBilletero > -1) {
+            if (billetero.abrirPuerto(puertoBilletero)) {
+                System.out.println("Billetero abierto y escuchando en el puerto " + puertoBilletero);
+            }
+            else{
+                System.out.println("Error al abrir el puerto del billetero");
+            }
+        }
+        else{
+            System.out.println("Error al abrir el billetero: " + billetero == null);
+            System.out.println("Puerto: " + puertoBilletero);
+        }
     }
 
     // <editor-fold defaultstate="collapsed" desc="Getters y Setters">
