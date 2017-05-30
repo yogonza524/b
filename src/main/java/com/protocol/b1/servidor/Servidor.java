@@ -211,13 +211,13 @@ public class Servidor {
             Configuracion c = Configuracion.leer();
             String ruta = c != null && c.getRutaBingoBot() != null && !c.getRutaBingoBot().isEmpty() ? c.getRutaBingoBot() : "\"C:\\Documents and Settings\\Gonzalo\\Desktop\\bingoBot\\PantallaPrincipalCorregida\\bingo.swf\"";
             
-            try {
-                new ProcessB1().run(new String[]{"cmd"}, ruta , "No se pudo iniciar el juego", true);
-            } catch (IOException ex) {
-                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-            }
+//            try {
+//                new ProcessB1().run(new String[]{"cmd"}, ruta , "No se pudo iniciar el juego", true);
+//            } catch (IOException ex) {
+//                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+//            } catch (InterruptedException ex) {
+//                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+//            }
         }).start();
         
         if (!B1FX) {
@@ -239,6 +239,7 @@ public class Servidor {
         if (Configuracion.existe()) {
             Configuracion c = Configuracion.leer();
             if (c != null) {
+                System.out.println("Umbral minimo de bolas extra: " + c.getUmbralMinimoParaLiberarBolasExtra());
                 bingo.setUmbralParaLiberarBolasExtra(c.getUmbralMinimoParaLiberarBolasExtra());
                 bingo.setUtilizarUmbralParaLiberarBolasExtra(c.isUtilizarUmbralParaLiberarBolasExtra());
             }
