@@ -12,6 +12,8 @@ import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.ArrayUtils;
@@ -28,6 +30,7 @@ public class BV20 {
     private SerialPort puerto;
     private final Controlador controlador;
     private final Oyente oyente;
+    private Response respuesta;
     /**
      * Constructor por defecto
      * @param controlador Interfaz de control de mensajes desde y hacia el billetero BV20
@@ -35,6 +38,7 @@ public class BV20 {
     public BV20(Controlador controlador) {
         this.controlador = controlador;
         this.oyente = new Oyente();
+        this.respuesta = new Response();
     }
 
     /**
@@ -112,6 +116,10 @@ public class BV20 {
         if (puerto != null && puerto.isOpen()) {
             puerto.writeBytes(new byte[]{(byte)182}, 1);
         }
+    }
+
+    public Response getRespuesta() {
+        return respuesta;
     }
     
     /**
@@ -265,9 +273,11 @@ public class BV20 {
         public void serialEvent(SerialPortEvent spe) {
             if(spe.getEventType() == getListeningEvents()){
                 try {
-                    esperar(puerto.bytesAvailable());
+                    esperar(puerto.bytesAvailable() > 0 ? puerto.bytesAvailable() : 1000);
                     byte[] datos = new byte[puerto.bytesAvailable()];
                     puerto.readBytes(datos, datos.length);
+                    //Reiniciar la respuesta
+                    respuesta = new Response();
                     
                     int longitud = datos.length;
                     
@@ -282,6 +292,7 @@ public class BV20 {
                     }
                     if (longitud == 2 && datos[0] != 121) {
                         controlador.manejadorPorDefectoPaquetesLongitud2(datos);
+                        respuesta.values.put("paqueteLongitud2", datos);
                         return;
                     }
                     if (longitud == 4 && (datos[0] & 0xff) == 182) {                    
@@ -292,11 +303,13 @@ public class BV20 {
                         datos = ArrayUtils.removeElement(datos, datos[0]);
                         int number = Integer.valueOf(new String(datos, StandardCharsets.UTF_8));
                         controlador.firmware(number);
+                        respuesta.values.put("firmware", number);
                         return;
                     }
                     if (longitud > 0 && datos[0] == (byte)193) {
                         datos = ArrayUtils.removeElement(datos, datos[0]);
                         controlador.dataSet(new String(datos));
+                        respuesta.values.put("dataSet", new String(datos));
                     }
                 } catch (InterruptedException ex) {
                     Logger.getLogger(BV20.class.getName()).log(Level.SEVERE, null, ex);
@@ -342,19 +355,23 @@ public class BV20 {
             }
 
             controlador.manejadorEstado(e);
+            respuesta.values.put("estado", e);
         }
 
         private void aceptarBillete(byte canal) {
             controlador.aceptadoEnCanal(canal & 0xff);
+            respuesta.values.put("aceptarBillete", canal & 0xff);
         }
 
         private void controlarEventos(byte dato) {
             if (dato == 120) {
                 controlador.validadorOcupado();
+                respuesta.values.put("validadorOcupado", true);
                 return;
             }
             if (dato == 121) {
                 controlador.validadorDisponible();
+                respuesta.values.put("validadorDisponible", true);
                 return;
             }
             if (dato > (byte)130 && dato < (byte)147) {
@@ -366,27 +383,38 @@ public class BV20 {
                 return;
             }
             switch(dato){
-                case 20: controlador.billeteNoReconocido(); 
+                case 20: controlador.billeteNoReconocido();
+                    respuesta.values.put("billeteNoReconocido", true);
                     break;
                 case 30: controlador.billeteroFuncionandoLento(); 
+                    respuesta.values.put("billeteroFuncionandoLento", true);
                     break;
                 case 50: controlador.billeteRechazadoFalso(); 
+                    respuesta.values.put("billeteRechazadoFalso", true);
                     break;
                 case 60: controlador.billeteroLlenoOatascado(); 
+                    respuesta.values.put("billeteroLlenoOatascado", true);
                     break; 
                 case 70: controlador.operacionAbortadaDuranteIngreso(); 
+                    respuesta.values.put("operacionAbrotadaDuranteIngreso", true);
                     break;
                 case 80: controlador.billeteroReiniciado();
+                    respuesta.values.put("billeteroReiniciado", true);
                     break;
                 case (byte)170: controlador.depositoHabilitado(); 
+                    respuesta.values.put("depositoHabilitado", true);
                     break;
                 case (byte)171: controlador.depositoDeshabilitado(); 
+                    respuesta.values.put("depositoDeshabilitado", true);
                     break;
                 case (byte)184: controlador.todosLosCanalesHabilitados(); 
+                    respuesta.values.put("todosLosCanalesHabilitados", true);
                     break;
                 case (byte)255: controlador.errorDeComando(); 
+                    respuesta.values.put("errorDeComando", true);
                     break;
                 default: controlador.manejadorPorDefectoPaquetesLongitud1(dato);
+                    respuesta.values.put("paqueteDeLongirud1", dato);
                     break;
                 }
         }
@@ -398,48 +426,64 @@ public class BV20 {
         private void controlarInhibidos(byte dato) {
             if (dato == (byte)131) {
                 controlador.canalInhibido(1);
+                respuesta.values.put("canalInhibido", 1);
                 return;
             }
             if (dato == (byte)132) {
                 controlador.canalInhibido(2);
+                respuesta.values.put("canalInhibido", 2);
                 return;
             }
             if (dato == (byte)133) {
                 controlador.canalInhibido(3);
+                respuesta.values.put("canalInhibido", 3);
                 return;
             }
             if (dato == (byte)134) {
                 controlador.canalInhibido(4);
+                respuesta.values.put("canalInhibido", 4);
                 return;
             }
             if (dato == (byte)135) {
                 controlador.canalInhibido(5);
+                respuesta.values.put("canalInhibido", 5);
                 return;
             }
             if (dato == (byte)136) {
                 controlador.canalInhibido(6);
+                respuesta.values.put("canalInhibido", 6);
                 return;
             }
             switch(dato){
                 case (byte)137: controlador.canalInhibido(7);
+                    respuesta.values.put("canalInhibido", 6);
                     break;
                 case (byte)138: controlador.canalInhibido(8);
+                    respuesta.values.put("canalInhibido", 8);
                     break;
                 case (byte)139: controlador.canalInhibido(9);
+                    respuesta.values.put("canalInhibido", 9);
                     break;
                 case (byte)140: controlador.canalInhibido(10);
+                    respuesta.values.put("canalInhibido", 10);
                     break;
                 case (byte)141: controlador.canalInhibido(11);
+                    respuesta.values.put("canalInhibido", 11);
                     break;
                 case (byte)142: controlador.canalInhibido(12);
+                    respuesta.values.put("canalInhibido", 12);
                     break;
                 case (byte)143: controlador.canalInhibido(13);
+                    respuesta.values.put("canalInhibido", 13);
                     break;
                 case (byte)144: controlador.canalInhibido(14);
+                    respuesta.values.put("canalInhibido", 14);
                     break;
                 case (byte)145: controlador.canalInhibido(15);
+                    respuesta.values.put("canalInhibido", 15);
                     break;
                 default: controlador.canalInhibido(16);
+                    respuesta.values.put("canalInhibido", 16);
                     break;
             }
         }
@@ -447,39 +491,74 @@ public class BV20 {
         private void controlarDeshinibidos(byte dato) {
             switch(dato){
                 case (byte)151: controlador.canalDesinhibido(1);
+                    respuesta.values.put("canalDesinhibido", 1);
                     break;
                 case (byte)152: controlador.canalDesinhibido(2);
+                    respuesta.values.put("canalDesinhibido", 2);
                     break;
                 case (byte)153: controlador.canalDesinhibido(3);
+                    respuesta.values.put("canalDesinhibido", 3);
                     break;
                 case (byte)154: controlador.canalDesinhibido(4);
+                    respuesta.values.put("canalDesinhibido", 4);
                     break;
                 case (byte)155: controlador.canalDesinhibido(5);
+                    respuesta.values.put("canalDesinhibido", 5);
                     break;
                 case (byte)156: controlador.canalDesinhibido(6);
+                    respuesta.values.put("canalDesinhibido", 6);
                     break;
                 case (byte)157: controlador.canalDesinhibido(7);
+                    respuesta.values.put("canalDesinhibido", 7);
                     break;
                 case (byte)158: controlador.canalDesinhibido(8);
+                    respuesta.values.put("canalDesinhibido", 8);
                     break;
                 case (byte)159: controlador.canalDesinhibido(9);
+                    respuesta.values.put("canalDesinhibido", 9);
                     break;
                 case (byte)160: controlador.canalDesinhibido(10);
+                    respuesta.values.put("canalDesinhibido", 10);
                     break;
                 case (byte)161: controlador.canalDesinhibido(11);
+                    respuesta.values.put("canalDesinhibido", 11);
                     break;
-                case (byte)162: controlador.canalDesinhibido(12);
+                case (byte)162: controlador.canalDesinhibido(12);   
+                    respuesta.values.put("canalDesinhibido", 12);
                     break;
                 case (byte)163: controlador.canalDesinhibido(13);
+                    respuesta.values.put("canalDesinhibido", 13);
                     break;
                 case (byte)164: controlador.canalDesinhibido(14);
+                    respuesta.values.put("canalDesinhibido", 14);
                     break;
                 case (byte)165: controlador.canalDesinhibido(15);
+                    respuesta.values.put("canalDesinhibido", 15);
                     break;
                 default: controlador.canalDesinhibido(16);
+                    respuesta.values.put("canalDesinhibido", 16);
                     break;
         }
         }
+        
+    }
+    
+    public static final class Response{
+        
+        private Map<String,Object> values;
+
+        private Response() {
+            this.values = new HashMap<>();
+        }
+
+        public Map<String, Object> getValues() {
+            return values;
+        }
+
+        public void setValues(Map<String, Object> values) {
+            this.values = values;
+        }
+        
         
     }
 }

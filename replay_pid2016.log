@@ -1,0 +1,24 @@
+JvmtiExport can_access_local_variables 0
+JvmtiExport can_hotswap_or_post_breakpoint 0
+JvmtiExport can_post_on_exceptions 0
+# 134 ciObject found
+ciMethod java/lang/Object <init> ()V 3005 13 1 0 -1
+instanceKlass java/lang/Throwable$PrintStreamOrWriter
+instanceKlass org/postgresql/core/EncodingPredictor$DecodeResult
+instanceKlass org/postgresql/util/ServerErrorMessage
+instanceKlass org/apache/commons/lang3/StringUtils
+instanceKlass org/apache/commons/lang3/ClassUtils
+instanceKlass org/apache/commons/lang3/exception/ExceptionUtils
+instanceKlass org/postgresql/util/PSQLState
+instanceKlass org/postgresql/util/GT
+instanceKlass com/google/gson/internal/bind/ObjectTypeAdapter$2
+instanceKlass com/google/gson/internal/LinkedTreeMap$Node
+instanceKlass com/google/gson/internal/LinkedTreeMap$1
+instanceKlass org/xsocket/connection/IoSocketHandler$SingleBufferWriteResult
+instanceKlass org/xsocket/connection/IoSocketHandler$DirectWriteTask
+instanceKlass org/xsocket/connection/IoSocketHandler$IWriteResult
+instanceKlass org/xsocket/connection/IoSocketHandler$EmptyWriteTask
+instanceKlass org/xsocket/connection/IoSocketHandler$IWriteTask
+instanceKlass org/xsocket/connection/IoSocketHandler$TaskFactory
+instanceKlass com/google/gson/internal/Streams
+instanceKlass com/protocol/b1/servidor/Paquete$PaqueteBuilder

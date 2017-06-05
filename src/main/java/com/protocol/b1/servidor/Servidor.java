@@ -1692,6 +1692,7 @@ break;
                     .dato("numero", Integer.valueOf(p.getDatos().get("numero").toString()))
                     .dato("apuestaTotal", bingo.apuestaTotal())
                     .dato("apuestaIndividual", bingo.apuestaIndividual())
+                    .dato("habilitados", bingo.habilitados())
                     .crear();
                 }
                 else{

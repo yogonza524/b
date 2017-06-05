@@ -59,15 +59,15 @@
     <property name="sun.cpu.endian" value="little"/>
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="sun.desktop" value="windows"/>
-    <property name="sun.cpu.isalist" value="pentium_pro+mmx pentium_pro pentium+mmx pentium i486 i386 i86"/>
+    <property name="sun.cpu.isalist" value=""/>
   </properties>
-  <testcase classname="PostgreSQLTest" name="anotherTest" time="0.04">
+  <testcase classname="PostgreSQLTest" name="anotherTest" time="0.12">
     <skipped/>
   </testcase>
-  <testcase classname="PostgreSQLTest" name="idMachineTest" time="0.04">
+  <testcase classname="PostgreSQLTest" name="idMachineTest" time="0.12">
     <skipped/>
   </testcase>
-  <testcase classname="PostgreSQLTest" name="connectionTest" time="0.04">
+  <testcase classname="PostgreSQLTest" name="connectionTest" time="0.12">
     <skipped/>
   </testcase>
 </testsuite>

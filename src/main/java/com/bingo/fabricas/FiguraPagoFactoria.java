@@ -218,7 +218,6 @@ public class FiguraPagoFactoria {
         FiguraPago.FiguraPagoBuilder cb = new FiguraPago.FiguraPagoBuilder()
                 .factorDeGanancia(factorGanancia)
                 .nombre(name)
-                .esBonus()
                 .casilla(0, 0)
                 .casilla(0, 1)
                 .casilla(0, 2)
