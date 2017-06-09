@@ -22,6 +22,7 @@ import com.google.gson.stream.MalformedJsonException;
 import com.guava.core.EventBusManager;
 import com.protocol.b1.configuracion.ConfiguracionMain;
 import com.protocol.b1.enumeraciones.Idioma;
+import com.protocol.b1.servidor.Paquete.PaqueteBuilder;
 import com.protocol.dao.Conexion;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -891,6 +892,8 @@ break;
                         case 123: response = this.informarGananciaEnBonus(p); break;
                         case 124: response = this.creditosActualizados(); break;
                         case 125: response = this.actualizarEstadoDesdeLaVista(p); break;
+                        case 130: response = this.bloquearBilletero(); break;
+                        case 131: response = this.desbloquearBilletero(); break;
                         case 200: response = this.acumularParaElJackpot(); break;
                         case 201: response = this.otorgarJackpot(p); break;
                         case 202: response = this.obtenerTotalAcumuladoEnJackpot(); break;
@@ -2285,6 +2288,34 @@ break;
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 return new Paquete.PaqueteBuilder().codigo(203).estado("error").dato("desc", "Excepcion SQL: " + ex.getMessage()).crear();
             }
+        }
+
+        private Paquete bloquearBilletero() {
+            PaqueteBuilder response = new Paquete.PaqueteBuilder()
+                    .codigo(130);
+            
+            if (billetero != null && billetero.puertoAbierto()) {
+                billetero.deshabilitarTodo();
+                
+                response.estado("ok");
+                response.dato("desc", "Billetero deshabilitado para el ingreso de billetes");
+                return response.crear();
+            }
+            return response.estado("error").dato("desc", "Billetero no instanciado").crear();
+        }
+
+        private Paquete desbloquearBilletero() {
+            PaqueteBuilder response = new Paquete.PaqueteBuilder()
+                    .codigo(131);
+            
+            if (billetero != null && billetero.puertoAbierto()) {
+                billetero.habilitarTodo();
+                
+                response.estado("ok");
+                response.dato("desc", "Billetero habilitado para el ingreso de billetes");
+                return response.crear();
+            }
+            return response.estado("error").dato("desc", "Billetero no instanciado").crear();
         }
     }
     
