@@ -96,6 +96,9 @@ import org.apache.commons.lang3.ArrayUtils;
  */
 public class PrincipalController implements Initializable{
     
+    //Simulador
+    private boolean debugMode;
+    
     //Juego
     private static Juego bingo;
     private Integer[] creditosMaximosPorPerfil;
@@ -359,7 +362,7 @@ public class PrincipalController implements Initializable{
                 this.utilizarBolasExtraGratis = Boolean.valueOf(e.getParametros().get("utilizarBolasExtraGratis").toString());
             }
             
-//            System.out.println("Utilizaaa bolas extra gratis: " + utilizarBolasExtraGratis);
+//            mostrarPorPantalla("Utilizaaa bolas extra gratis: " + utilizarBolasExtraGratis);
             
             //Cargar los datos a la configuracion
             ConfiguracionPersistencia config = PersistenciaJson.getInstancia().getConfiguracion();
@@ -872,7 +875,7 @@ public class PrincipalController implements Initializable{
                             mostrarResultados("medio: " + (!apostadoSegunPerfil[1].equals(BigInteger.ZERO) ? Matematica.redondear(Matematica.porcentaje(pagadoSegunPerfil[1], apostadoSegunPerfil[1]).doubleValue(), 2) : BigInteger.ZERO.doubleValue()) + "%\n");
                             mostrarResultados("Fuerte: " + (!apostadoSegunPerfil[2].equals(BigInteger.ZERO) ? Matematica.redondear(Matematica.porcentaje(pagadoSegunPerfil[2], apostadoSegunPerfil[2]).doubleValue(), 2) : BigInteger.ZERO.doubleValue()) + "%\n");
                         } catch (Exception e) {
-                            System.out.println(e.getMessage());
+                            mostrarPorPantalla(e.getMessage());
                         }
                         
                         //Mostrar ganancias
@@ -1127,7 +1130,7 @@ public class PrincipalController implements Initializable{
         this.pagadoSegunPerfil = new BigInteger[3];
         this.apostadoSegunPerfil = new BigInteger[3];
         
-//        System.out.println("Indice de configuracion de perfiles: " + config.getIndiceConfiguracionJugadores());
+//        mostrarPorPantalla("Indice de configuracion de perfiles: " + config.getIndiceConfiguracionJugadores());
 //        mostrarPorPantalla("Porcentaje del premio mayor (initConfig): " + this.porcentajeDeCostoDeBolaExtraSegunPremioMayor);
     }
     
@@ -1216,7 +1219,7 @@ public class PrincipalController implements Initializable{
             bingo = new Juego();
             bingo.setCrearFigurasDePago(false);
             bingo.setFigurasDePago(figuras);
-            bingo.setModoDebug(false);
+            bingo.setModoDebug(debugMode);
             
             bingo.inicializar(comboTablaPagos.getSelectionModel().getSelectedItem().getFiguras());
             
@@ -1240,8 +1243,8 @@ public class PrincipalController implements Initializable{
             bingo.setCreditos(bingo.getPerfilActual().getCreditosMaximos());
             int factorDeApuesta = bingo.getPerfilActual().getFactorDeApuesta();
             int creditosMaximos = bingo.getPerfilActual().getCreditosMaximos();
-//            System.out.println("Factor de apuesta " + factorDeApuesta);
-//            System.out.println("Creditos maximos " + creditosMaximos);
+//            mostrarPorPantalla("Factor de apuesta " + factorDeApuesta);
+//            mostrarPorPantalla("Creditos maximos " + creditosMaximos);
             bingo.apostarEquitativamente(RNG.getInstance().pickInt(factorDeApuesta), 4);
             bingo.habilitarTodos();
             
@@ -1295,36 +1298,36 @@ public class PrincipalController implements Initializable{
                     
                     frecuenciaDePremiosObtenidosPorFigura[k] += bingo.getPremiosPagados()[j][k];
                     
-//                    System.out.println("Frecuencia de figura: " + frecuenciaDePremiosObtenidosPorFigura[k]);
-//                    System.out.println("Apuesta individual " + bingo.apuestaIndividual());
-//                    System.out.println("Premio: " + bingo.getNombresDeFiguras()[k]);
+//                    mostrarPorPantalla("Frecuencia de figura: " + frecuenciaDePremiosObtenidosPorFigura[k]);
+//                    mostrarPorPantalla("Apuesta individual " + bingo.apuestaIndividual());
+//                    mostrarPorPantalla("Premio: " + bingo.getNombresDeFiguras()[k]);
 //                    
 //                    for (int h = 0; h < Juego.getCantidadDeCartones(); h++) {
-//                        System.out.println(ArrayUtils.toString(bingo.getPremiosPagados()[h]));
+//                        mostrarPorPantalla(ArrayUtils.toString(bingo.getPremiosPagados()[h]));
 //                    }
                     int premio = bingo.getPremiosPagados()[j][k];
                     
                     int factor = bingo.getFactoresDePago()[k];
                     int ocurrencia =  premio / (apuestaInd * factor);
                     
-//                    System.out.println("Apuesta individual: " + apuestaInd);
+//                    mostrarPorPantalla("Apuesta individual: " + apuestaInd);
 //                    if (ocurrencia == 1) { 
-//                        System.out.println("\nAparecio una vez: " + bingo.getNombresDeFiguras()[k]);
+//                        mostrarPorPantalla("\nAparecio una vez: " + bingo.getNombresDeFiguras()[k]);
 //                    }
 //                    if (ocurrencia > 1) {
-//                        System.out.println("Aparecio: " + ocurrencia + "el " + bingo.getNombresDeFiguras()[k]);
+//                        mostrarPorPantalla("Aparecio: " + ocurrencia + "el " + bingo.getNombresDeFiguras()[k]);
 //                    }
-//                    System.out.println("Ocurrencia: " + ocurrencia);
+//                    mostrarPorPantalla("Ocurrencia: " + ocurrencia);
                     if (ocurrencia > 0) {
                         this.frecuenciaDeFigurasObtenidas[k] += 1;
                         creditosApostadosPorFigura[k] += apuestaInd;
                         //Mostrar
-//                        System.out.println("Ocurrencias: " + ArrayUtils.toString(frecuenciaDeFigurasObtenidas));
-//                        System.out.println("Creditos ganados por figura: " + ArrayUtils.toString(frecuenciaDePremiosObtenidosPorFigura));
-//                        System.out.println("Apostado por figura: " + ArrayUtils.toString(creditosApostadosPorFigura));
+//                        mostrarPorPantalla("Ocurrencias: " + ArrayUtils.toString(frecuenciaDeFigurasObtenidas));
+//                        mostrarPorPantalla("Creditos ganados por figura: " + ArrayUtils.toString(frecuenciaDePremiosObtenidosPorFigura));
+//                        mostrarPorPantalla("Apostado por figura: " + ArrayUtils.toString(creditosApostadosPorFigura));
                         
                         
-//                        System.out.println();
+//                        mostrarPorPantalla();
                     }
                 }
             }
