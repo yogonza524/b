@@ -61,7 +61,7 @@
     <property name="sun.desktop" value="windows"/>
     <property name="sun.cpu.isalist" value=""/>
   </properties>
-  <testcase classname="RunnerTest" name="buscarBilleteroTest" time="0.131">
+  <testcase classname="RunnerTest" name="buscarBilleteroTest" time="0.09">
     <skipped/>
   </testcase>
 </testsuite>

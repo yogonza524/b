@@ -245,12 +245,12 @@ public class Servidor {
                 bingo.setUtilizarUmbralParaLiberarBolasExtra(c.isUtilizarUmbralParaLiberarBolasExtra());
             }
             else{
-                bingo.setUmbralParaLiberarBolasExtra(7);
+                bingo.setUmbralParaLiberarBolasExtra(9);
                 bingo.setUtilizarUmbralParaLiberarBolasExtra(true);
             }
         }
         else{
-            bingo.setUmbralParaLiberarBolasExtra(7);
+            bingo.setUmbralParaLiberarBolasExtra(9);
             bingo.setUtilizarUmbralParaLiberarBolasExtra(true);
         }
         
@@ -271,7 +271,12 @@ public class Servidor {
         
         bingo.setPremiosVariablesBonus(premiosBonusVariable);
         
-        //TODO:Colocar los premios fijos
+        try {
+            //Reiniciar el contador de recaudado desde el encendido de la maquina
+            Conexion.getInstancia().actualizar("UPDATE juego SET recaudado_desde_el_encendido = 0");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         
         
         try {
@@ -791,6 +796,10 @@ break;
                     }
                     if (c.getPorcentajeDelMayorPorSalir() > 0.0) {
                         bingo.setPorcentajeDelPremioMayorPorSalirParaBolaExtra(c.getPorcentajeDelMayorPorSalir());
+                        System.out.println("Porcentaje desde archivo c.db " + c.getPorcentajeDelMayorPorSalir());
+                    }
+                    else{
+                        bingo.setPorcentajeDelPremioMayorPorSalirParaBolaExtra(0.04);
                     }
                 }
             }
@@ -902,13 +911,13 @@ break;
                         default: response = noImplementadoAun(p);
                     }
 
-        //                if (p.getCodigo() != 202) {
-        //                    System.out.println("Paquete recibido");
-        //                    System.out.println(p.aJSON());
-        //
-        //                    System.out.println("Paquete enviado");
-        //                    System.out.println(response != null? response.aJSON() : "Mensaje nulo");
-        //                }
+                        if (p.getCodigo() != 202) {
+                            System.out.println("Paquete recibido");
+                            System.out.println(p.aJSON());
+        
+                            System.out.println("Paquete enviado");
+                            System.out.println(response != null? response.aJSON() : "Mensaje nulo");
+                        }
 
                     if (response != null) {
                         enviar(response.aJSON());
@@ -1051,7 +1060,8 @@ break;
             try {
                 String query = "UPDATE juego SET comenzo = '" + getCurrentTimeStamp() + "'"
                                 + ", ganado_en_bonus = 0, ganado = 0, bolas_visibles = '" + ArrayUtils.toString(bingo.getBolasVisibles()) + "'"
-                        + ", bolas_extras = '" + ArrayUtils.toString(bingo.getBolasExtra()) + "'";
+                        + ", bolas_extras = '" + ArrayUtils.toString(bingo.getBolasExtra()) + "',"
+                        + " recaudado_desde_el_encendido = recaudado_desde_el_encendido + " + bingo.apuestaTotal() ;
 //                System.out.println(query);
                 Conexion.getInstancia().actualizar(query);
             } catch (SQLException ex) {
@@ -1510,6 +1520,7 @@ break;
                     .codigo(15)
                     .estado("ok")
                     .dato("apuestaTotal", bingo.apuestaTotal())
+                    .dato("apuestaIndividual", bingo.apuestaIndividual())
                     .dato("desc", "Apuesta disminuida a "+ bingo.apuestaTotal())
                     .crear();
             

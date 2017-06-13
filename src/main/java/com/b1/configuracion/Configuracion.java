@@ -149,7 +149,9 @@ public class Configuracion implements Serializable{
                     //Cargar los datos
                     List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT * FROM configuracion");
                     if (query != null && !query.isEmpty()) {
-                        config.setUmbralMinimoParaLiberarBolasExtra(Double.valueOf(query.get(0).get("umbral_minimo_para_liberar_bolas_extra").toString()).intValue());
+                        config.setUmbralMinimoParaLiberarBolasExtra(
+                                query.get(0).get("umbral_minimo_para_liberar_bolas_extra") != null ?
+                                Double.valueOf(query.get(0).get("umbral_minimo_para_liberar_bolas_extra").toString()).intValue() : 9);
                         config.setBilletero(false);
                         config.setPuertoBilletero(-1);
                         config.setIdioma("PORTUGUESE");
@@ -157,9 +159,21 @@ public class Configuracion implements Serializable{
                         Boolean utilizarUmbral = query.get(0).get("utilizar_umbral_para_liberar_bolas_extra") != null ? Boolean.valueOf(query.get(0).get("utilizar_umbral_para_liberar_bolas_extra").toString()) : true;
                         
                         config.setUtilizarUmbralParaLiberarBolasExtra(utilizarUmbral);
-                        String rutaBingo = query.get(0).get("ruta_bingobot").toString();
-                        config.setRutaBingoBot(rutaBingo.isEmpty() || !rutaBingo.contains(".swf")? "bingo.swf" : rutaBingo);
-                        config.setPorcentajeDelMayorPorSalir(Double.valueOf(query.get(0).get("porcentaje_del_premio_mayor_por_salir").toString()).intValue());
+                        Object rutaBingo = query.get(0).get("ruta_bingobot");
+                        if (rutaBingo != null && rutaBingo.toString().contains(".swf")) {
+                            config.setRutaBingoBot(rutaBingo.toString());
+                        }
+                        else{
+                            config.setRutaBingoBot("bingo.swf");
+                        }
+                        
+                        if (query.get(0).get("porcentaje_del_premio_mayor_por_salir") != null) {
+                            Double porcentajeDelMayor = Double.valueOf(query.get(0).get("porcentaje_del_premio_mayor_por_salir").toString());
+                            config.setPorcentajeDelMayorPorSalir(porcentajeDelMayor.intValue());
+                        }
+                        else{
+                            config.setPorcentajeDelMayorPorSalir(4);
+                        }
                     }
                     gson.toJson(config, writer);
                     

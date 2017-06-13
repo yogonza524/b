@@ -38,6 +38,7 @@ public class Juego {
     private final static int LINEAS = 3;
     private final static int COLUMNAS = 5;
     private final static int CARTONES = 4;
+    private final static int APUESTA_MAXIMA_POR_CARTON = 30;
 
     public static int getCantidadDeCartones() {
         return CARTONES;
@@ -307,7 +308,11 @@ public class Juego {
     }
     
     public void aumentarApuestas(){
-        if (apuestaTotal() + habilitados() <= creditos) {
+        
+        int apuestaAumentada = apuestaTotal() + habilitados();
+        int habilitados = habilitados();
+        
+        if (apuestaAumentada <= creditos && apuestaAumentada <= APUESTA_MAXIMA_POR_CARTON * habilitados) {
             for (int i = 0; i < apostado.length; i++) {
                 if (cartonesHabilitados[i]) {
                     apostado[i] += 1;
@@ -681,6 +686,7 @@ public class Juego {
                     }
                     else{
                         //Tener en cuenta el umbral
+                        System.out.println("Umbral del metodo liberar bolas extra: " + umbralParaLiberarBolasExtra);
                         if (creditosDelPremioPorSalir > 0 && creditosDelPremioPorSalir > umbralParaLiberarBolasExtra) {
                             result = true;
                             this.seLiberaronBolasExtra = true;
