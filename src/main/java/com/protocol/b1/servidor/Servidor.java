@@ -7,7 +7,7 @@
 package com.protocol.b1.servidor;
 
 import com.b1.batch.ProcessB1;
-import com.b1.configuracion.Configuracion;
+import com.b1.spring.services.ConfiguracionService;
 import com.bingo.enumeraciones.Denominacion;
 import com.bingo.enumeraciones.FaseDeBusqueda;
 import com.bingo.rng.RNG;
@@ -22,6 +22,7 @@ import com.google.gson.stream.MalformedJsonException;
 import com.guava.core.EventBusManager;
 import com.protocol.b1.configuracion.ConfiguracionMain;
 import com.protocol.b1.enumeraciones.Idioma;
+import com.protocol.b1.main.MainApp;
 import com.protocol.b1.servidor.Paquete.PaqueteBuilder;
 import com.protocol.dao.Conexion;
 import java.io.DataOutputStream;
@@ -45,6 +46,7 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.lwjgl.LWJGLException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.xsocket.MaxReadSizeExceededException;
 import org.xsocket.connection.IConnectHandler;
 import org.xsocket.connection.IDataHandler;
@@ -84,6 +86,10 @@ public class Servidor {
     private int puertoBilletero;
     
     private Map<String,Object> parametros;
+    
+    //Inyección de dependencias
+    private ConfiguracionService configService = 
+            MainApp.springContext().getBean("configService", ConfiguracionService.class);
     //</editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Constructor">
@@ -133,7 +139,6 @@ public class Servidor {
         bingo = new Juego();
         configurarJuego(bingo);
         cargarConfiguracionPorDefecto();
-        obtenerConfiguracionDesdeArchivo(); //Prioridad baja, se trata de cargar solo si existe el archivo
         obtenerParametros(args); //Prioridad alta, se ejecuta luego de la lectura de la configuracion
         manejadorGame = new XSocketDataHandler();
         serverGame = new Server((int) parametros.get("puerto"),manejadorGame);
@@ -209,8 +214,7 @@ public class Servidor {
         //Lanzar el BingoBot
         new Thread(() -> {
             //"\"C:\\Documents and Settings\\Gonzalo\\Desktop\\bingoBot\\PantallaPrincipalCorregida\\bingo.swf\""
-            Configuracion c = Configuracion.leer();
-            String ruta = c != null && c.getRutaBingoBot() != null && !c.getRutaBingoBot().isEmpty() ? c.getRutaBingoBot() : "\"C:\\Documents and Settings\\Gonzalo\\Desktop\\bingoBot\\PantallaPrincipalCorregida\\bingo.swf\"";
+            String ruta = configService.rutaBingo();
             
 //            try {
 //                new ProcessB1().run(new String[]{"cmd"}, ruta , "No se pudo iniciar el juego", true);
@@ -237,22 +241,15 @@ public class Servidor {
         //bingo.setModoDeshabilitarPorFaltaDeCredito(true);
         
         //Colocar el umbral 
-        if (Configuracion.existe()) {
-            Configuracion c = Configuracion.leer();
-            if (c != null) {
-                System.out.println("Umbral minimo de bolas extra: " + c.getUmbralMinimoParaLiberarBolasExtra());
-                bingo.setUmbralParaLiberarBolasExtra(c.getUmbralMinimoParaLiberarBolasExtra());
-                bingo.setUtilizarUmbralParaLiberarBolasExtra(c.isUtilizarUmbralParaLiberarBolasExtra());
-            }
-            else{
-                bingo.setUmbralParaLiberarBolasExtra(9);
-                bingo.setUtilizarUmbralParaLiberarBolasExtra(true);
-            }
-        }
-        else{
-            bingo.setUmbralParaLiberarBolasExtra(9);
-            bingo.setUtilizarUmbralParaLiberarBolasExtra(true);
-        }
+        bingo.setUtilizarUmbralParaLiberarBolasExtra(configService.utilizarUmbralParaLiberarBolasExtra());
+        bingo.setUmbralParaLiberarBolasExtra(configService.umbralParaLiberarBolasExtra());
+        
+        //Colocar el costo de la bola extra
+        bingo.setPorcentajeDelPremioMayorPorSalirParaBolaExtra(configService.costoDeLaBolaExtraEnPorcentajeDelMayorPorSalir() / 100.0);
+        
+        System.out.println("Utilizar umbral: " + bingo.isUtilizarUmbralParaLiberarBolasExtra());
+        System.out.println("Umbral: " + bingo.getUmbralParaLiberarBolasExtra());
+        System.out.println("Costo de la bola extra en porcentaje del mayor por salir: " + bingo.getPorcentajeDelPremioMayorPorSalirParaBolaExtra());
         
         
         
@@ -784,51 +781,11 @@ break;
         
     }
 
-    private void obtenerConfiguracionDesdeArchivo() {
-        if (Configuracion.existe()) {
-            Configuracion c = Configuracion.leer();
-            if (c != null) {
-                if (bingo != null) {
-                    if (c.getUmbralMinimoParaLiberarBolasExtra() > 0) {
-                        bingo.setUmbralParaLiberarBolasExtra(c.getUmbralMinimoParaLiberarBolasExtra());
-                        System.out.println("Cargado umbral desde archivo, valor: " + c.getUmbralMinimoParaLiberarBolasExtra());
-                        System.out.println("Umbral del juego: " + bingo.getUmbralParaLiberarBolasExtra());
-                    }
-                    if (c.getPorcentajeDelMayorPorSalir() > 0.0) {
-                        bingo.setPorcentajeDelPremioMayorPorSalirParaBolaExtra(c.getPorcentajeDelMayorPorSalir());
-                        System.out.println("Porcentaje desde archivo c.db " + c.getPorcentajeDelMayorPorSalir());
-                    }
-                    else{
-                        bingo.setPorcentajeDelPremioMayorPorSalirParaBolaExtra(0.04);
-                    }
-                }
-            }
-            else{
-                System.out.println("Configuracion nula");
-            }
-        }
-        else{
-            try {
-                Configuracion.crearArchivoDeConfiguracion();
-            } catch (IOException ex) {
-                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-
     private void iniciarBilletero() {
-        //Verificar el archivo de configuracion
-        Configuracion c = Configuracion.leer();
-        if (Configuracion.existe() && c != null) {
-            System.out.println("Puerto del billetero: " + c.getPuertoBilletero());
-            System.out.println("Billetero creado: " + billetero != null);
-                
-            if (c.getPuertoBilletero() > -1 && c.isBilletero()) {
-                if (billetero == null) {
-                    billetero = crearBilletero();
-                    puertoBilletero = c.getPuertoBilletero();
-                }
-            }
+        
+        if (billetero == null) {
+            billetero = crearBilletero();
+            puertoBilletero = configService.puertoBilletero();
         }
         
         //Verificar si esta conectado el billetero
@@ -1079,8 +1036,6 @@ break;
 //                }
 //            }
 //            
-            System.out.println("Total apostado: " + ArrayUtils.toString(bingo.apuestas()));
-            
             bingo.jugar(false);
             
 //            System.out.println("Ganado: " + bingo.ganancias());
