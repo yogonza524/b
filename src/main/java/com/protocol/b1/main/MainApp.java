@@ -8,6 +8,7 @@ package com.protocol.b1.main;
 
 import com.b1.batch.ProcessB1;
 import com.b1.spring.services.ConfiguracionService;
+import com.b1.spring.services.HistorialB1Service;
 import com.protocol.b1.servidor.Servidor;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -66,5 +67,10 @@ public class MainApp {
     @Bean
     ConfiguracionService configService(){
         return new ConfiguracionService();
+    }
+    
+    @Bean
+    HistorialB1Service historialB1service(){
+        return new HistorialB1Service();
     }
 }

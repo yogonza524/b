@@ -8,8 +8,10 @@ package com.protocol.b1.servidor;
 
 import com.b1.batch.ProcessB1;
 import com.b1.spring.services.ConfiguracionService;
+import com.b1.spring.services.HistorialB1Service;
 import com.bingo.enumeraciones.Denominacion;
 import com.bingo.enumeraciones.FaseDeBusqueda;
+import com.bingo.enumeraciones.MetodoB1;
 import com.bingo.rng.RNG;
 import com.bingo.util.Matematica;
 import com.bv20.core.BV20;
@@ -90,6 +92,9 @@ public class Servidor {
     //Inyección de dependencias
     private ConfiguracionService configService = 
             MainApp.springContext().getBean("configService", ConfiguracionService.class);
+    
+    private HistorialB1Service historialB1service = 
+            MainApp.springContext().getBean("historialB1service", HistorialB1Service.class);
     //</editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Constructor">
@@ -129,12 +134,12 @@ public class Servidor {
     
     public Servidor(String[] args) throws IOException{
         
-        try {
-            //Verificar el Servicio de PostgreSQL
-            verificarServicioPostgreSQL();
-        } catch (InterruptedException ex) {
-            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            //Verificar el Servicio de PostgreSQL
+//            verificarServicioPostgreSQL();
+//        } catch (InterruptedException ex) {
+//            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+//        }
         
         bingo = new Juego();
         configurarJuego(bingo);
@@ -878,6 +883,13 @@ break;
 
                     if (response != null) {
                         enviar(response.aJSON());
+                    }
+                    
+                    //Guardar el historial del mensaje
+                    if (p.getCodigo() != 202) {
+                        
+                        historialB1service.log(p, "SOLICITUD", MetodoB1.porCodigo(p.getCodigo()));
+                        historialB1service.log(response, "RESPUESTA", MetodoB1.porCodigo(response.getCodigo()));
                     }
 
                 } catch(Exception ex){
