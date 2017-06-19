@@ -857,6 +857,7 @@ break;
                         case 61: response = this.seleccionarBolaExtra(p); break;
                         case 62: response = this.costoBolaExtra(); break;
                         case 63: response = this.gananciasYCreditos(); break;
+                        case 64: response = this.historialDeJuegos(p); break;
                         case 120: response = this.enviarCreditosActuales(); break;
                         case 121: response = this.bonus(); break;
                         case 122: response = this.premioObtenidoEnBonus(p); break;
@@ -2294,6 +2295,22 @@ break;
                 return response.crear();
             }
             return response.estado("error").dato("desc", "Billetero no instanciado").crear();
+        }
+
+        private Paquete historialDeJuegos(Paquete p) {
+            PaqueteBuilder result = new PaqueteBuilder().codigo(64).estado("error").dato("desc", "Historial de juegos");
+            if (p != null && p.getDatos() != null && p.getDatos().get("juegos") != null) {
+                List<Paquete> juegos = historialB1service.historialDeJuegos(Double.valueOf(p.getDatos().get("juegos").toString()).intValue());
+                
+                if (juegos != null && !juegos.isEmpty()) {
+                    result.estado("ok");
+                    result.dato("juegos", juegos).dato("total", juegos.size());
+                }
+                else{
+                    result.dato("total", 0);
+                }
+            }
+            return result.crear();
         }
     }
     

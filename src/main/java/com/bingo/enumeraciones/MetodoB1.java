@@ -47,6 +47,7 @@ public enum MetodoB1 {
     OBTENER_TOTAL_ACUMULADO_EN_JACKPOT,
     REINICIAR_ACUMULADO,
     HABILITAR_JACKPOT,
+    HISTORIAL_DE_JUEGOS,
     NO_IMPLEMENTADO_AUN;
     
     public static String porCodigo(int codigo){
