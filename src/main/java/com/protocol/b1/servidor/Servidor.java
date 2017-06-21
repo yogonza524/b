@@ -19,6 +19,7 @@ import com.core.bingosimulador.Juego;
 import com.core.bv20.model.Controlador;
 import com.core.bv20.model.Estado;
 import com.fx.controladores.B1Controller;
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.MalformedJsonException;
 import com.guava.core.EventBusManager;
@@ -1137,10 +1138,13 @@ break;
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(50)
                     .estado("ok")
+                    .dato("id", bingo.getUid())
                     .dato("bolasVisibles", bingo.getBolasVisibles())
                     .dato("bolasExtra", bingo.getBolasExtra())
                     .dato("bolas", bingo.getBolas())
                     .dato("ganado", bingo.ganancias())
+                    .dato("ganadoEnBonus",0)
+                    .dato("cantidadDeBolasExtraSeleccionadas",0)
                     .dato("premios", bingo.getPremiosPagados())
                     .dato("premiosPorSalir", bingo.getPremiosPorSalir())
                     .dato("apostado", bingo.apuestaTotal())
@@ -1838,6 +1842,11 @@ break;
                             + "ganado_carton3 = " + bingo.getGanado()[2] + ","
                             + "ganado_carton4 = " + bingo.getGanado()[3]
                     );
+                
+                    //Actualizar la cantidad de bolas extra seleccionadas en la tabla de historial
+                    historialB1service.actualizarJuego(bingo.getUid(), bingo.getCreditos(), bingo.ganancias());
+                    
+                
                 } catch (SQLException ex) {
                     Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -1846,6 +1855,7 @@ break;
                     .codigo(61)
                     .estado("ok")
                     .dato("costoBolaExtra", bingo.costoBolaExtra())
+                    .dato("bolaExtra", bingo.getBolasVisibles()[bingo.getBolasVisibles().length - 1])
                     .dato("leyenda", leyenda)
                     .crear();
                 return response;
@@ -1905,6 +1915,9 @@ break;
                 } catch (SQLException ex) {
                     Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                
+                //Actualizar el historial
+                historialB1service.actualizarJuegoEnCicloBonus(bingo.getUid(), bingo.getCreditos(), ganadoEnBonus);
             }
             
             Paquete response = new Paquete.PaqueteBuilder()

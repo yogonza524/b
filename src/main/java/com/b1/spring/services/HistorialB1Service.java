@@ -57,4 +57,59 @@ public class HistorialB1Service {
         }
         return result;
     }
+    
+    public boolean actualizarJuego(String idJuego, int creditos, int ganado){
+        boolean result = false;
+        if (creditos >= 0 && idJuego != null && !idJuego.isEmpty()) {
+            try {
+                List<HashMap<String,Object>> historial = com.protocol.dao.Conexion.getInstancia().consultar(""
+                            + "SELECT id,paquete FROM historial_b1 h WHERE h.paquete -> 'datos'->> 'id' = '" + idJuego + "'");
+                    
+                    if (historial != null && !historial.isEmpty()) {
+                        Paquete hPacket = new Gson().fromJson(historial.get(0).get("paquete").toString(), Paquete.class);
+                        
+                        if (hPacket != null) {
+                            hPacket.getDatos().put("cantidadDeBolasExtraSeleccionadas", Double.valueOf(hPacket.getDatos().get("cantidadDeBolasExtraSeleccionadas").toString()).intValue() + 1);
+                            hPacket.getDatos().put("creditos", creditos);
+                            hPacket.getDatos().put("ganado", ganado);
+                        
+                            Conexion.getInstancia().actualizar("UPDATE historial_b1 h SET paquete = '" + hPacket.aJSON() + "' WHERE h.id = '" + historial.get(0).get("id") + "'");
+                            
+                            result = true;
+                        }
+                    }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+    
+    public boolean actualizarJuegoEnCicloBonus(String idJuego, int creditos, int ganadoEnBonus){
+        boolean result = false;
+        if (ganadoEnBonus >= 0 && idJuego != null && !idJuego.isEmpty()) {
+            try {
+                List<HashMap<String,Object>> historial = com.protocol.dao.Conexion.getInstancia().consultar(""
+                            + "SELECT id,paquete FROM historial_b1 h WHERE h.paquete -> 'datos'->> 'id' = '" + idJuego + "'");
+                    
+                    if (historial != null && !historial.isEmpty()) {
+                        Paquete hPacket = new Gson().fromJson(historial.get(0).get("paquete").toString(), Paquete.class);
+                        
+                        if (hPacket != null) {
+                            hPacket.getDatos().put("creditos", creditos);
+                            hPacket.getDatos().put("ganadoEnBonus", ganadoEnBonus);
+                            hPacket.getDatos().put("ganado", Double.valueOf(hPacket.getDatos().get("ganado").toString()).intValue() + ganadoEnBonus);
+                            hPacket.getDatos().put("huboBonus", true);
+                        
+                            Conexion.getInstancia().actualizar("UPDATE historial_b1 h SET paquete = '" + hPacket.aJSON() + "' WHERE h.id = '" + historial.get(0).get("id") + "'");
+                            
+                            result = true;
+                        }
+                    }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
 }

@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
@@ -132,6 +133,9 @@ public class Juego {
     private boolean salioElBonusAlInicioDelJuego;
     private boolean inicioDelCicloDeJuego;
     private int cantidadDeVecesQueSeObtuvoElBonus;
+    
+    //Atributos auxiliares
+    private String uid;
 
     /**
      * Constructor por defecto
@@ -367,6 +371,10 @@ public class Juego {
         return ganadoEnBolasExtra;
     }
 
+    public String getUid() {
+        return uid;
+    }
+
     public void setGanadoEnBolasExtra(int ganadoEnBolasExtra) {
         this.ganadoEnBolasExtra = ganadoEnBolasExtra;
     }
@@ -385,6 +393,10 @@ public class Juego {
 
     public boolean isUtilizarPremiosVariablesBonus() {
         return utilizarPremiosVariablesBonus;
+    }
+
+    public int getIndiceBolaExtra() {
+        return indiceBolaExtra;
     }
 
     public void setUtilizarPremiosVariablesBonus(boolean utilizarPremiosVariablesBonus) {
@@ -1265,6 +1277,9 @@ public class Juego {
     }
     
     public void jugar(boolean generarNuevoBolillero){
+        
+        //ID
+        uid = UUID.randomUUID().toString();
         
         show("Juego: umbral de bolas extra " + this.umbralParaLiberarBolasExtra);
         show("Utilziar umbral: " + this.utilizarUmbralParaLiberarBolasExtra);
