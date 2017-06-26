@@ -1148,7 +1148,11 @@ break;
                     .dato("premios", bingo.getPremiosPagados())
                     .dato("premiosPorSalir", bingo.getPremiosPorSalir())
                     .dato("apostado", bingo.apuestaTotal())
+<<<<<<< HEAD
                     .dato("apostadoEnCicloDeBolasExtra", bingo.getApostadoEnCicloDeBolasExtra())
+=======
+                    .dato("apostadoEnBolasExtra",0)
+>>>>>>> d4ee79657df9c80baece6bdcbb50ee8fc4058f09
                     .dato("apuestas", bingo.getApostado())
                     .dato("creditos",bingo.getCreditos())
                     .dato("cartonesHabilitados", bingo.getCartonesHabilitados())
