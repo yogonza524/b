@@ -136,6 +136,7 @@ public class Juego {
     
     //Atributos auxiliares
     private String uid;
+    private int apostadoEnCicloDeBolasExtra;
 
     /**
      * Constructor por defecto
@@ -175,6 +176,7 @@ public class Juego {
         cantidadDeFigurasDePago = this.figurasDePago != null? this.figurasDePago.length : FiguraPagoFactoria.cartones().size() ;
         
         bolasExtraSeleccionadas = new boolean[CANTIDADDEBOLASEXTRA];
+        apostadoEnCicloDeBolasExtra = 0;
         
         perfiles = Perfil.perfiles();
         perfilActual = perfiles[0]; //Tomo el perfil debil
@@ -357,6 +359,10 @@ public class Juego {
 
     public void setDenominacion(Denominacion denominacion) {
         this.denominacion = denominacion;
+    }
+
+    public int getApostadoEnCicloDeBolasExtra() {
+        return apostadoEnCicloDeBolasExtra;
     }
 
     public double getPorcentajeDeDescuentoParaTournament() {
@@ -1282,7 +1288,7 @@ public class Juego {
         uid = UUID.randomUUID().toString();
         
         show("Juego: umbral de bolas extra " + this.umbralParaLiberarBolasExtra);
-        show("Utilziar umbral: " + this.utilizarUmbralParaLiberarBolasExtra);
+        show("Utilizar umbral: " + this.utilizarUmbralParaLiberarBolasExtra);
         
         if (generarNuevoBolillero) {
             this.generarBolillero();
@@ -1364,6 +1370,14 @@ public class Juego {
         }
         return false;
     }
+    
+    public int premioTotalDelBonus(){
+        int result = 0;
+        for (int i = 0; i < this.bonus.length; i++) {
+            result += bonus[i];
+        }
+        return result;
+    }
 
     private void borrarPremiosObtenidos() {
         this.premiosPagados = new int[CARTONES][this.cantidadDeFigurasDePago];
@@ -1390,6 +1404,7 @@ public class Juego {
         inicioDelCicloDeJuego = false;
         indiceBolaExtra = 0;
         cantidadDeBolasExtraSeleccionadas = 0;
+        apostadoEnCicloDeBolasExtra = 0;
     }
 
     private void borrarSeleccionDeBolasExtra() {
@@ -1877,6 +1892,8 @@ public class Juego {
 //            show("Metodo seleccionarBolaExtra");
             
             int costoBolaExtra = this.costoBolaExtra();
+            
+            this.apostadoEnCicloDeBolasExtra += costoBolaExtra;
                 
 //            show("Costo bola extra: " + costoBolaExtra);
             

@@ -1148,11 +1148,13 @@ break;
                     .dato("premios", bingo.getPremiosPagados())
                     .dato("premiosPorSalir", bingo.getPremiosPorSalir())
                     .dato("apostado", bingo.apuestaTotal())
+                    .dato("apostadoEnCicloDeBolasExtra", bingo.getApostadoEnCicloDeBolasExtra())
                     .dato("apuestas", bingo.getApostado())
                     .dato("creditos",bingo.getCreditos())
                     .dato("cartonesHabilitados", bingo.getCartonesHabilitados())
                     .dato("habilitados", bingo.habilitados())
                     .dato("bonus", bingo.getBonus())
+                    .dato("huboBonus", bingo.huboBonus())
                     .dato("liberarBolasExtra", bingo.liberarBolasExtra())
                     .dato("hayJackpot", this.hayJackpot)
                     .dato("carton1", bingo.getCartones()[0])
@@ -1844,7 +1846,7 @@ break;
                     );
                 
                     //Actualizar la cantidad de bolas extra seleccionadas en la tabla de historial
-                    historialB1service.actualizarJuego(bingo.getUid(), bingo.getCreditos(), bingo.ganancias());
+                    historialB1service.actualizarJuego(bingo);
                     
                 
                 } catch (SQLException ex) {
