@@ -169,4 +169,21 @@ public class HistorialB1Service {
         }
         return result;
     }
+    
+    public double porcentajeDeRetribucionHistorico(){
+        double result = 0.0;
+        try {
+            List<HashMap<String,Object>> query = Conexion.getInstancia().consultar(
+                    "SELECT 100 * SUM(CAST(h.paquete -> 'datos' ->> 'ganado' AS real)) / SUM(CAST(h.paquete -> 'datos' ->> 'apostado' AS real) + \n" +
+                    "CAST(h.paquete -> 'datos' ->> 'apostadoEnCicloDeBolasExtra' as real)) \n" +
+                    "as retribuido FROM historial_b1 h WHERE h.metodo = 'JUGAR'"
+            );
+            if (query != null && !query.isEmpty()) {
+                result = Double.valueOf(query.get(0).get("retribuido").toString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
 }

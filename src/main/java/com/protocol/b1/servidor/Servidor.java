@@ -1914,7 +1914,7 @@ break;
                 
                 System.out.println("Ganado en bonus: "  + ganadoEnBonus + ", creditos actuales: " + bingo.getCreditos());
                 bingo.setCreditos(bingo.getCreditos() + ganadoEnBonus);
-                bingo.setTotalGanadoEnBonus(ganadoEnBonus);
+                bingo.setTotalGanadoEnBonus(bingo.getTotalGanadoEnBonus() + ganadoEnBonus);
                 
                 try {
                     Conexion.getInstancia().actualizar("UPDATE juego SET creditos = "  + bingo.getCreditos() +
@@ -2327,7 +2327,11 @@ break;
                 
                 if (juegos != null && !juegos.isEmpty()) {
                     result.estado("ok");
-                    result.dato("juegos", juegos).dato("total", juegos.size());
+                    result
+                            .dato("juegos", juegos)
+                            .dato("total", juegos.size())
+                            .dato("retHistorico", historialB1service.porcentajeDeRetribucionHistorico())
+                            ;
                 }
                 else{
                     result.dato("total", 0);
