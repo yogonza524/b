@@ -72,6 +72,7 @@ public class HistorialB1Service {
                         if (hPacket != null) {
                             hPacket.getDatos().put("cantidadDeBolasExtraSeleccionadas", Double.valueOf(hPacket.getDatos().get("cantidadDeBolasExtraSeleccionadas").toString()).intValue() + 1);
                             hPacket.getDatos().put("creditos", bingo.getCreditos());
+                            hPacket.getDatos().put("denominacion", bingo.getDenominacion().getValue());
                             hPacket.getDatos().put("ganado", bingo.ganancias());
                             hPacket.getDatos().put("apostadoEnCicloDeBolasExtra", bingo.getApostadoEnCicloDeBolasExtra());
                         
@@ -87,21 +88,75 @@ public class HistorialB1Service {
         return result;
     }
     
-    public boolean actualizarJuegoEnCicloBonus(String idJuego, int creditos, int ganadoEnBonus){
+    public boolean aumentarBolasExtraSeleccionadas(Juego bingo){
         boolean result = false;
-        if (ganadoEnBonus >= 0 && idJuego != null && !idJuego.isEmpty()) {
+        if (bingo != null) {
             try {
                 List<HashMap<String,Object>> historial = com.protocol.dao.Conexion.getInstancia().consultar(""
-                            + "SELECT id,paquete FROM historial_b1 h WHERE h.paquete -> 'datos'->> 'id' = '" + idJuego + "'");
+                            + "SELECT id,paquete FROM historial_b1 h WHERE h.paquete -> 'datos'->> 'id' = '" + bingo.getUid() + "'");
+                if (historial != null && !historial.isEmpty()) {
+                        Paquete hPacket = new Gson().fromJson(historial.get(0).get("paquete").toString(), Paquete.class);
+                        
+                        if (hPacket != null) {
+                            hPacket.getDatos().put("cantidadDeBolasExtraSeleccionadas", Double.valueOf(hPacket.getDatos().get("cantidadDeBolasExtraSeleccionadas").toString()).intValue() + 1);
+                            hPacket.getDatos().put("apostadoEnCicloDeBolasExtra", bingo.getApostadoEnCicloDeBolasExtra());
+                            hPacket.getDatos().put("creditos", bingo.getCreditos());
+                            hPacket.getDatos().put("ganado", bingo.ganancias());
+                            
+                            Conexion.getInstancia().actualizar("UPDATE historial_b1 h SET paquete = '" + hPacket.aJSON() + "' WHERE h.id = '" + historial.get(0).get("id") + "'");
+                            
+                            result = true;
+                        }
+                    }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+    
+    public boolean actualizarJuegoEnCicloBonus(Juego bingo){
+        boolean result = false;
+        if (bingo != null) {
+            try {
+                List<HashMap<String,Object>> historial = com.protocol.dao.Conexion.getInstancia().consultar(""
+                            + "SELECT id,paquete FROM historial_b1 h WHERE h.paquete -> 'datos'->> 'id' = '" + bingo.getUid() + "'");
                     
                     if (historial != null && !historial.isEmpty()) {
                         Paquete hPacket = new Gson().fromJson(historial.get(0).get("paquete").toString(), Paquete.class);
                         
                         if (hPacket != null) {
-                            hPacket.getDatos().put("creditos", creditos);
-                            hPacket.getDatos().put("ganadoEnBonus", ganadoEnBonus);
-                            hPacket.getDatos().put("ganado", Double.valueOf(hPacket.getDatos().get("ganado").toString()).intValue() + ganadoEnBonus);
+                            hPacket.getDatos().put("creditos", bingo.getCreditos());
+                            hPacket.getDatos().put("ganadoEnBonus", bingo.premioTotalDelBonus());
+                            hPacket.getDatos().put("ganado", bingo.ganancias());
                             hPacket.getDatos().put("huboBonus", true);
+                        
+                            Conexion.getInstancia().actualizar("UPDATE historial_b1 h SET paquete = '" + hPacket.aJSON() + "' WHERE h.id = '" + historial.get(0).get("id") + "'");
+                            
+                            result = true;
+                        }
+                    }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    public boolean actualizarDenominacion(Juego bingo) {
+        boolean result = false;
+        if (bingo != null) {
+            try {
+                List<HashMap<String,Object>> historial = com.protocol.dao.Conexion.getInstancia().consultar(""
+                            + "SELECT id,paquete FROM historial_b1 h WHERE h.paquete -> 'datos'->> 'id' = '" + bingo.getUid() + "'");
+                    
+                    if (historial != null && !historial.isEmpty()) {
+                        Paquete hPacket = new Gson().fromJson(historial.get(0).get("paquete").toString(), Paquete.class);
+                        
+                        if (hPacket != null) {
+                            hPacket.getDatos().put("creditos", bingo.getCreditos());
+                            hPacket.getDatos().put("creditos", bingo.getCreditos());
+                            hPacket.getDatos().put("denominacion", bingo.getDenominacion().getValue());
                         
                             Conexion.getInstancia().actualizar("UPDATE historial_b1 h SET paquete = '" + hPacket.aJSON() + "' WHERE h.id = '" + historial.get(0).get("id") + "'");
                             

@@ -1152,6 +1152,7 @@ break;
                     .dato("apostadoEnBolasExtra",0)
                     .dato("apuestas", bingo.getApostado())
                     .dato("creditos",bingo.getCreditos())
+                    .dato("denominacion", bingo.getDenominacion().getValue())
                     .dato("cartonesHabilitados", bingo.getCartonesHabilitados())
                     .dato("habilitados", bingo.habilitados())
                     .dato("bonus", bingo.getBonus())
@@ -1419,6 +1420,9 @@ break;
             int creditos = Integer.valueOf(Conexion.getInstancia().consultar("SELECT creditos FROM juego LIMIT 1").get(0).get("creditos").toString());
             
             bingo.setCreditos(creditos);
+            
+            //Salvar el historico de denominacion
+            historialB1service.actualizarDenominacion(bingo);
             
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(22)
@@ -1847,7 +1851,7 @@ break;
                     );
                 
                     //Actualizar la cantidad de bolas extra seleccionadas en la tabla de historial
-                    historialB1service.actualizarJuego(bingo);
+                    historialB1service.aumentarBolasExtraSeleccionadas(bingo);
                     
                 
                 } catch (SQLException ex) {
@@ -1910,6 +1914,7 @@ break;
                 
                 System.out.println("Ganado en bonus: "  + ganadoEnBonus + ", creditos actuales: " + bingo.getCreditos());
                 bingo.setCreditos(bingo.getCreditos() + ganadoEnBonus);
+                bingo.setTotalGanadoEnBonus(ganadoEnBonus);
                 
                 try {
                     Conexion.getInstancia().actualizar("UPDATE juego SET creditos = "  + bingo.getCreditos() +
@@ -1920,7 +1925,7 @@ break;
                 }
                 
                 //Actualizar el historial
-                historialB1service.actualizarJuegoEnCicloBonus(bingo.getUid(), bingo.getCreditos(), ganadoEnBonus);
+                historialB1service.actualizarJuegoEnCicloBonus(bingo);
             }
             
             Paquete response = new Paquete.PaqueteBuilder()

@@ -513,7 +513,8 @@ public class Juego {
         for (int i = 0; i < ganado.length; i++) {
             result += ganado[i];
         }
-        result += totalGanadoEnBonus;
+        result += this.totalGanadoEnBonus;
+        System.out.println("El bonus ganado es de " + this.totalGanadoEnBonus);
         return result;
     }
     
