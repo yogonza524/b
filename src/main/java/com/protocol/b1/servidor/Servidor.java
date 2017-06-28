@@ -269,8 +269,9 @@ public class Servidor {
         
         //Colocar los premios variables
         Map<Integer,Integer> premiosBonusVariable = new HashMap<>();
-        premiosBonusVariable.put(5, 3);
-        premiosBonusVariable.put(3, 4);
+        premiosBonusVariable.put(4, 2);
+        premiosBonusVariable.put(3, 1);
+        premiosBonusVariable.put(1, 3);
         
         bingo.setPremiosVariablesBonus(premiosBonusVariable);
         
@@ -2331,6 +2332,8 @@ break;
                             .dato("juegos", juegos)
                             .dato("total", juegos.size())
                             .dato("retHistorico", historialB1service.porcentajeDeRetribucionHistorico())
+                            .dato("totalJuegos", historialB1service.cantidadDeJuegos())
+                            .dato("recaudado", historialB1service.recaudadoHistorico())
                             ;
                 }
                 else{

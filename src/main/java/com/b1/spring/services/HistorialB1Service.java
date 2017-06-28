@@ -186,4 +186,46 @@ public class HistorialB1Service {
         }
         return result;
     }
+
+    public int cantidadDeJuegos() {
+        int result = 0;
+        try {
+            List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT COUNT(*) as total FROM historial_b1 h WHERE  h.metodo = 'JUGAR' AND h.accion = 'SOLICITUD'");
+            if (query != null && !query.isEmpty()) {
+                result = Double.valueOf(query.get(0).get("total").toString()).intValue();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+    
+    public int recaudadoHistorico(){
+        int result = 0;
+        try {
+            
+            //RECAUDADO EN CREDITOS
+//            String r = ""
+//                    + "SELECT SUM(CAST(h.paquete -> 'datos' ->> 'apostado' AS real) + \n" +
+//                    "CAST(h.paquete -> 'datos' ->> 'apostadoEnCicloDeBolasExtra' as real)) - SUM(CAST(h.paquete -> 'datos' ->> 'ganado' AS real))\n" +
+//                    "as recaudado FROM historial_b1 h WHERE h.metodo = 'JUGAR'";
+
+            String r = "SELECT SUM(\n" +
+                "	(\n" +
+                "		CAST(h.paquete -> 'datos' ->> 'apostado' AS real) + \n" +
+                "		CAST(h.paquete -> 'datos' ->> 'apostadoEnCicloDeBolasExtra' as real) - \n" +
+                "		CAST(h.paquete -> 'datos' ->> 'ganado' AS real)\n" +
+                "	) * CAST(h.paquete -> 'datos' ->> 'denominacion' AS real)\n" +
+                ") \n" +
+                "as recaudado FROM historial_b1 h WHERE h.metodo = 'JUGAR'";
+
+            List<HashMap<String,Object>> query = Conexion.getInstancia().consultar(r);
+            if (query != null && !query.isEmpty()) {
+                result = Double.valueOf(query.get(0).get("recaudado").toString()).intValue();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
 }
