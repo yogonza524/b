@@ -8,7 +8,10 @@ package com.protocol.b1.main;
 
 import com.b1.batch.ProcessB1;
 import com.b1.spring.services.ConfiguracionService;
+import com.b1.spring.services.ContadoresService;
 import com.b1.spring.services.HistorialB1Service;
+import com.b1.spring.services.JuegoService;
+import com.b1.spring.services.LogService;
 import com.protocol.b1.servidor.Servidor;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -72,5 +75,20 @@ public class MainApp {
     @Bean
     HistorialB1Service historialB1service(){
         return new HistorialB1Service();
+    }
+    
+    @Bean
+    ContadoresService contadoresService(){
+        return new ContadoresService();
+    }
+    
+    @Bean
+    LogService logService(){
+        return new LogService();
+    }
+    
+    @Bean
+    JuegoService juegoService(){
+        return new JuegoService();
     }
 }

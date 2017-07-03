@@ -8,7 +8,10 @@ package com.protocol.b1.servidor;
 
 import com.b1.batch.ProcessB1;
 import com.b1.spring.services.ConfiguracionService;
+import com.b1.spring.services.ContadoresService;
 import com.b1.spring.services.HistorialB1Service;
+import com.b1.spring.services.JuegoService;
+import com.b1.spring.services.LogService;
 import com.bingo.enumeraciones.Denominacion;
 import com.bingo.enumeraciones.FaseDeBusqueda;
 import com.bingo.enumeraciones.MetodoB1;
@@ -96,6 +99,15 @@ public class Servidor {
     
     private HistorialB1Service historialB1service = 
             MainApp.springContext().getBean("historialB1service", HistorialB1Service.class);
+    
+    private LogService logService = 
+            MainApp.springContext().getBean("logService", LogService.class);
+    
+    private ContadoresService contadoresService = 
+            MainApp.springContext().getBean("contadoresService", ContadoresService.class);
+    
+    private JuegoService juegoService = 
+            MainApp.springContext().getBean("juegoService", JuegoService.class);
     //</editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Constructor">
@@ -192,6 +204,7 @@ public class Servidor {
                                 Conexion.getInstancia().actualizar("UPDATE configuracion SET ip_servidor = " + p[1]);
                             } catch (SQLException ex) {
                                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                                logService.log(ex.getMessage());
                             }
 
                             break;
@@ -253,12 +266,6 @@ public class Servidor {
         //Colocar el costo de la bola extra
         bingo.setPorcentajeDelPremioMayorPorSalirParaBolaExtra(configService.costoDeLaBolaExtraEnPorcentajeDelMayorPorSalir() / 100.0);
         
-        System.out.println("Utilizar umbral: " + bingo.isUtilizarUmbralParaLiberarBolasExtra());
-        System.out.println("Umbral: " + bingo.getUmbralParaLiberarBolasExtra());
-        System.out.println("Costo de la bola extra en porcentaje del mayor por salir: " + bingo.getPorcentajeDelPremioMayorPorSalirParaBolaExtra());
-        
-        
-        
         //Bonus variable
         bingo.setUtilizarPremiosVariablesBonus(true);
         
@@ -275,13 +282,8 @@ public class Servidor {
         
         bingo.setPremiosVariablesBonus(premiosBonusVariable);
         
-        try {
-            //Reiniciar el contador de recaudado desde el encendido de la maquina
-            Conexion.getInstancia().actualizar("UPDATE juego SET recaudado_desde_el_encendido = 0");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
+        juegoService.inicializarRecaudadoDesdeElEncendido();
+        contadoresService.inicializarCantidadDeJuegosDesdeElEncendido();
         
         try {
             List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT * FROM juego");
@@ -336,12 +338,10 @@ public class Servidor {
                 }
             }
             
-//            System.out.println("Configuracion inicial");
-//            System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(bingo));
-//            System.out.println();
             
         } catch (SQLException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+            logService.log(ex.getMessage());
         }
     }
 
@@ -350,16 +350,19 @@ public class Servidor {
             @Override
             public void canalInhibido(int numeroDeCanal) {
                 System.out.println("Canal inhibido para aceptar billetes: " + numeroDeCanal);
+                logService.log("Canal inhibido para aceptar billetes: " + numeroDeCanal);
             }
 
             @Override
             public void canalDesinhibido(int numeroDeCanal) {
                 System.out.println("Canal desinhibido para aceptar billetes: " + numeroDeCanal);
+                logService.log("Canal desinhibido para aceptar billetes: " + numeroDeCanal);
             }
 
             @Override
             public void aceptadoEnCanal(int numeroDeCanal) {
                 System.out.println("Aceptado en canal " + numeroDeCanal);
+                logService.log("Billete Aceptado en canal " + numeroDeCanal);
                 boolean aceptado = false;
                 switch(numeroDeCanal){
                     case 0: 
@@ -378,7 +381,7 @@ public class Servidor {
                                 //Persistir el cambio en la base de datos
                                 Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + bingo.getCreditos());
                                 
-                                Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$1 = cantidad_de_billetes_de_$1 + 1");
+                                contadoresService.incrementarCantidadDeBilletesDe$1();
                                 
                                 manejadorGame.enviar(new Paquete.PaqueteBuilder()
                                         .codigo(30)
@@ -413,7 +416,7 @@ break;
                                 //Persistir el cambio en la base de datos
                                 Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + bingo.getCreditos());
                                 
-                                Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$2 = cantidad_de_billetes_de_$2 + 1");
+                                contadoresService.incrementarCantidadDeBilletesDe$2();
                                 
                                 manejadorGame.enviar(new Paquete.PaqueteBuilder()
                                         .codigo(30)
@@ -448,7 +451,7 @@ break;
                                 //Persistir el cambio en la base de datos
                                 Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + bingo.getCreditos());
                                 
-                                Conexion.getInstancia().actualizar("UPDATE contadores SET cantidad_de_billetes_de_$5 = cantidad_de_billetes_de_$5 + 1");
+                                contadoresService.incrementarCantidadDeBilletesDe$5();
                                 
                                 manejadorGame.enviar(new Paquete.PaqueteBuilder()
                                         .codigo(30)
@@ -497,8 +500,10 @@ break;
                             }
                         } catch (SQLException ex) {
                             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                            logService.log(ex.getMessage());
                         } catch (IOException ex) {
                         Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                        logService.log(ex.getMessage());
                     }
                     }
                     break;
@@ -860,6 +865,7 @@ break;
                         case 62: response = this.costoBolaExtra(); break;
                         case 63: response = this.gananciasYCreditos(); break;
                         case 64: response = this.historialDeJuegos(p); break;
+                        case 65: response = this.contadores(); break;
                         case 120: response = this.enviarCreditosActuales(); break;
                         case 121: response = this.bonus(); break;
                         case 122: response = this.premioObtenidoEnBonus(p); break;
@@ -1033,32 +1039,16 @@ break;
                 String query = "UPDATE juego SET comenzo = '" + getCurrentTimeStamp() + "'"
                                 + ", ganado_en_bonus = 0, ganado = 0, bolas_visibles = '" + ArrayUtils.toString(bingo.getBolasVisibles()) + "'"
                         + ", bolas_extras = '" + ArrayUtils.toString(bingo.getBolasExtra()) + "',"
-                        + " recaudado_desde_el_encendido = recaudado_desde_el_encendido + " + bingo.apuestaTotal() ;
+                        + " recaudado = recaudado + " + (bingo.apuestaTotal() * bingo.getDenominacion().getValue()) + ","
+                        + " recaudado_desde_el_encendido = recaudado_desde_el_encendido + " + (bingo.apuestaTotal() * bingo.getDenominacion().getValue()) ;
 //                System.out.println(query);
                 Conexion.getInstancia().actualizar(query);
             } catch (SQLException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
-//            if (p != null && p.getDatos() != null && p.getDatos().get("creditos") != null
-//                    && p.getDatos().get("apuestaTotal") != null) {
-//                try {
-//                    bingo.apostar(Double.valueOf(p.getDatos().get("apuestaTotal").toString()).intValue());
-//                    bingo.setCreditos(Double.valueOf(p.getDatos().get("creditos").toString()).intValue());
-//                    
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
 //            
             bingo.jugar(false);
             
-//            System.out.println("Ganado: " + bingo.ganancias());
-//            System.out.println("Apostado: " + ArrayUtils.toString(bingo.apuestas()));
-//            System.out.println("Premios");
-//            for (int i = 0; i < 4; i++) {
-//                System.out.println(ArrayUtils.toString(bingo.getPremiosPagados()[i]));
-//            }
             
             //Actualizo los datos de la base de datos
             try {
@@ -1075,6 +1065,17 @@ break;
                         ", ganado = " + bingo.ganancias() + 
                         ", termino = '" + getCurrentTimeStamp().toString() + "'"
                 );
+                
+                //Acumulo los contadores
+                contadoresService.incrementarCantidadDeJuegosJugados();
+                contadoresService.incrementarCantidadDeJuegosDesdeElEncendido();
+                
+                if (bingo.ganancias() > 0) {
+                    contadoresService.incrementarCantidadDeJuegosConAlgunaVictoria();
+                }
+                else{
+                    contadoresService.incrementarCantidadDeJuegosSinVictorias();
+                }
                 
                 //Acumular para el Jackpot
                 double factorParaJackpot;
@@ -2341,6 +2342,22 @@ break;
                 }
             }
             return result.crear();
+        }
+
+        private Paquete contadores() {
+            PaqueteBuilder pb = new PaqueteBuilder().codigo(65).estado("error");
+            
+            //CONSULTAR LOS CONTADORES
+            try {
+                List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT * FROM contadores");
+                if (query != null && !query.isEmpty()) {
+                    
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            
+            return pb.crear();
         }
     }
     
