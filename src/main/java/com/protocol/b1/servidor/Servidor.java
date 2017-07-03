@@ -9,6 +9,7 @@ package com.protocol.b1.servidor;
 import com.b1.batch.ProcessB1;
 import com.b1.spring.services.ConfiguracionService;
 import com.b1.spring.services.ContadoresService;
+import com.b1.spring.services.ContadoresService.Contadores;
 import com.b1.spring.services.HistorialB1Service;
 import com.b1.spring.services.JuegoService;
 import com.b1.spring.services.LogService;
@@ -1035,19 +1036,19 @@ break;
 
         private Paquete jugar(Paquete p) throws IOException {
             
+            bingo.jugar(false);
+            
             try {
                 String query = "UPDATE juego SET comenzo = '" + getCurrentTimeStamp() + "'"
                                 + ", ganado_en_bonus = 0, ganado = 0, bolas_visibles = '" + ArrayUtils.toString(bingo.getBolasVisibles()) + "'"
                         + ", bolas_extras = '" + ArrayUtils.toString(bingo.getBolasExtra()) + "',"
-                        + " recaudado = recaudado + " + (bingo.apuestaTotal() * bingo.getDenominacion().getValue()) + ","
-                        + " recaudado_desde_el_encendido = recaudado_desde_el_encendido + " + (bingo.apuestaTotal() * bingo.getDenominacion().getValue()) ;
+                        + " recaudado = recaudado + " + (bingo.ganancias() - bingo.apuestaTotal() * bingo.getDenominacion().getValue()) + ","
+                        + " recaudado_desde_el_encendido = recaudado_desde_el_encendido + " + (bingo.ganancias() - bingo.apuestaTotal() * bingo.getDenominacion().getValue()) ;
 //                System.out.println(query);
                 Conexion.getInstancia().actualizar(query);
             } catch (SQLException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
-//            
-            bingo.jugar(false);
             
             
             //Actualizo los datos de la base de datos
@@ -2348,13 +2349,13 @@ break;
             PaqueteBuilder pb = new PaqueteBuilder().codigo(65).estado("error");
             
             //CONSULTAR LOS CONTADORES
-            try {
-                List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT * FROM contadores");
-                if (query != null && !query.isEmpty()) {
-                    
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            Contadores cont = contadoresService.contadores();
+            
+            if (cont != null) {
+                pb.estado("ok").dato("contadores", cont);
+            }
+            else{
+                pb.dato("desc", "No se encontró el registro de contadores");
             }
             
             return pb.crear();
