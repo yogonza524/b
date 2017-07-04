@@ -8,17 +8,29 @@ package com.b1.spring.services;
 import com.dao.Conexion;
 import java.util.HashMap;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.stereotype.Service;
 
 /**
  *
- * @author Gonzalo
+ * @author Gonzalo H. Mendoza
+ * @email yogonza524
+ * @pattern Microservicio. Spring Framework. Inyección de dependencias
  */
 @Service
 @Configurable
 public class ConfiguracionService {
     
+    @Autowired LogService logService; //Dependencia creada en com.protocol.b1.main
+    
+    /**
+     * Obtiene el umbral de creditos de la figura de pago por salir 
+     * necesaria para cumplir la condicion de liberar las bolas extra
+     * @return numero entero positivo, representa los creditos minimos
+     * que deben cumplir las figuras de pago por salir para liberar las bolas
+     * extra
+     */
     public int umbralParaLiberarBolasExtra(){
         int result = 9;
         
@@ -34,6 +46,12 @@ public class ConfiguracionService {
         return result;
     }
     
+    /**
+     * Obtiene la bandera (desde la base de datos) necesaria para decidir si 
+     * se debe utilizar un umbral de creditos de las figuras de pago por salir
+     * para liberar las bolas extra
+     * @return booleano
+     */
     public boolean utilizarUmbralParaLiberarBolasExtra(){
         boolean result = false;
         try {
@@ -89,4 +107,27 @@ public class ConfiguracionService {
         return result;
     }
     
+    /**
+     * Actualiza la ultima fecha y hora del pago manual, el mismo sirve para
+     * conocer cuando debe comenzar la nueva contabilización de metricas
+     */
+    public void asentarUltimaFechaDePagoManual(){
+        try {
+            Conexion.getInstancia().actualizar("UPDATE configuracion SET ultimo_pago_manual_realizado = now()");
+        } catch (Exception e) {
+            logService.log(e.getMessage());
+        }
+    }
+    
+    /**
+     * Acumula el monto pagado en el pago manual al acumulado historico
+     * @param montoApagar valor real, representa el monto en dinero a acumular
+     */
+    public void acumularPagoManualAlGeneral(double montoApagar){
+        try {
+            Conexion.getInstancia().actualizar("UPDATE contadores SET pagado_general = pagado_general + " + montoApagar);
+        } catch (Exception e) {
+            logService.log(e.getMessage());
+        }
+    }
 }

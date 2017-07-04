@@ -258,7 +258,7 @@ public class Servidor {
     private void configurarJuego(Juego bingo) {
         
         //Deshabilitar cartones si no hay suficiente credito, calcular apuestas
-        //bingo.setModoDeshabilitarPorFaltaDeCredito(true);
+        bingo.setModoDeshabilitarPorFaltaDeCredito(true);
         
         //Colocar el umbral 
         bingo.setUtilizarUmbralParaLiberarBolasExtra(configService.utilizarUmbralParaLiberarBolasExtra());
@@ -860,7 +860,8 @@ break;
                         case 27: response = this.generarBonus(); break;
                         case 50: response = this.jugar(p); break;
                         //case 51: response = this.cargarCreditos(p); break;
-                        case 52: response = this.colocarApuestas(p); break;
+                        //case 52: response = this.colocarApuestas(p); break;
+                        case 56: response = this.estadoDelJuegoActual(); break;
                         case 60: response = this.bolasExtraSeleccionadas(); break;
                         case 61: response = this.seleccionarBolaExtra(p); break;
                         case 62: response = this.costoBolaExtra(); break;
@@ -1470,6 +1471,12 @@ break;
             return response;
         }
 
+        /**
+         * Aumenta la apuesta total (apuesta basica) en tantas unidades como
+         * cartones habilitados existan, aumenta la apuesta de cada carton en
+         * una unidad. Persiste en la base de datos
+         * @return Paquete B1
+         */
         private Paquete aumentarApuesta() {
             bingo.aumentarApuestas();
             
@@ -1490,6 +1497,12 @@ break;
             return response;
         }
 
+        /**
+         * Disminuye las apuestas totales (apuesta basica) en tantas unidades
+         * como cartones habilitados existan, disminuye la apuesta en cada carton
+         * habilitado en una unidad. Persiste el estado en la Base de datos
+         * @return Paquete B1
+         */
         private Paquete disminuirApuesta() {
             bingo.disminuirApuestas();
             
@@ -1530,6 +1543,23 @@ break;
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
             
+            //Colocar los creditos en 0
+            bingo.setCreditos(0);
+            
+            //Habilitar el billetero
+            if (billetero != null) {
+                billetero.habilitarTodo();
+            }
+            
+            //INICIALIZAR CREDITOS EN LA TABLA juegos
+            juegoService.inicializarCreditos();
+            
+            //ACUMULO EL MONTO A PAGAR EN EL ACUMULADO HISTORICO DE PAGOS
+            configService.acumularPagoManualAlGeneral(bingo.getCreditos() * bingo.getDenominacion().getValue());
+            
+            //ACTUALIZO LA ULTIMA FECHA DE COBRO MANUAL
+            configService.asentarUltimaFechaDePagoManual();
+            
             Paquete respuesta = new Paquete.PaqueteBuilder()
                         .codigo(16)
                         .estado("ok")
@@ -1539,22 +1569,15 @@ break;
                         .dato("pagar", bingo.getCreditos())
                         .crear();
             
-            //Colocar los creditos en 0
-            bingo.setCreditos(0);
-            
-            //Habilitar el billetero
-            if (billetero != null) {
-                billetero.habilitarTodo();
-            }
-            
-            try {
-                Conexion.getInstancia().actualizar("UPDATE juego set creditos = 0");
-            } catch (SQLException ex) {
-                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-            }
             return respuesta;
         }
 
+        /**
+         * Genera un conjunto de numeros unicos para los distintos cartones
+         * de juego, dichos numeros cumplen con el requisito de G.L.I
+         * (prueba de medias, prueba de independencia, prueba de chi-cuadrada)
+         * @return Paquete B1
+         */
         private Paquete cambiarCartones() {
             bingo.cambiarCartones();
             
@@ -1588,6 +1611,16 @@ break;
             return response;
         }
 
+        /**
+         * Genera un paquete del protocolo B1 con código = 7, estado = ok y 
+         * un campo "bolas" con el arreglo de bolas del bolillero actual,
+         * las primeras 30 bolas son las bolas visibles (se visualizan al 
+         * presionar el boton "JUGAR" y las siguientes 10 son las bolas extra
+         * (se visualizan solo si se cumple la condicion para liberar tales bolas)
+         * @return objeto com.protocol.b1.servidor.Paquete, entidad serializada
+         * encargada de encapsular los datos de comunicación entre la vista y el 
+         * controlador
+         */
         private Paquete bolas() {
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(7)
@@ -1598,13 +1631,19 @@ break;
             return response;
         }
 
+        /**
+         * Genera un paquete del protocolo B1 encargado de encapsular
+         * una matriz de matrices de 3X5 con los cartones actuales,
+         * los mismos se obtienen del objeto "bingo" (clase Juego)
+         * @return Paquete de comunicacion B1 con los cartones actuales
+         */
         private Paquete cartonesActuales() {
             int[][][] cartones = bingo.getCartones();
             
             List<Map<String,Object>> c = new ArrayList<>();
             
             for (int i = 0; i < cartones.length; i++) {
-                Integer[][] matriz = new Integer[3][5];
+                Integer[][] matriz = new Integer[Juego.getLineas()][Juego.getColumnas()];
                 Map<String,Object> cartonCasilla = new HashMap<>();
                 for (int j = 0; j < 3; j++) {
                     for (int k = 0; k < 5; k++) {
@@ -1624,6 +1663,10 @@ break;
             return response;
         }
 
+        /**
+         * Genera un nuevo bolillero (y tambien un nuevo Bonus) 
+         * @return Paquete de comunicacion B1
+         */
         private Paquete generarBolillero() {
             
             if (hayJackpot) {
@@ -1662,6 +1705,12 @@ break;
             return response;
         }
 
+        /**
+         * Deshabilita un carton seleccionado a partir del dato "numero"
+         * encapsulado en el paquete "p" pasado como parametro
+         * @param p Paquete recibido desde la vista, debe contener el dato "numero" (int)
+         * @return Paquete B1
+         */
         private Paquete deshabilitarCarton(Paquete p) {
             
             if (p != null && p.getDatos() != null && p.getDatos().get("numero") != null) {
@@ -1671,17 +1720,13 @@ break;
                 boolean success = false;
                 if (numero > 0 && numero < Juego.getCantidadDeCartones() + 1) {
                     success = bingo.deshabilitar(numero - 1);
-                    System.out.println(bingo.habilitados());
-                    System.out.println(ArrayUtils.toString(bingo.apuestas()));
                 }
                 
-                try {
-                    Conexion.getInstancia().actualizar("UPDATE juego set carton" + numero + "_habilitado = false, apuesta_total = " + bingo.apuestaTotal());
-                } catch (SQLException ex) {
-                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                //DESHABILITAR EL CARTON Y ACTUALIZAR APUESTA EN LA BD
+                juegoService.deshabilitarCarton(numero, bingo.apuestaTotal());
                 
-                Paquete response = null;
+                Paquete response;
+                
                 if (success) {
                     response = new Paquete.PaqueteBuilder()
                     .codigo(21)
@@ -1717,6 +1762,11 @@ break;
             return response;
         }
 
+        /**
+         * Genera un paquete de comunicacion B1 con el arreglo de premios
+         * otorgados en el ciclo de Bonus
+         * @return Paquete B1, codigo 121
+         */
         private Paquete bonus() {
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(121)
@@ -1727,6 +1777,13 @@ break;
             return response;
         }
         
+        /**
+         * Genera un arreglo de premios (fijos o variables, depende de la configuracion
+         * previa) para el ciclo de Bonus. A la fecha (4/7/2017) se estableció
+         * con el cliente que el bonus sera variable (premios multiplos de la apuesta
+         * basica)
+         * @return Paquete B1, codigo 27 
+         */
         private Paquete generarBonus() {
             
             bingo.generarBonusB1();
@@ -1828,6 +1885,14 @@ break;
             return response;
         }
 
+        /**
+         * Obtiene el numero de bolas extra seleccionadas por el jugador,
+         * tener en cuenta que el arreglo de bolas extra se implementó (heredado)
+         * como una pila, con lo cual si el numero de bolas extra seleccioandas 
+         * es igual a 3 eso indica que las bolas extra descubiertas fueron las 
+         * de la posicion 0,1 y 2 en el arreglo de bolas extra
+         * @return Paquete B1, codigo = 60
+         */
         private Paquete bolasExtraSeleccionadas() {
             Paquete response = new Paquete.PaqueteBuilder()
                     .codigo(60)
@@ -1871,6 +1936,15 @@ break;
                 return response;
         }
 
+        /**
+         * Obtiene el costo (en creditos) de la bola extra siguiente, la misma
+         * se calcula dependiendo de la proxima figura por salir: una figura
+         * por salir es tal si se encuentra dicha figura de pago en algun
+         * carton habilitado y le falta una casilla (cualquiera) para ser
+         * formada. Tambien genera un arreglo de premios de bonus, esto es
+         * necesario para que no salgan dos bonus iguales en el mismo juego
+         * @return Paquete B1 
+         */
         private Paquete costoBolaExtra() {
             
             bingo.generarBonusB1();
@@ -1885,6 +1959,13 @@ break;
             return response;
         }
 
+        /**
+         * Metodo accesorio, realiza la multiplicacion a la vieja escuela
+         * (reemplazar en cualquier momento ;) )
+         * @param valor
+         * @param frecuencia
+         * @return 
+         */
         private String sumar(int valor, Integer frecuencia) {
             int cont = 0;
             for (int i = 0; i < frecuencia; i++) {
@@ -1915,7 +1996,6 @@ break;
                     Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 
-                System.out.println("Ganado en bonus: "  + ganadoEnBonus + ", creditos actuales: " + bingo.getCreditos());
                 bingo.setCreditos(bingo.getCreditos() + ganadoEnBonus);
                 bingo.setTotalGanadoEnBonus(bingo.getTotalGanadoEnBonus() + ganadoEnBonus);
                 
@@ -2359,6 +2439,15 @@ break;
             }
             
             return pb.crear();
+        }
+
+        private Paquete estadoDelJuegoActual() {
+            PaqueteBuilder result = new Paquete.PaqueteBuilder().codigo(56).estado("error");
+            JuegoService.EstadoDelJuegoActual estado = juegoService.estadoActual();
+            if (estado != null) {
+                result.estado("ok").dato("estado", estado);
+            }
+            return result.crear();
         }
     }
     

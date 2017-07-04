@@ -19,16 +19,23 @@ import org.springframework.stereotype.Service;
  *
  * @author Gonzalo H. Mendoza
  * @email yogonza524@gmail.com
+ * @pattern Microservicio. Spring Framework.
  * 
  */
 @Service
 public class HistorialB1Service {
 
+    /**
+     * Registra un mensaje del protocolo B1 (Paquete p) en la base de datos
+     * @param p Paquete del protocolo B1
+     * @param accion SOLICITUD | RESPUESTA
+     * @param metodo nombre del metodo del protocolo B1
+     * @return true si se persistió correctamente, false en caso contrario
+     */
     public boolean log(Paquete p, String accion, String metodo){
         boolean result = false;
         try {
             String query = "INSERT INTO historial_b1(paquete, accion, metodo) VALUES('" + p.aJSON() + "', '" + accion + "', '" + metodo + "')";
-//            System.out.println(query);
             result = Conexion.getInstancia().insertar(query);
         } catch (Exception e) {
             e.printStackTrace();
@@ -36,6 +43,13 @@ public class HistorialB1Service {
         return result;
     }
     
+    /**
+     * Obtiene una lista de Paquetes (protocolo B1) cuyo metodo es "JUGAR"
+     * @param cantidad numero entero positivo, representa la contidad de paquetes 
+     * B1 a devolver en la lista
+     * @return lista de paquetes B1 cuyos metodos son "JUGAR", ordenados
+     * descendentemente desde la ultima fecha en la cual se generaron 
+     */
     public List<Paquete> historialDeJuegos(int cantidad){
         List<Paquete> result = null;
         if (cantidad > 0) {
@@ -143,6 +157,13 @@ public class HistorialB1Service {
         return result;
     }
 
+    /**
+     * Actualiza la denominacion de un juego dado por su id (uuid) en la 
+     * base de datos (tabla historial_b1)
+     * @param bingo Objeto Juego. Contiene un uuid y denominacion
+     * @return true si se actualizó correctamente la base de datos, false
+     * en otro caso.
+     */
     public boolean actualizarDenominacion(Juego bingo) {
         boolean result = false;
         if (bingo != null) {
@@ -187,6 +208,11 @@ public class HistorialB1Service {
         return result;
     }
 
+    /**
+     * Obtiene el numero total de juegos registrados desde el inicio de 
+     * los tiempos (en la base de datos)
+     * @return numero entero mayor o igual a cero.
+     */
     public int cantidadDeJuegos() {
         int result = 0;
         try {
