@@ -1726,34 +1726,16 @@ public class Juego {
 
     private void deshabilitarCartonesSiNoHayCreditoSuficienteNuevo(){
         int apuestaTotal = this.apuestaTotal();
+        
         if (creditos == 0) {
-            this.habilitar(0);
-            
-            for (int i = 1; i < 4; i++) {
-                this.deshabilitar(i);
-            }
-            
             this.apostar(0);
-            
             return;
         }
         
-        if (apuestaTotal > creditos && apuestaTotal > 4) {
+        if (apuestaTotal > creditos) {
+            
             this.apostar(creditos);
             return;
-        }
-        
-        if (creditos > 0 && creditos < 4) {
-            
-            this.apostar(creditos);
-            
-            for (int i = 0; i < creditos; i++) {
-                this.habilitar(i);
-            }
-            
-            for (int i = creditos; i < 4; i++) {
-                this.deshabilitar(i);
-            }
         }
     }
     
