@@ -310,13 +310,14 @@ public class Servidor {
                     
                     int cartonesHabilitados = (habilitados[1]? 1:0) + (habilitados[2]? 1:0) + (habilitados[3]? 1:0) + 1;
                     
-                    apuestaTotal = (creditos /cartonesHabilitados) * cartonesHabilitados;
+//                    apuestaTotal = (creditos /cartonesHabilitados) * cartonesHabilitados;
+                    apuestaTotal = creditos;
                     
-                    Conexion.getInstancia().actualizar("UPDATE juego SET apuesta_total = " + apuestaTotal);
+                    juegoService.setApuestaTotal(apuestaTotal);
                 }
                 
                 //Verificar si se puede habilitar dependiendo de la cantidad de creditos
-                if (creditos == 0) {
+                if (creditos < apuestaTotal) {
                     Conexion.getInstancia().actualizar("UPDATE juego SET carton2_habilitado = false, carton3_habilitado = false, carton4_habilitado = false, apuesta_total = 1");
                     habilitados[1] = false;
                     habilitados[2] = false;
@@ -862,8 +863,8 @@ break;
                         case 26: response = this.pagar(); break;
                         case 27: response = this.generarBonus(); break;
                         case 50: response = this.jugar(p); break;
-                        //case 51: response = this.cargarCreditos(p); break;
-                        //case 52: response = this.colocarApuestas(p); break;
+//                        case 51: response = this.cargarCreditos(p); break;
+//                        case 52: response = this.colocarApuestas(p); break;
                         case 56: response = this.estadoDelJuegoActual(); break;
                         case 60: response = this.bolasExtraSeleccionadas(); break;
                         case 61: response = this.seleccionarBolaExtra(p); break;
@@ -1334,7 +1335,7 @@ break;
                 for (int i = 0; i < habilitados.length; i++) {
                     System.out.println("Carton " + (i+1) + ": " + habilitados[i]);
                     if (habilitados[i]) {
-                        apuestas[i] = apuesta / cartones_habilitados;
+                        apuestas[i] = ((apuesta / cartones_habilitados) > 0 ? apuesta / cartones_habilitados : 1 );
                         System.out.println("Carton " + (i+1) + " apuesta: " + apuestas[i]);
                     }
                 }
@@ -2456,9 +2457,44 @@ break;
     
     private class XSocketDataHandlerServerJackpot implements IDataHandler, IConnectHandler, IDisconnectHandler{
 
+        private final Set<INonBlockingConnection> SESSIONS_SERVER = Collections.synchronizedSet(new HashSet<INonBlockingConnection>());
+        
         @Override
-        public boolean onData(INonBlockingConnection inbc) throws IOException, BufferUnderflowException, ClosedChannelException, MaxReadSizeExceededException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        public boolean onData(INonBlockingConnection nbc) throws IOException, BufferUnderflowException, ClosedChannelException, MaxReadSizeExceededException {
+            /**
+            if (SESSIONS_SERVER.contains(nbc)) {
+                try {
+                    String data = nbc.readStringByDelimiter("\0"); //Lectura
+                    Paquete p = Paquete.deJSON(data); //Decodificación del paquete
+
+                    Paquete response = null;
+                    
+
+                        if (p.getCodigo() != 202) {
+                            System.out.println("Paquete recibido");
+                            System.out.println(p.aJSON());
+        
+                            System.out.println("Paquete enviado");
+                            System.out.println(response != null? response.aJSON() : "Mensaje nulo");
+                        }
+
+                    if (response != null) {
+                        enviar(response.aJSON());
+                    }
+                    
+                    //Guardar el historial del mensaje
+                    historialB1service.log(p, "SOLICITUD", MetodoB1.porCodigo(p.getCodigo()));
+                    historialB1service.log(response, "RESPUESTA", MetodoB1.porCodigo(response.getCodigo()));
+
+                } catch(Exception ex){
+                    logService.log(ex.getMessage());
+//                    ex.printStackTrace();
+//                    this.tratarDeEnviarExcepcion(ex);
+                }
+            }
+ 
+            **/
+            return true;
         }
 
         @Override
@@ -2471,6 +2507,28 @@ break;
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
         
+        //Metodos propios del servidor de Jackpot
+        /**
+        * Envia un mensaje al puerto, el mensaje corresponde
+        * al formato JSON estandar
+        * 
+        * @param mensaje cadena de caracteres en formato JSON
+        * @throws IOException Excepción de E/S al escribir en el puerto
+        */
+       public void enviar(String mensaje) throws IOException{
+           synchronized(SESSIONS_SERVER)
+           {
+               Iterator<INonBlockingConnection> iter = SESSIONS_SERVER.iterator();
+
+               while(iter.hasNext())
+               {
+                   INonBlockingConnection nbConn = (INonBlockingConnection) iter.next();
+
+                   if(nbConn.isOpen())
+                       nbConn.write(mensaje+"\0");
+               }
+           }
+       }
     }
     
     private class XSocketDataHandlerClientJackpot implements IDataHandler, IConnectHandler, IDisconnectHandler{
