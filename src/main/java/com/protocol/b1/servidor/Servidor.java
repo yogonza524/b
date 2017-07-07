@@ -222,11 +222,11 @@ public class Servidor {
         serverGame.start();
         
         if (serverJackpot != null) {
-            serverJackpot.start();
+            clientJackpot.start();
         }
         else{
             if (clientJackpot != null) {
-                clientJackpot.start();
+                serverJackpot.start();
             }
         }
         
@@ -743,11 +743,14 @@ break;
             List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT servidor, puerto_jackpot FROM configuracion");
             
             if (query != null && !query.isEmpty() && query.get(0).get("servidor") != null && Boolean.valueOf(query.get(0).get("servidor").toString())) {
+                
                 //Esta maquina es el servidor de Jackpot, verificar si puedo instanciar
+                System.out.println("Maquina configurada como servidor de Jackpot");
+                
                 if (query.get(0).get("puerto_jackpot") != null) {
-                    //Instanciar el servidor de Jackpot
-                    manejadorServerJackpot = new XSocketDataHandlerServerJackpot();
-                    serverJackpot = new Server(Integer.valueOf(query.get(0).get("puerto_jackpot").toString()), manejadorServerJackpot);
+                    //Instanciar el cliente de Jackpot
+                    manejadorClientJackpot = new XSocketDataHandlerClientJackpot();
+                    clientJackpot = new Server(Integer.valueOf(query.get(0).get("puerto_jackpot").toString()), manejadorServerJackpot);
                 }
                 else{
                     System.err.println("No se ha colocado el puerto para el servidor de jackpot, no se puede instanciar el servidor");
@@ -758,10 +761,10 @@ break;
                 if (query != null && !query.isEmpty() && query.get(0).get("servidor") != null && !Boolean.valueOf(query.get(0).get("servidor").toString())) {
                     //La maquina es un cliente, no es el servidor, instanciar el servidor cliente de Jackpot
                     if (query.get(0).get("puerto_jackpot") != null) {
-                        //Instanciar el cliente de Jackpot
-                        manejadorClientJackpot = new XSocketDataHandlerClientJackpot();
-                        clientJackpot = new Server(Integer.valueOf(query.get(0).get("puerto_jackpot").toString()), manejadorServerJackpot);
                         
+                        //Instanciar el servidor de Jackpot
+                        manejadorServerJackpot = new XSocketDataHandlerServerJackpot();
+                        serverJackpot = new Server(Integer.valueOf(query.get(0).get("puerto_jackpot").toString()), manejadorServerJackpot);
                     }
                     else{
                         System.err.println("No se ha colocado el puerto para el cliente de jackpot, no se puede instanciar el cliente");
@@ -840,7 +843,7 @@ break;
                 try {
                     String data = nbc.readStringByDelimiter("\0"); //Lectura
                     Paquete p = Paquete.deJSON(data); //Decodificación del paquete
-
+                    
                     Paquete response = null;
 
                     switch(p.getCodigo()){
@@ -928,6 +931,7 @@ break;
                     }
                     else{
                         //First session connection to BingoBot
+                        System.out.println("Conexion admitida: " + inbc.getRemoteAddress().getHostAddress());
                         added = SESSIONS.add(inbc);
                         bingo = new Juego();
                         configurarJuego(bingo);
@@ -1106,13 +1110,21 @@ break;
                             //se encuentra en el 1% de lo recaudado (0.01)
                             factorParaJackpot = Double.valueOf(query.get(0).get("factor_para_jackpot").toString());
 
+                            //Calculo el total de dinero destinado al jackpot, es un porcentaje de la apuesta total
                             double paraJackpot = bingo.apuestaTotal() * bingo.getDenominacion().getValue() * factorParaJackpot;
 
-                            try {
-                                Conexion.getInstancia().actualizar("UPDATE configuracion SET acumulado = acumulado + " + paraJackpot);
-                            } catch (SQLException ex) {
-                                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                            }
+                            //Persisto en la base de datos (solo si soy servidor)
+                            configService.aumularParaElJackpot(paraJackpot);
+                            
+                            //Notifico a todas las maquinas conectadas al servidor
+                            //Que el jackpot acaba de cambiar
+                            manejadorClientJackpot.enviar(
+                                new Paquete.PaqueteBuilder()
+                                    .estado("ok")
+                                    .codigo(202)
+                                    .dato("acumulado", configService.getAcumulado())
+                                    .crear()
+                            );
                         }
                         else{
                             //La maquina no es servidor, enviar el mensaje al servidor
@@ -2533,20 +2545,96 @@ break;
     
     private class XSocketDataHandlerClientJackpot implements IDataHandler, IConnectHandler, IDisconnectHandler{
 
+        private final Set<INonBlockingConnection> SESSIONS_CLIENTS = Collections.synchronizedSet(new HashSet<INonBlockingConnection>());
+        
         @Override
         public boolean onData(INonBlockingConnection inbc) throws IOException, BufferUnderflowException, ClosedChannelException, MaxReadSizeExceededException {
+            /**
+             * Logica necesaria para recibir los datos desde el puerto por defecto (8895) desde
+             * el servidor, tener cuidado de que siempre sea el servidor el que envia
+             * dicha informacion ya que de otra forma se puede corromper la integridad
+             * de los datos almacenados en la base de datos y/o en el juego
+             * 
+             * Lo que el servidor envia siempre es el valor actual del acumulado
+             * para el Jackpot
+             */
+            
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
         @Override
         public boolean onConnect(INonBlockingConnection inbc) throws IOException, BufferUnderflowException, MaxReadSizeExceededException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            boolean added = false;
+            try {
+                synchronized(SESSIONS_CLIENTS){
+                    added = SESSIONS_CLIENTS.add(inbc);
+                }
+            } catch (Exception e) {
+                logService.log(e.getMessage());
+            }
+            
+            return added;
         }
 
         @Override
         public boolean onDisconnect(INonBlockingConnection inbc) throws IOException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            /**
+             * Remuevo un cliente de la lista de sesiones de Jackpot
+             * una vez que el mismo haya cerrado la conexion o se haya perdido
+             * la conexion por algun motivo desconocido
+             */
+            
+            boolean removed = false;
+            try {
+                if (SESSIONS_CLIENTS.contains(inbc)) {
+                    removed = SESSIONS_CLIENTS.remove(inbc);
+                }
+            } catch (Exception e) {
+                logService.log(e.getMessage());
+            }
+            return removed;
         }
         
+        /**
+         * Envia un paquete B1 a los clientes conectados al servidor
+         * @param p Objeto Paquete 
+         * @throws IOException Excepcion de entrada y salida, se puede producir
+         * por algun inconveniente en la conexion de socket entre cliente y servidor
+         */
+        public void enviar(Paquete p) throws IOException{
+            synchronized(SESSIONS_CLIENTS)
+           {
+               Iterator<INonBlockingConnection> iter = SESSIONS_CLIENTS.iterator();
+
+               while(iter.hasNext())
+               {
+                   INonBlockingConnection nbConn = (INonBlockingConnection) iter.next();
+
+                   if(nbConn.isOpen())
+                       nbConn.write(p.aJSON() +"\0");
+               }
+           }
+        }
+        
+        /**
+         * Envia un paquete B1 (formato String) a los clientes conectados al servidor
+         * @param paquete Objeto String con formato JSON y estructura segun especificacion B1
+         * @throws IOException IOException Excepcion de entrada y salida, se puede producir
+         * por algun inconveniente en la conexion de socket entre cliente y servidor
+         */
+        public void enviar(String paquete) throws IOException{
+            synchronized(SESSIONS_CLIENTS)
+           {
+               Iterator<INonBlockingConnection> iter = SESSIONS_CLIENTS.iterator();
+
+               while(iter.hasNext())
+               {
+                   INonBlockingConnection nbConn = (INonBlockingConnection) iter.next();
+
+                   if(nbConn.isOpen())
+                       nbConn.write(paquete +"\0");
+               }
+           }
+        }
     }
 }

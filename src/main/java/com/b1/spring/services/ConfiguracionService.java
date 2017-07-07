@@ -7,8 +7,12 @@ package com.b1.spring.services;
 
 import com.dao.Conexion;
 import com.protocol.b1.main.MainApp;
+import com.protocol.b1.servidor.Servidor;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -132,5 +136,40 @@ public class ConfiguracionService {
         } catch (Exception e) {
             logService.log(e.getMessage());
         }
+    }
+    
+    /**
+     * Acumula el monto especificado por Dinero en la base de datos
+     * Este metodo solo debe ser llamado por el servidor de Jackpot
+     * el cliente de jackpot debe informar al servidor via socket
+     * a traves del puerto especificado (por defecto 8895)
+     * @param dinero 
+     */
+    public void aumularParaElJackpot(double dinero){
+        try {
+            com.protocol.dao.Conexion.getInstancia().actualizar("UPDATE configuracion SET acumulado = acumulado + " + dinero);
+        } catch (SQLException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+            logService.log(ex.getMessage());
+        }
+    }
+    
+    /**
+     * Obtiene el total acumulado para el Jackpot, el mismo 
+     * se encuentra en la tabla bingo -> configuracion
+     * @return valor total acumulado por los distintos clientes
+     * conectados al servidor de Jackpot
+     */
+    public double getAcumulado(){
+        double result = 0.0;
+        try {
+            List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT acumulado FROM configuracion LIMIT 1");
+            if (query != null && ! query.isEmpty()) {
+                result = Double.valueOf(query.get(0).get("acumulado").toString());
+            }
+        } catch (Exception e) {
+            logService.log(e.getMessage());
+        }
+        return result;
     }
 }

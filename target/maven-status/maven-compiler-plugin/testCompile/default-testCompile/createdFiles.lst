@@ -10,5 +10,6 @@ PostgreSQLTest.class
 JuegoTest$DeadEventsSubscriver.class
 BilleteroTest.class
 MethodsTest.class
+IPAddressTest.class
 ProcessTest$SyncPipe.class
 JuegoTest$InitiateProcessing.class
