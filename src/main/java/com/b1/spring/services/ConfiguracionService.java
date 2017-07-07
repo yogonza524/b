@@ -172,4 +172,17 @@ public class ConfiguracionService {
         }
         return result;
     }
+    
+    public boolean esServidor(){
+        boolean result = false;
+        try {
+            List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT servidor FROM configuracion LIMIT 1");
+            if (query != null && !query.isEmpty()) {
+                result = Boolean.valueOf(query.get(0).get("servidor").toString());
+            }
+        } catch (Exception e) {
+            logService.log(e.getMessage());
+        }
+        return result;
+    }
 }

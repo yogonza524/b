@@ -122,7 +122,18 @@ public class Servidor {
         
         parametros = new HashMap<>();
         manejadorGame = new XSocketDataHandler();
-        manejadorServerJackpot = new XSocketDataHandlerServerJackpot();
+        
+        //Instanciar el correspondiente servidor de jackpot
+        if (configService.esServidor()) {
+            //Es cliente, debe informar al servidor
+            manejadorClientJackpot = new XSocketDataHandlerClientJackpot();
+            serverJackpot = new Server(8895, manejadorClientJackpot);
+        }
+        else{
+            //Es servidor, debe informar a los demas clientes
+            manejadorServerJackpot = new XSocketDataHandlerServerJackpot();
+            clientJackpot = new Server(8895, manejadorServerJackpot);
+        }
         
         serverGame = new Server(puerto,manejadorGame);
         
@@ -221,13 +232,11 @@ public class Servidor {
         
         serverGame.start();
         
-        if (serverJackpot != null) {
+        if (configService.esServidor()) {
             clientJackpot.start();
         }
         else{
-            if (clientJackpot != null) {
-                serverJackpot.start();
-            }
+            serverJackpot.start();
         }
         
         //Lanzar el BingoBot
