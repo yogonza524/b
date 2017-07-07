@@ -6,11 +6,9 @@
 package com.b1.spring.services;
 
 import com.dao.Conexion;
+import com.protocol.b1.main.MainApp;
 import java.util.HashMap;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.stereotype.Service;
 
 /**
  *
@@ -18,11 +16,16 @@ import org.springframework.stereotype.Service;
  * @email yogonza524
  * @pattern Microservicio. Spring Framework. Inyección de dependencias
  */
-@Service
-@Configurable
+//@Service
+//@Configurable
 public class ConfiguracionService {
     
-    @Autowired LogService logService; //Dependencia creada en com.protocol.b1.main
+    //@Autowired LogService logService; //Dependencia creada en com.protocol.b1.main
+    private final LogService logService;
+
+    public ConfiguracionService() {
+        logService = MainApp.getLogService();
+    }
     
     /**
      * Obtiene el umbral de creditos de la figura de pago por salir 

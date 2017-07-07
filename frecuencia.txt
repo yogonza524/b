@@ -1,20 +1,20 @@
-_____________________________________________________________________________________________________________________
-| Nombre       | Porcentaje de retribución (%)| Ocurrencia      | Creditos obtenidos       | Creditos apostados      |
-|====================================================================================================================|
-| tresLineas   | 2.02%                        | 2 ocurrencias   | 46500 creditos obtenidos | 31 creditos apostados   |
-| cuadrado     | 1.43%                        | 5 ocurrencias   | 33000 creditos obtenidos | 66 creditos apostados   |
-| h            | 20.81%                       | 122 ocurrencias | 480000 creditos obtenidos| 2400 creditos apostados |
-| gamma        | 6.03%                        | 39 ocurrencias  | 139000 creditos obtenidos| 695 creditos apostados  |
-| tt           | 7.75%                        | 80 ocurrencias  | 178800 creditos obtenidos| 1788 creditos apostados |
-| dosLineas1   | 2.82%                        | 48 ocurrencias  | 65040 creditos obtenidos | 1084 creditos apostados |
-| dosLineas2   | 3.36%                        | 54 ocurrencias  | 77520 creditos obtenidos | 1292 creditos apostados |
-| dosLineas3   | 3.61%                        | 64 ocurrencias  | 83280 creditos obtenidos | 1388 creditos apostados |
-| grilla       | 13.77%                       | 451 ocurrencias | 317670 creditos obtenidos| 10589 creditos apostados|
-| y            | 5.05%                        | 447 ocurrencias | 116580 creditos obtenidos| 11658 creditos apostados|
-| piramideComun| 4.23%                        | 386 ocurrencias | 97630 creditos obtenidos | 9763 creditos apostados |
-| vInvertida   | 6.37%                        | 1888 ocurrencias| 146922 creditos obtenidos| 48974 creditos apostados|
-| v            | 6.40%                        | 1881 ocurrencias| 147588 creditos obtenidos| 49196 creditos apostados|
-| linea1       | 4.68%                        | 2095 ocurrencias| 107970 creditos obtenidos| 53985 creditos apostados|
-| linea2       | 4.08%                        | 1777 ocurrencias| 94086 creditos obtenidos | 47043 creditos apostados|
-| linea3       | 4.75%                        | 2097 ocurrencias| 109480 creditos obtenidos| 54740 creditos apostados|
-| diamante1    | 2.84%                        | 2505 ocurrencias| 65508 creditos obtenidos | 65508 creditos apostados|
+_______________________________________________________________________________________________________________
+| Nombre       | Porcentaje de retribución (%)| Ocurrencia    | Creditos obtenidos     | Creditos apostados    |
+|==============================================================================================================|
+| tresLineas   | 0.00%                        | 0 ocurrencias | 0 creditos obtenidos   | 0 creditos apostados  |
+| cuadrado     | 0.00%                        | 0 ocurrencias | 0 creditos obtenidos   | 0 creditos apostados  |
+| h            | 13.75%                       | 1 ocurrencias | 1800 creditos obtenidos| 9 creditos apostados  |
+| gamma        | 45.82%                       | 1 ocurrencias | 6000 creditos obtenidos| 30 creditos apostados |
+| tt           | 0.00%                        | 0 ocurrencias | 0 creditos obtenidos   | 0 creditos apostados  |
+| dosLineas1   | 4.12%                        | 1 ocurrencias | 540 creditos obtenidos | 9 creditos apostados  |
+| dosLineas2   | 0.00%                        | 0 ocurrencias | 0 creditos obtenidos   | 0 creditos apostados  |
+| dosLineas3   | 0.00%                        | 0 ocurrencias | 0 creditos obtenidos   | 0 creditos apostados  |
+| grilla       | 4.12%                        | 1 ocurrencias | 540 creditos obtenidos | 18 creditos apostados |
+| y            | 2.75%                        | 2 ocurrencias | 360 creditos obtenidos | 36 creditos apostados |
+| piramideComun| 2.29%                        | 1 ocurrencias | 300 creditos obtenidos | 30 creditos apostados |
+| vInvertida   | 6.53%                        | 10 ocurrencias| 855 creditos obtenidos | 285 creditos apostados|
+| v            | 6.09%                        | 10 ocurrencias| 798 creditos obtenidos | 266 creditos apostados|
+| linea1       | 2.87%                        | 8 ocurrencias | 376 creditos obtenidos | 188 creditos apostados|
+| linea2       | 4.46%                        | 11 ocurrencias| 584 creditos obtenidos | 292 creditos apostados|
+| linea3       | 4.14%                        | 10 ocurrencias| 542 creditos obtenidos | 271 creditos apostados|
+| diamante1    | 3.05%                        | 17 ocurrencias| 399 creditos obtenidos | 399 creditos apostados|

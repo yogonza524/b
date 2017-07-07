@@ -53,7 +53,6 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.lwjgl.LWJGLException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.xsocket.MaxReadSizeExceededException;
 import org.xsocket.connection.IConnectHandler;
 import org.xsocket.connection.IDataHandler;
@@ -96,19 +95,19 @@ public class Servidor {
     
     //Inyección de dependencias
     private ConfiguracionService configService = 
-            MainApp.springContext().getBean("configService", ConfiguracionService.class);
+            MainApp.getConfiguracionService();
     
     private HistorialB1Service historialB1service = 
-            MainApp.springContext().getBean("historialB1service", HistorialB1Service.class);
+            MainApp.getHistorialB1Service();
     
     private LogService logService = 
-            MainApp.springContext().getBean("logService", LogService.class);
+            MainApp.getLogService();
     
     private ContadoresService contadoresService = 
-            MainApp.springContext().getBean("contadoresService", ContadoresService.class);
+            MainApp.getContadoresService();
     
     private JuegoService juegoService = 
-            MainApp.springContext().getBean("juegoService", JuegoService.class);
+            MainApp.getJuegoService();
     //</editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Constructor">
@@ -232,17 +231,21 @@ public class Servidor {
         }
         
         //Lanzar el BingoBot
+        //Comentar el siguiente Hilo si se quiere lanzar el Bingo de manera manual
+        //(abrir manualmente el archivo bingo.swf)
         new Thread(() -> {
             //"\"C:\\Documents and Settings\\Gonzalo\\Desktop\\bingoBot\\PantallaPrincipalCorregida\\bingo.swf\""
             String ruta = configService.rutaBingo();
             
-//            try {
-//                new ProcessB1().run(new String[]{"cmd"}, ruta , "No se pudo iniciar el juego", true);
-//            } catch (IOException ex) {
-//                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-//            } catch (InterruptedException ex) {
-//                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-//            }
+            try {
+                new ProcessB1().run(new String[]{"cmd"}, ruta , "No se pudo iniciar el juego", true);
+            } catch (IOException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                logService.log(ex.getMessage());
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                logService.log(ex.getMessage());
+            }
         }).start();
         
         if (!B1FX) {

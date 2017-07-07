@@ -7,12 +7,11 @@
 package com.b1.spring.services;
 
 import com.dao.Conexion;
+import com.protocol.b1.main.MainApp;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 /**
  *
@@ -20,10 +19,15 @@ import org.springframework.stereotype.Service;
  * @email yogonza524@gmail.com
  * 
  */
-@Service
+//@Service
 public class ContadoresService {
     
-    @Autowired LogService logService;
+    //@Autowired LogService logService;
+    private final LogService logService;
+
+    public ContadoresService() {
+        this.logService = MainApp.getLogService();
+    }
     
     public void incrementarCantidadDeBilletesDe$1(){
         try {

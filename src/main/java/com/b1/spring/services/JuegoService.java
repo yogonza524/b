@@ -7,11 +7,10 @@
 package com.b1.spring.services;
 
 import com.bingo.persistencia.Conexion;
+import com.protocol.b1.main.MainApp;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 /**
  *
@@ -20,10 +19,16 @@ import org.springframework.stereotype.Service;
  * @pattern Microservicio. Spring Framework. Inyección de dependencias
  * 
  */
-@Service
+//@Service
 public class JuegoService {
 
-    @Autowired LogService logService; //dependencia creda en com.protocol.b1.MainApp
+    //@Autowired LogService logService; //dependencia creda en com.protocol.b1.MainApp
+    private final LogService logService;
+
+    public JuegoService() {
+        logService = MainApp.getLogService();
+    }
+    
     
     /**
      * Coloca en 0.0 el monto total recaudado por la maquina desde que se inicio

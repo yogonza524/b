@@ -16,12 +16,6 @@ import com.protocol.b1.servidor.Servidor;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 
 /**
  *
@@ -30,29 +24,31 @@ import org.springframework.context.annotation.Configuration;
  * Mail: yogonza524@gmail.com
  * StackOverflow: http://stackoverflow.com/users/5079517/gonza?tab=profile
  */
-@Configuration
-@ComponentScan
-@EnableAutoConfiguration
+//@Configuration
+//@ComponentScan
+
+//@EnableAutoConfiguration
+//@SpringBootApplication(exclude = {JmxAutoConfiguration.class})
 public class MainApp {
     
     // <editor-fold defaultstate="collapsed" desc="Atributos">
-    private static final ApplicationContext CONTEXT = new 
-            AnnotationConfigApplicationContext(MainApp.class);
+    private static LogService logService;
+    private static ContadoresService contadoresService;
+    private static HistorialB1Service historialB1Service;
+    private static JuegoService juegoService;
+    private static ConfiguracionService configuracionService;
     //</editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Constructor">
 
     //</editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Getters y Setters">
-    public static ApplicationContext springContext(){
-        return CONTEXT;
-    }
-    //</editor-fold>
-
     // <editor-fold defaultstate="collapsed" desc="Metodos">
     public static void main(String[] args) {
   
+//        SpringApplication sa = new SpringApplication(MainApp.class);
+//        sa.setBannerMode(Banner.Mode.OFF);
+//        sa.setLogStartupInfo(false);
         
         Servidor server;
         try {
@@ -66,29 +62,45 @@ public class MainApp {
         }
     }
     //</editor-fold>
-    
-    @Bean
-    ConfiguracionService configService(){
-        return new ConfiguracionService();
+
+    public static LogService getLogService() {
+        if (logService == null) {
+            logService = new LogService();
+        }
+        return logService;
+    }
+
+    public static ContadoresService getContadoresService() {
+        if (contadoresService == null) {
+            contadoresService = new ContadoresService();
+        }
+        return contadoresService;
+    }
+
+    public static HistorialB1Service getHistorialB1Service() {
+        if (historialB1Service == null) {
+            historialB1Service = new HistorialB1Service();
+        }
+        return historialB1Service;
+    }
+
+    public static JuegoService getJuegoService() {
+        if (juegoService == null) {
+            juegoService = new JuegoService();
+        }
+        return juegoService;
+    }
+
+    public static ConfiguracionService getConfiguracionService() {
+        if (configuracionService == null) {
+            configuracionService = new ConfiguracionService();
+        }
+        return configuracionService;
     }
     
-    @Bean
-    HistorialB1Service historialB1service(){
-        return new HistorialB1Service();
-    }
+    /**
+     * Metodos estaticos para servicios
+     */
     
-    @Bean
-    ContadoresService contadoresService(){
-        return new ContadoresService();
-    }
     
-    @Bean
-    LogService logService(){
-        return new LogService();
-    }
-    
-    @Bean
-    JuegoService juegoService(){
-        return new JuegoService();
-    }
 }

@@ -18,6 +18,7 @@ import javafx.stage.StageStyle;
  *
  * @author Gonzalo
  */
+//@SpringBootApplication(exclude = {JmxAutoConfiguration.class})
 public class MainFx extends Application{
 
     @Override

@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Ignore;
 
 /**
  *
@@ -46,6 +47,7 @@ public class ProcessTest {
     // The methods must be annotated with annotation @Test. For example:
     //
      @Test
+    @Ignore
      public void runProcess() throws IOException, InterruptedException {
          String[] command =
         {

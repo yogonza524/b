@@ -7,7 +7,6 @@
 package com.b1.spring.services;
 
 import com.bingo.persistencia.Conexion;
-import org.springframework.stereotype.Service;
 
 /**
  *
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Service;
  * @email yogonza524@gmail.com
  * 
  */
-@Service
+//@Service
 public class LogService {
 
     public void log(String message){

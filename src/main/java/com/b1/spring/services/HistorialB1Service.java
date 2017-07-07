@@ -9,11 +9,11 @@ package com.b1.spring.services;
 import com.core.bingosimulador.Juego;
 import com.dao.Conexion;
 import com.google.gson.Gson;
+import com.protocol.b1.main.MainApp;
 import com.protocol.b1.servidor.Paquete;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import org.springframework.stereotype.Service;
 
 /**
  *
@@ -22,9 +22,15 @@ import org.springframework.stereotype.Service;
  * @pattern Microservicio. Spring Framework.
  * 
  */
-@Service
+//@Service
 public class HistorialB1Service {
 
+    private final LogService logService;
+
+    public HistorialB1Service() {
+        logService = MainApp.getLogService();
+    }
+    
     /**
      * Registra un mensaje del protocolo B1 (Paquete p) en la base de datos
      * @param p Paquete del protocolo B1
@@ -38,7 +44,7 @@ public class HistorialB1Service {
             String query = "INSERT INTO historial_b1(paquete, accion, metodo) VALUES('" + p.aJSON() + "', '" + accion + "', '" + metodo + "')";
             result = Conexion.getInstancia().insertar(query);
         } catch (Exception e) {
-            e.printStackTrace();
+            logService.log(e.getMessage());
         }
         return result;
     }
@@ -67,7 +73,7 @@ public class HistorialB1Service {
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                logService.log(e.getMessage());
             }
         }
         return result;
@@ -96,7 +102,7 @@ public class HistorialB1Service {
                         }
                     }
             } catch (Exception e) {
-                e.printStackTrace();
+                logService.log(e.getMessage());
             }
         }
         return result;
@@ -123,7 +129,7 @@ public class HistorialB1Service {
                         }
                     }
             } catch (Exception e) {
-                e.printStackTrace();
+                logService.log(e.getMessage());
             }
         }
         return result;
@@ -151,7 +157,7 @@ public class HistorialB1Service {
                         }
                     }
             } catch (Exception e) {
-                e.printStackTrace();
+                logService.log(e.getMessage());
             }
         }
         return result;
@@ -185,7 +191,7 @@ public class HistorialB1Service {
                         }
                     }
             } catch (Exception e) {
-                e.printStackTrace();
+                logService.log(e.getMessage());
             }
         }
         return result;
@@ -203,7 +209,7 @@ public class HistorialB1Service {
                 result = Double.valueOf(query.get(0).get("retribuido").toString());
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logService.log(e.getMessage());
         }
         return result;
     }
@@ -221,7 +227,7 @@ public class HistorialB1Service {
                 result = Double.valueOf(query.get(0).get("total").toString()).intValue();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logService.log(e.getMessage());
         }
         return result;
     }
@@ -250,7 +256,7 @@ public class HistorialB1Service {
                 result = Double.valueOf(query.get(0).get("recaudado").toString()).intValue();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logService.log(e.getMessage());
         }
         return result;
     }
