@@ -93,7 +93,7 @@ public class Servidor {
     
     private Map<String,Object> parametros;
     
-    //Inyección de dependencias
+    //Servicios Singleton desde la clase Main
     private ConfiguracionService configService = 
             MainApp.getConfiguracionService();
     
