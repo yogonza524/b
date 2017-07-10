@@ -325,7 +325,7 @@ public class Servidor {
                 }
                 
                 //Verificar si se puede habilitar dependiendo de la cantidad de creditos
-                if (creditos < apuestaTotal) {
+                if (creditos == 0) {
                     Conexion.getInstancia().actualizar("UPDATE juego SET carton2_habilitado = false, carton3_habilitado = false, carton4_habilitado = false, apuesta_total = 1");
                     habilitados[1] = false;
                     habilitados[2] = false;
@@ -343,7 +343,7 @@ public class Servidor {
                 int denominacion = Double.valueOf(query.get(0).get("denominacion_factor").toString()).intValue();
                 switch(denominacion){
                     case 20: 
-                        //Cinco centavos18
+                        //Cinco centavos
                         bingo.setDenominacion(Denominacion.CINCO_CENTAVOS); break;
                     case 10:
                         //Diez centavos
@@ -2372,16 +2372,8 @@ break;
         }
 
         private Paquete reiniciarAcumulado() {
-            try {
-                //Reiniciar el acumulado
-                Conexion.getInstancia().actualizar("UPDATE configuracion SET acumulado = 0.0");
-                
-                return new Paquete.PaqueteBuilder().codigo(203).estado("ok").dato("desc", "Acumulado reiniciado a 0").crear();
-                
-            } catch (SQLException ex) {
-                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                return new Paquete.PaqueteBuilder().codigo(203).estado("error").dato("desc", "Excepcion SQL: " + ex.getMessage()).crear();
-            }
+            configService.reiniciarAcumulado();
+            return new Paquete.PaqueteBuilder().codigo(203).estado("ok").dato("desc", "Acumulado reiniciado a 0").crear();
         }
 
         private Paquete bloquearBilletero() {
@@ -2466,50 +2458,50 @@ break;
         
         @Override
         public boolean onData(INonBlockingConnection nbc) throws IOException, BufferUnderflowException, ClosedChannelException, MaxReadSizeExceededException {
+            
             /**
-            if (SESSIONS_SERVER.contains(nbc)) {
-                try {
-                    String data = nbc.readStringByDelimiter("\0"); //Lectura
-                    Paquete p = Paquete.deJSON(data); //Decodificación del paquete
+             * Logica necesaria para recibir los datos desde el puerto por defecto (8895) desde
+             * el servidor, tener cuidado de que siempre sea el servidor el que envia
+             * dicha informacion ya que de otra forma se puede corromper la integridad
+             * de los datos almacenados en la base de datos y/o en el juego
+             * 
+             * Lo que el servidor envia siempre es el valor actual del acumulado
+             * para el Jackpot
+             */
+            try {
+                String data = nbc.readStringByDelimiter("\0"); //Lectura
+                Paquete p = Paquete.deJSON(data); //Decodificación del paquete
 
-                    Paquete response = null;
-                    
+                Paquete response = null;
 
-                        if (p.getCodigo() != 202) {
-                            System.out.println("Paquete recibido");
-                            System.out.println(p.aJSON());
-        
-                            System.out.println("Paquete enviado");
-                            System.out.println(response != null? response.aJSON() : "Mensaje nulo");
-                        }
-
-                    if (response != null) {
-                        enviar(response.aJSON());
-                    }
-                    
-                    //Guardar el historial del mensaje
-                    historialB1service.log(p, "SOLICITUD", MetodoB1.porCodigo(p.getCodigo()));
-                    historialB1service.log(response, "RESPUESTA", MetodoB1.porCodigo(response.getCodigo()));
-
-                } catch(Exception ex){
-                    logService.log(ex.getMessage());
-//                    ex.printStackTrace();
-//                    this.tratarDeEnviarExcepcion(ex);
+                switch(p.getCodigo()){
+                    case 202: response = colocarAcumuladoEinformar(p); break;
                 }
+                
+                if (response != null) {
+                    //Informar a la vista
+                    manejadorGame.enviar(response.aJSON());
+                }
+                
+            } catch (Exception e) {
+                logService.log(e.getMessage());
             }
- 
-            **/
+            
             return true;
         }
 
         @Override
         public boolean onConnect(INonBlockingConnection inbc) throws IOException, BufferUnderflowException, MaxReadSizeExceededException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            System.out.println("Conexion admitida: " + inbc.getRemoteAddress().getHostAddress());
+            
+            return SESSIONS_SERVER.add(inbc);
         }
 
         @Override
         public boolean onDisconnect(INonBlockingConnection inbc) throws IOException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            System.out.println("Desconectado: " + inbc.getRemoteAddress().getHostAddress());
+            
+            return SESSIONS_SERVER.remove(inbc);
         }
         
         //Metodos propios del servidor de Jackpot
@@ -2534,6 +2526,25 @@ break;
                }
            }
        }
+       
+       /**
+        * Este metodo coloca el valor del acumulado (p.datos.acumulado)
+        * informado por el servidor de Jackpot (no es esta maquina)
+        * lo persiste en la tabla "configuracion" campo "acumulado"
+        * y envia esta informacion a la vista (modulo Flash) para actualizar
+        * el valor mostrado al jugador a traves del mensaje con codigo = 202
+        * @param p Paquete B1 con el campo acumulado = informado por el servidor
+        * @return Paquete B1, respuesta a enviar a la vista (campo acumulado seteado)
+        */
+       private Paquete colocarAcumuladoEinformar(Paquete p) {
+            PaqueteBuilder result = new Paquete.PaqueteBuilder().codigo(202).estado("error");
+            if (p != null && p.getDatos() != null && p.getDatos().get("acumulado") != null) {
+                double acumulado = Double.valueOf(p.getDatos().get("acumulado").toString());
+                configService.setAcumulado(acumulado); //Registrar el valor en la base de datos
+                result.estado("ok").dato("acumulado", acumulado); //Crear el paquete para informar a la vista
+            }
+            return result.crear();
+        }
     }
     
     private class XSocketDataHandlerClientJackpot implements IDataHandler, IConnectHandler, IDisconnectHandler{
@@ -2542,17 +2553,12 @@ break;
         
         @Override
         public boolean onData(INonBlockingConnection inbc) throws IOException, BufferUnderflowException, ClosedChannelException, MaxReadSizeExceededException {
-            /**
-             * Logica necesaria para recibir los datos desde el puerto por defecto (8895) desde
-             * el servidor, tener cuidado de que siempre sea el servidor el que envia
-             * dicha informacion ya que de otra forma se puede corromper la integridad
-             * de los datos almacenados en la base de datos y/o en el juego
-             * 
-             * Lo que el servidor envia siempre es el valor actual del acumulado
-             * para el Jackpot
-             */
             
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            /*
+            Logica de oyente del servidor desde los clientes conectados
+            */
+            
+            return true;
         }
 
         @Override

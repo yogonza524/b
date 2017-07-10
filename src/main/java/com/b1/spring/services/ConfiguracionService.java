@@ -198,4 +198,30 @@ public class ConfiguracionService {
         }
         return result;
     }
+    
+    public void reiniciarAcumulado(){
+        try {
+            Conexion.getInstancia().actualizar("UPDATE configuracion SET acumulado = 0.0");
+        } catch (Exception e) {
+            logService.log(e.getMessage());
+        }
+    }
+    
+    /**
+     * Coloca el valor dado por "acumulado" en el campo "acumulado"
+     * en la tabla "configuracion" de la base de datos "bingo".
+     * Esto se hace solo cuando estamos ante una instancia de un
+     * cliente (el servidor le informa el total acumulado y el cliente
+     * lo registra en su tabla)
+     * @param acumulado double. Representa el dinero total acumulado
+     */
+    public void setAcumulado(double acumulado){
+        if (acumulado >= 0) {
+            try {
+                Conexion.getInstancia().actualizar("UPDATE configuracion SET acumulado = " + acumulado);
+            } catch (Exception e) {
+                logService.log(e.getMessage());
+            }
+        }
+    }
 }

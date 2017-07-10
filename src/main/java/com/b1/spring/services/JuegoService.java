@@ -83,6 +83,9 @@ public class JuegoService {
     
     public void setApuestaTotal(int apuestaTotal){
         try {
+            if (apuestaTotal == 0) {
+                apuestaTotal = 1;
+            }
             com.protocol.dao.Conexion.getInstancia().actualizar("UPDATE juego SET apuesta_total = " + apuestaTotal);
         } catch (Exception e) {
             logService.equals(e.getMessage());
