@@ -240,22 +240,21 @@ public class Servidor {
         }
         
         //Lanzar el BingoBot
-        //Comentar el siguiente Hilo si se quiere lanzar el Bingo de manera manual
-        //(abrir manualmente el archivo bingo.swf)
-        new Thread(() -> {
-            //"\"C:\\Documents and Settings\\Gonzalo\\Desktop\\bingoBot\\PantallaPrincipalCorregida\\bingo.swf\""
-            String ruta = configService.rutaBingo();
-            
-            try {
-                new ProcessB1().run(new String[]{"cmd"}, ruta , "No se pudo iniciar el juego", true);
-            } catch (IOException ex) {
-                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                logService.log(ex.getMessage());
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                logService.log(ex.getMessage());
-            }
-        }).start();
+        if (configService.lanzarVista()) {
+            //Comentar el siguiente Hilo si se quiere lanzar el Bingo de manera manual
+            //(abrir manualmente el archivo bingo.swf)
+            new Thread(() -> {
+                //"\"C:\\Documents and Settings\\Gonzalo\\Desktop\\bingoBot\\PantallaPrincipalCorregida\\bingo.swf\""
+                String ruta = configService.rutaBingo();
+
+                try {
+                    new ProcessB1().run(new String[]{"cmd"}, ruta , "No se pudo iniciar el juego", true);
+                } catch (IOException | InterruptedException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    logService.log(ex.getMessage());
+                }
+            }).start();
+        }
         
         if (!B1FX) {
             Thread.currentThread().join(); //Bucle infinito
@@ -2306,27 +2305,12 @@ break;
         private Paquete obtenerTotalAcumuladoEnJackpot() {
             
             /*
-            Si la instancia actual de B1 es el servidor, entonces enviar el acumulado,
-            sino verificar si existe un servidor y consultarle el acumulado, sino
-            enviar un mensaje de error: no hay servidor de Jackpot
+            Si esta instancia de B1 es servidor de Jackpot enviar el acumulado,
+            caso contrario no hacer nada
             */
             
-            if (serverJackpot != null && serverJackpot.isOpen()) {
-                try {
-                    //Hay un servidor de jackpot, es este, enviar acumulado
-                    List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT acumulado FROM configuracion LIMIT 1");
-                    if (query != null && !query.isEmpty() && query.get(0) != null && query.get(0).get("acumulado") != null) {
-                        double acumulado = Double.valueOf(query.get(0).get("acumulado").toString());
-                        return new Paquete.PaqueteBuilder().codigo(202).estado("ok").dato("desc", "Bote").dato("acumulado", acumulado).crear();
-                    }
-                } catch (SQLException ex) {
-                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                    return new Paquete.PaqueteBuilder().codigo(202).estado("error").dato("desc", "Excepcion SQL: " + ex.getMessage()).crear();
-                }
-            }
-            else{
-                //No hay servidor en la instancia actual, verificar si hay alguno configurado
-                
+            if (configService.esServidor()) {
+                return new Paquete.PaqueteBuilder().codigo(202).estado("ok").dato("desc", "Bote").dato("acumulado", configService.getAcumulado()).crear();
             }
             
             Paquete response = new Paquete.PaqueteBuilder()

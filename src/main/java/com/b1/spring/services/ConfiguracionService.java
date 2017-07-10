@@ -185,4 +185,17 @@ public class ConfiguracionService {
         }
         return result;
     }
+    
+    public boolean lanzarVista(){
+        boolean result = false;
+        try {
+            List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT lanzar_vista_desde_backend as result FROM configuracion LIMIT 1");
+            if (query != null && !query.isEmpty()) {
+                result = Boolean.valueOf(query.get(0).get("result").toString());
+            }
+        } catch (Exception e) {
+            logService.log(e.getMessage());
+        }
+        return result;
+    }
 }
