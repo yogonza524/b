@@ -879,7 +879,7 @@ break;
                         case 26: response = this.pagar(); break;
                         case 27: response = this.generarBonus(); break;
                         case 50: response = this.jugar(p); break;
-//                        case 51: response = this.cargarCreditos(p); break;
+                        case 51: response = this.cargarCreditos(p); break;
 //                        case 52: response = this.colocarApuestas(p); break;
                         case 56: response = this.estadoDelJuegoActual(); break;
                         case 60: response = this.bolasExtraSeleccionadas(); break;
@@ -2091,35 +2091,11 @@ break;
         }
 
         private Paquete cargarCreditos(Paquete p) {
-            if (p.getDatos() != null && p.getDatos().get("totalCreditos") != null) {
-                int c = Double.valueOf(p.getDatos().get("totalCreditos").toString()).intValue();
-                int cred = 0;
-                try {
-                    List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT creditos FROM juego LIMIT 1");
-                    if (query != null && !query.isEmpty()) {
-                        cred = Double.valueOf(query.get(0).get("creditos").toString()).intValue();
-                        if (c != cred) {
-                            System.out.println("Se perdió la sincronizacion");
-                            bingo.setCreditos(c);
-                            Conexion.getInstancia().actualizar("UPDATE juego SET creditos = " + c);
-                            
-                            throw new RuntimeException("Sincronizacion perdida");
-                        }
-                        return new Paquete.PaqueteBuilder()
-                                .codigo(51)
-                                .estado("ok")
-                                .dato("desc", "Sincronizacion estable, no se modificaron los creditos (backend manejando)")
-                                .crear();
-                    }
-                } catch (SQLException ex) {
-                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                } catch(RuntimeException re){
-                    System.out.println("Sincronizacion perdida, se cargaran los creditos de la vista: " + c);
-                }
-            }
+            
             return new Paquete.PaqueteBuilder()
                     .codigo(51)
-                    .estado("error")
+                    .estado("ok")
+                    .dato("creditos", bingo.getCreditos())
                     .crear();
         }
 
