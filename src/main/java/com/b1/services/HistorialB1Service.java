@@ -137,7 +137,7 @@ public class HistorialB1Service {
         return result;
     }
     
-    qpublic boolean actualizarJuegoEnCicloBonus(Juego bingo){
+    public boolean actualizarJuegoEnCicloBonus(Juego bingo){
         boolean result = false;
         if (bingo != null) {
             try {
