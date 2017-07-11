@@ -1191,7 +1191,7 @@ break;
                     .dato("cartonesHabilitados", bingo.getCartonesHabilitados())
                     .dato("habilitados", bingo.habilitados())
                     .dato("bonus", bingo.getBonus())
-                    .dato("huboBonus", bingo.huboBonus())
+                    .dato("actualizarJuegoEnCicloBonus", bingo.huboBonus())
                     .dato("liberarBolasExtra", bingo.liberarBolasExtra())
                     .dato("hayJackpot", this.hayJackpot)
                     .dato("carton1", bingo.getCartones()[0])

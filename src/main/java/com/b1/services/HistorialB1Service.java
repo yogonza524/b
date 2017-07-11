@@ -137,7 +137,7 @@ public class HistorialB1Service {
         return result;
     }
     
-    public boolean actualizarJuegoEnCicloBonus(Juego bingo){
+    qpublic boolean actualizarJuegoEnCicloBonus(Juego bingo){
         boolean result = false;
         if (bingo != null) {
             try {
@@ -279,4 +279,5 @@ public class HistorialB1Service {
         }
         return result;
     }
+    
 }
