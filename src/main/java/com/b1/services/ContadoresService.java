@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package com.b1.spring.services;
+package com.b1.services;
 
 import com.dao.Conexion;
 import com.protocol.b1.main.MainApp;
@@ -264,6 +264,8 @@ public class ContadoresService {
         }
         return result;
     }
+    
+    
     
     public void inicializarContadores(){
         try {

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.b1.spring.services;
+package com.b1.services;
 
 import com.dao.Conexion;
 import com.protocol.b1.main.MainApp;
@@ -222,6 +222,14 @@ public class ConfiguracionService {
             } catch (Exception e) {
                 logService.log(e.getMessage());
             }
+        }
+    }
+    
+    public void setUltimaFechaDeEncendido(){
+        try {
+            Conexion.getInstancia().actualizar("UPDATE configuracion SET ultimo_encendido = now()");
+        } catch (Exception e) {
+            logService.log(e.getMessage());
         }
     }
 }

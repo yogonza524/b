@@ -7,11 +7,12 @@
 package com.protocol.b1.main;
 
 import com.b1.batch.ProcessB1;
-import com.b1.spring.services.ConfiguracionService;
-import com.b1.spring.services.ContadoresService;
-import com.b1.spring.services.HistorialB1Service;
-import com.b1.spring.services.JuegoService;
-import com.b1.spring.services.LogService;
+import com.b1.services.ConfiguracionService;
+import com.b1.services.ContadoresService;
+import com.b1.services.HistorialB1Service;
+import com.b1.services.JuegoService;
+import com.b1.services.LogService;
+import com.b1.services.UtilidadesService;
 import com.protocol.b1.servidor.Servidor;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -37,6 +38,7 @@ public class MainApp {
     private static HistorialB1Service historialB1Service;
     private static JuegoService juegoService;
     private static ConfiguracionService configuracionService;
+    private static UtilidadesService utilidadesServices;
     //</editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Constructor">
@@ -96,6 +98,13 @@ public class MainApp {
             configuracionService = new ConfiguracionService();
         }
         return configuracionService;
+    }
+    
+    public static UtilidadesService getUtilidadesService(){
+        if (utilidadesServices == null) {
+            utilidadesServices = new UtilidadesService();
+        }
+        return utilidadesServices;
     }
     
     /**

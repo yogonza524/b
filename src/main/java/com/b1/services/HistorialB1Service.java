@@ -4,16 +4,18 @@
  * and open the template in the editor.
  */
 
-package com.b1.spring.services;
+package com.b1.services;
 
 import com.core.bingosimulador.Juego;
 import com.dao.Conexion;
 import com.google.gson.Gson;
 import com.protocol.b1.main.MainApp;
 import com.protocol.b1.servidor.Paquete;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import org.apache.commons.lang.exception.ExceptionUtils;
 
 /**
  *
@@ -232,16 +234,10 @@ public class HistorialB1Service {
         return result;
     }
     
-    public int recaudadoHistorico(){
-        int result = 0;
+    public double recaudadoHistorico(){
+        double result = 0.0;
         try {
             
-            //RECAUDADO EN CREDITOS
-//            String r = ""
-//                    + "SELECT SUM(CAST(h.paquete -> 'datos' ->> 'apostado' AS real) + \n" +
-//                    "CAST(h.paquete -> 'datos' ->> 'apostadoEnCicloDeBolasExtra' as real)) - SUM(CAST(h.paquete -> 'datos' ->> 'ganado' AS real))\n" +
-//                    "as recaudado FROM historial_b1 h WHERE h.metodo = 'JUGAR'";
-
             String r = "SELECT SUM(\n" +
                 "	(\n" +
                 "		CAST(h.paquete -> 'datos' ->> 'apostado' AS real) + \n" +
@@ -255,8 +251,31 @@ public class HistorialB1Service {
             if (query != null && !query.isEmpty()) {
                 result = Double.valueOf(query.get(0).get("recaudado").toString()).intValue();
             }
-        } catch (Exception e) {
+        } catch (SQLException | NumberFormatException e) {
             logService.log(e.getMessage());
+        }
+        return result;
+    }
+    
+    public double recaudadoDesdeElUltimoEncendido(){
+        double result = 0.0;
+        try {
+            List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT SUM(\n" +
+"                	(\n" +
+"                		CAST(h.paquete -> 'datos' ->> 'apostado' AS real) + \n" +
+"                		CAST(h.paquete -> 'datos' ->> 'apostadoEnCicloDeBolasExtra' as real) - \n" +
+"                		CAST(h.paquete -> 'datos' ->> 'ganado' AS real)\n" +
+"                	) * CAST(h.paquete -> 'datos' ->> 'denominacion' AS real)\n" +
+"                )\n" +
+"                as recaudado FROM historial_b1 h, configuracion c WHERE h.metodo = 'JUGAR' AND h.accion = 'RESPUESTA' AND c.ultimo_encendido < h.fecha");
+            if (query != null && !query.isEmpty() && query.get(0) != null) {
+                System.out.println(query.get(0));
+                if (query.get(0).get("recaudado") != null) {
+                    result = Double.valueOf(query.get(0).get("recaudado").toString());
+                }
+            }
+        } catch (SQLException | NumberFormatException e) {
+            logService.log(ExceptionUtils.getFullStackTrace(e));
         }
         return result;
     }

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package com.b1.spring.services;
+package com.b1.services;
 
 import com.bingo.persistencia.Conexion;
 import com.protocol.b1.main.MainApp;

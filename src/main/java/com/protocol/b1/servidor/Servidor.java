@@ -7,12 +7,13 @@
 package com.protocol.b1.servidor;
 
 import com.b1.batch.ProcessB1;
-import com.b1.spring.services.ConfiguracionService;
-import com.b1.spring.services.ContadoresService;
-import com.b1.spring.services.ContadoresService.Contadores;
-import com.b1.spring.services.HistorialB1Service;
-import com.b1.spring.services.JuegoService;
-import com.b1.spring.services.LogService;
+import com.b1.services.ConfiguracionService;
+import com.b1.services.ContadoresService;
+import com.b1.services.ContadoresService.Contadores;
+import com.b1.services.HistorialB1Service;
+import com.b1.services.JuegoService;
+import com.b1.services.LogService;
+import com.b1.services.UtilidadesService;
 import com.bingo.enumeraciones.Denominacion;
 import com.bingo.enumeraciones.FaseDeBusqueda;
 import com.bingo.enumeraciones.MetodoB1;
@@ -108,6 +109,10 @@ public class Servidor {
     
     private JuegoService juegoService = 
             MainApp.getJuegoService();
+    
+    private UtilidadesService utilidadesService = 
+            MainApp.getUtilidadesService();
+    
     //</editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Constructor">
@@ -296,6 +301,7 @@ public class Servidor {
         
         juegoService.inicializarRecaudadoDesdeElEncendido();
         contadoresService.inicializarCantidadDeJuegosDesdeElEncendido();
+        configService.setUltimaFechaDeEncendido();
         
         try {
             List<HashMap<String,Object>> query = Conexion.getInstancia().consultar("SELECT * FROM juego");
@@ -316,11 +322,10 @@ public class Servidor {
                 //Verificar si los creditos son suficientes
                 if (creditos < apuestaTotal) {
                     
-                    int cartonesHabilitados = (habilitados[1]? 1:0) + (habilitados[2]? 1:0) + (habilitados[3]? 1:0) + 1;
-                    
-//                    apuestaTotal = (creditos /cartonesHabilitados) * cartonesHabilitados;
+                    //coloco la apuesta total igual a los creditos disponibles
                     apuestaTotal = creditos;
                     
+                    //Persisto la apuesta total en la base de datos
                     juegoService.setApuestaTotal(apuestaTotal);
                 }
                 
@@ -918,8 +923,8 @@ break;
                         historialB1service.log(response, "RESPUESTA", MetodoB1.porCodigo(response.getCodigo()));
                     }
 
-                } catch(Exception ex){
-//                    ex.printStackTrace();
+                } catch(IOException | SQLException ex){
+                    logService.log(ExceptionUtils.getMessage(ex));
                     this.tratarDeEnviarExcepcion(ex);
                 }
             }
@@ -987,6 +992,8 @@ break;
                         .dato("excepcion", ExceptionUtils.getMessage(ex))
                         .crear();
                 enviar(respuesta.aJSON());
+                logService.log(ExceptionUtils.getMessage(ex));
+                
                 return respuesta;
 //                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IOException ex1) {
@@ -2433,7 +2440,10 @@ break;
             Contadores cont = contadoresService.contadores();
             
             if (cont != null) {
-                pb.estado("ok").dato("contadores", cont);
+                pb.estado("ok")
+                        .dato("contadores", cont)
+                        .dato("recaudadoDesdeElEncendido", historialB1service.recaudadoDesdeElUltimoEncendido())
+                        ;
             }
             else{
                 pb.dato("desc", "No se encontró el registro de contadores");
